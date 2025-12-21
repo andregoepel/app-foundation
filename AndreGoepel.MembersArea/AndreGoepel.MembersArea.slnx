@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AndreGoepel.MembersArea.AppHost/AndreGoepel.MembersArea.AppHost.csproj" />
+  <Project Path="AndreGoepel.MembersArea.Database/AndreGoepel.MembersArea.Database.csproj" Id="0ce42ad0-0bb1-487e-b690-244f15ddd8d8" />
+  <Project Path="AndreGoepel.MembersArea.ServiceDefaults/AndreGoepel.MembersArea.ServiceDefaults.csproj" />
+  <Project Path="AndreGoepel.MembersArea/AndreGoepel.MembersArea.csproj" />
+</Solution>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-AndreGoepel_MembersArea-c3d2e608-d33f-4412-ba33-2d59d0b1835b</UserSecretsId>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.MembersArea.Database\AndreGoepel.MembersArea.Database.csproj" />
+    <ProjectReference Include="..\AndreGoepel.MembersArea.ServiceDefaults\AndreGoepel.MembersArea.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>
