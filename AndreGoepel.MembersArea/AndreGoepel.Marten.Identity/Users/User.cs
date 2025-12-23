@@ -4,13 +4,18 @@ namespace AndreGoepel.Marten.Identity.Users;
 
 public class User : IdentityUser
 {
-    public Guid UserId { get; internal set; }
-    public bool Deleted { get; internal set; }
+    public override string Id
+    {
+        get => UserId.ToString();
+        set => UserId = Guid.Parse(value);
+    }
+    public Guid UserId { get; set; }
+    public bool Deleted { get; set; }
 
-    public UserId CreatedBy { get; internal set; }
-    public DateTime CreatedAt { get; internal set; }
-    public UserId ChangedBy { get; internal set; }
-    public DateTime ChangedAt { get; internal set; }
-    public UserId? DeletedBy { get; internal set; }
-    public DateTime? DeletedAt { get; internal set; }
+    public UserId CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public UserId ChangedBy { get; set; }
+    public DateTime ChangedAt { get; set; }
+    public UserId? DeletedBy { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

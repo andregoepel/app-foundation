@@ -2,6 +2,6 @@
 
 public record UserCreated(UserId UserId, string? UserName, string? Email, string? PasswordHash)
 {
-    public UserId CreatedBy { get; } = UserId;
-    public DateTime CreatedAt { get; } = DateTime.UtcNow;
+    public UserId CreatedBy { get; init; } = UserId;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }
