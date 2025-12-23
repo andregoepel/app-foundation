@@ -37,15 +37,19 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
             user.UserName = @event.UserName;
             user.NormalizedUserName = @event.UserName?.ToUpper();
         }
+
         if (@event.Email is not null)
         {
             user.Email = @event.Email;
             user.NormalizedEmail = @event.Email?.ToUpper();
         }
+
+        if (@event.PhoneNumber is not null)
+            user.PhoneNumber = @event.PhoneNumber;
+
         if (@event.PasswordHash is not null)
-        {
             user.PasswordHash = @event.PasswordHash;
-        }
+
         user.EmailConfirmed = @event.EmailConfirmed;
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;

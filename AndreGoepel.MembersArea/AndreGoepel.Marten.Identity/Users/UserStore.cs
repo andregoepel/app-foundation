@@ -99,6 +99,7 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
                     Email = user.Email,
                     PasswordHash = user.PasswordHash,
                     EmailConfirmed = user.EmailConfirmed,
+                    PhoneNumber = user.PhoneNumber,
                 }
             );
             await session.SaveChangesAsync(cancellationToken);
