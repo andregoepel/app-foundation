@@ -1,12 +1,13 @@
 ﻿@page "/Account/Manage/ExternalLogins"
 
+@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using AndreGoepel.MembersArea.Database
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IUserStore<ApplicationUser> UserStore
+@inject UserManager<User> UserManager
+@inject SignInManager<User> SignInManager
+@inject IUserStore<User> UserStore
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Manage your external logins</PageTitle>
@@ -65,7 +66,7 @@
 @code {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";
 
-    private ApplicationUser? user;
+    private User? user;
     private IList<UserLoginInfo>? currentLogins;
     private IList<AuthenticationScheme>? otherLogins;
     private bool showRemoveButton;
@@ -97,7 +98,7 @@
             .ToList();
 
         string? passwordHash = null;
-        if (UserStore is IUserPasswordStore<ApplicationUser> userPasswordStore)
+        if (UserStore is IUserPasswordStore<User> userPasswordStore)
         {
             passwordHash = await userPasswordStore.GetPasswordHashAsync(user, HttpContext.RequestAborted);
         }

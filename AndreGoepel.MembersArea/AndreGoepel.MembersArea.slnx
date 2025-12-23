@@ -1,6 +1,6 @@
 <Solution>
+  <Project Path="AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj" Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe" />
   <Project Path="AndreGoepel.MembersArea.AppHost/AndreGoepel.MembersArea.AppHost.csproj" />
-  <Project Path="AndreGoepel.MembersArea.Database/AndreGoepel.MembersArea.Database.csproj" Id="0ce42ad0-0bb1-487e-b690-244f15ddd8d8" />
   <Project Path="AndreGoepel.MembersArea.ServiceDefaults/AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   <Project Path="AndreGoepel.MembersArea/AndreGoepel.MembersArea.csproj" />
 </Solution>

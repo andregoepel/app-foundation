@@ -1,9 +1,10 @@
 ﻿@page "/Account/Manage/PersonalData"
 
+@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
-@using AndreGoepel.MembersArea.Database
 
-@inject UserManager<ApplicationUser> UserManager
+@inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Personal Data</PageTitle>

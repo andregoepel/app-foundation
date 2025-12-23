@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -8,7 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.MembersArea.Database\AndreGoepel.MembersArea.Database.csproj" />
+    <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
+    <PackageReference Include="Marten.AspNetIdentity" Version="9.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.Marten.Identity\AndreGoepel.Marten.Identity.csproj" />
     <ProjectReference Include="..\AndreGoepel.MembersArea.ServiceDefaults\AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

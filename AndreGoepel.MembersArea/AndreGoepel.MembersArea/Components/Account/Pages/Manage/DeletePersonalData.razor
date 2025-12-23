@@ -1,11 +1,12 @@
 ﻿@page "/Account/Manage/DeletePersonalData"
 
 @using System.ComponentModel.DataAnnotations
+@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
-@using AndreGoepel.MembersArea.Database
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<User> UserManager
+@inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
 
@@ -39,7 +40,7 @@
 
 @code {
     private string? message;
-    private ApplicationUser? user;
+    private User? user;
     private bool requirePassword;
 
     [CascadingParameter]

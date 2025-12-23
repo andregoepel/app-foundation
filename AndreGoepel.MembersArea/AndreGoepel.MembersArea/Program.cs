@@ -1,9 +1,12 @@
+using AndreGoepel.Marten.Identity;
+using AndreGoepel.Marten.Identity.Stores;
+using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.MembersArea.Components;
 using AndreGoepel.MembersArea.Components.Account;
-using AndreGoepel.MembersArea.Database;
+using JasperFx;
+using Marten;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,31 +33,37 @@ builder
 var connectionString =
     builder.Configuration.GetConnectionString("members-area-database")
     ?? throw new InvalidOperationException("Connection string 'identity-database' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder
-    .Services.AddIdentityCore<ApplicationUser>(options =>
+    .Services.AddIdentityCore<User>(options =>
     {
         options.SignIn.RequireConfirmedAccount = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddRoles<IdentityRole>()
+    .AddUserManager<UserManager<User>>()
+    .AddUserStore<UserStore<User>>()
+    .AddRoleManager<RoleManager<IdentityRole>>()
+    .AddRoleStore<RoleStore<IdentityRole>>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
+
+builder.Services.AddMarten(options =>
+{
+    options.Connection(connectionString);
+
+    options.InitializeIdentity();
+    options.AutoCreateSchemaObjects = AutoCreate.All;
+});
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseMigrationsEndPoint();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -70,13 +79,5 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
-
-app.Lifetime.ApplicationStarted.Register(async () =>
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    await db.Database.MigrateAsync();
-});
 
 app.Run();

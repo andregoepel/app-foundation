@@ -1,8 +1,9 @@
-﻿@using Microsoft.AspNetCore.Authentication
+﻿@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.MembersArea
+@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using AndreGoepel.MembersArea.Database
 
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
 @if (externalLogins.Length == 0)
