@@ -7,6 +7,8 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject UrlEncoder UrlEncoder
@@ -38,9 +40,7 @@ else
             </li>
             <li>
                 <p>Scan the QR Code or enter this key <kbd>@sharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
-                <div class="alert alert-info">Learn how to <a href="https://go.microsoft.com/fwlink/?Linkid=852423">enable QR code generation</a>.</div>
-                <div></div>
-                <div data-url="@authenticatorUri"></div>
+                <RadzenQRCode style="max-width: 300px" Value="@authenticatorUri" />
             </li>
             <li>
                 <p>

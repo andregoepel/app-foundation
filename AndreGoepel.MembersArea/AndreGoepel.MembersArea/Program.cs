@@ -47,6 +47,7 @@ builder
     .AddUserStore<UserStore<User>>()
     .AddRoleManager<RoleManager<IdentityRole>>()
     .AddRoleStore<RoleStore<IdentityRole>>()
+    .AddDefaultTokenProviders()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 

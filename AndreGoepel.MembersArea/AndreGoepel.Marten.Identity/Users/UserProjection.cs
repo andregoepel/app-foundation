@@ -50,6 +50,18 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         if (@event.PasswordHash is not null)
             user.PasswordHash = @event.PasswordHash;
 
+        #region TwoFactor Authentication
+
+        if (@event.AuthenticatorKey is not null)
+            user.AuthenticatorKey = @event.AuthenticatorKey;
+
+        if (@event.RecoveryCodes is not null)
+            user.RecoveryCodes = @event.RecoveryCodes;
+
+        user.TwoFactorEnabled = @event.TwoFactorEnabled;
+
+        #endregion TwoFactor Authentication
+
         user.EmailConfirmed = @event.EmailConfirmed;
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;

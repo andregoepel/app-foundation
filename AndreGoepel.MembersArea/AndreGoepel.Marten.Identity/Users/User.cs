@@ -11,6 +11,8 @@ public class User : IdentityUser
     }
     public Guid UserId { get; set; }
     public bool Deleted { get; set; }
+    public string? AuthenticatorKey { get; set; }
+    public string? RecoveryCodes { get; set; }
 
     public UserId CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }

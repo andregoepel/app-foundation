@@ -16,7 +16,7 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         IUserTwoFactorRecoveryCodeStore<TUser>,
         IQueryableUserStore<TUser>,
         IUserClaimStore<TUser>
-    where TUser : IdentityUser
+    where TUser : User
 {
     public IQueryable<TUser> Users
     {
@@ -100,6 +100,9 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
                     PasswordHash = user.PasswordHash,
                     EmailConfirmed = user.EmailConfirmed,
                     PhoneNumber = user.PhoneNumber,
+                    AuthenticatorKey = user.AuthenticatorKey,
+                    RecoveryCodes = user.RecoveryCodes,
+                    TwoFactorEnabled = user.TwoFactorEnabled,
                 }
             );
             await session.SaveChangesAsync(cancellationToken);
@@ -295,13 +298,14 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         CancellationToken cancellationToken
     )
     {
+        user.AuthenticatorKey = key;
         return Task.CompletedTask;
     }
 
     public Task<string?> GetAuthenticatorKeyAsync(
         TUser user,
         CancellationToken cancellationToken
-    ) => Task.FromResult<string?>("1234123412");
+    ) => Task.FromResult(user.AuthenticatorKey);
 
     // IUserTwoFactorRecoveryCodeStore
 
@@ -311,17 +315,33 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         CancellationToken cancellationToken
     )
     {
+        user.RecoveryCodes = string.Join(';', recoveryCodes);
         return Task.CompletedTask;
     }
 
     public Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken)
     {
+        var codes = (user.RecoveryCodes ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+
+        var idx = codes.FindIndex(c => string.Equals(c, code, StringComparison.Ordinal));
+        if (idx >= 0)
+        {
+            codes.RemoveAt(idx);
+            user.RecoveryCodes = string.Join(";", codes);
+            return Task.FromResult(true);
+        }
+
         return Task.FromResult(false);
     }
 
     public Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken)
     {
-        return Task.FromResult(5);
+        var count = string.IsNullOrEmpty(user.RecoveryCodes)
+            ? 0
+            : user.RecoveryCodes.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+        return Task.FromResult(count);
     }
 
     // IUserClaimStore<TUser>

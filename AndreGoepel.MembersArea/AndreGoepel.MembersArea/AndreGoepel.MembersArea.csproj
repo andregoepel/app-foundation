@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Radzen.Blazor" Version="8.6.0" />
     <PackageReference Include="WolverineFx.Marten" Version="5.9.2" />
   </ItemGroup>
 
