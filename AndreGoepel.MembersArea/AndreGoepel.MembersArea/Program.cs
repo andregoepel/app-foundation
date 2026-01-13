@@ -73,6 +73,8 @@ builder.Host.UseWolverine(options =>
 
 builder.AddEmailService();
 
+builder.Services.AddDataProtection();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

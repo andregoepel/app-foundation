@@ -1,12 +1,17 @@
 ﻿using System.Security.Claims;
 using AndreGoepel.Marten.Identity.Users.Events;
 using Marten;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace AndreGoepel.Marten.Identity.Users;
 
-public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TUser>> logger)
+public class UserStore<TUser>(
+    IDocumentStore documentStore,
+    IDataProtectionProvider dataProtectionProvider,
+    ILogger<UserStore<TUser>> logger
+)
     : IUserStore<TUser>,
         IUserPasswordStore<TUser>,
         IUserEmailStore<TUser>,
@@ -18,6 +23,8 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         IUserClaimStore<TUser>
     where TUser : User
 {
+    private const string UserDataProtectionPurpose = "UserDataProtection";
+
     public IQueryable<TUser> Users
     {
         get
@@ -90,6 +97,8 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
             var userId = UserId.Parse(user.Id);
 
             using var session = documentStore.LightweightSession();
+
+            var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
 
             session.Events.Append(
                 userId.Value,
@@ -298,14 +307,19 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         CancellationToken cancellationToken
     )
     {
-        user.AuthenticatorKey = key;
+        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+
+        user.AuthenticatorKey = protector.Protect(key);
         return Task.CompletedTask;
     }
 
-    public Task<string?> GetAuthenticatorKeyAsync(
-        TUser user,
-        CancellationToken cancellationToken
-    ) => Task.FromResult(user.AuthenticatorKey);
+    public Task<string?> GetAuthenticatorKeyAsync(TUser user, CancellationToken cancellationToken)
+    {
+        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        return Task.FromResult(
+            user.AuthenticatorKey == null ? null : protector.Unprotect(user.AuthenticatorKey)
+        );
+    }
 
     // IUserTwoFactorRecoveryCodeStore
 
@@ -315,13 +329,17 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         CancellationToken cancellationToken
     )
     {
-        user.RecoveryCodes = string.Join(';', recoveryCodes);
+        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+
+        user.RecoveryCodes = protector.Protect(string.Join(';', recoveryCodes));
         return Task.CompletedTask;
     }
 
     public Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken)
     {
-        var codes = (user.RecoveryCodes ?? "")
+        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+
+        var codes = (user.RecoveryCodes == null ? "" : protector.Unprotect(user.RecoveryCodes))
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
             .ToList();
 
@@ -329,7 +347,7 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
         if (idx >= 0)
         {
             codes.RemoveAt(idx);
-            user.RecoveryCodes = string.Join(";", codes);
+            user.RecoveryCodes = protector.Protect(string.Join(";", codes));
             return Task.FromResult(true);
         }
 
@@ -338,9 +356,14 @@ public class UserStore<TUser>(IDocumentStore documentStore, ILogger<UserStore<TU
 
     public Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken)
     {
-        var count = string.IsNullOrEmpty(user.RecoveryCodes)
+        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var recoveryCodes = (
+            user.RecoveryCodes == null ? "" : protector.Unprotect(user.RecoveryCodes)
+        );
+
+        var count = string.IsNullOrEmpty(recoveryCodes)
             ? 0
-            : user.RecoveryCodes.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+            : recoveryCodes.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
         return Task.FromResult(count);
     }
 
