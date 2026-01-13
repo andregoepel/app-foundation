@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
-    <PackageReference Include="Marten.AspNetIdentity" Version="9.0.20" />
+    <PackageReference Include="WolverineFx.Marten" Version="5.9.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.Marten.Identity\AndreGoepel.Marten.Identity.csproj" />
+    <ProjectReference Include="..\AndreGoepel.MembersArea.MailService\AndreGoepel.MembersArea.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.MembersArea.ServiceDefaults\AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

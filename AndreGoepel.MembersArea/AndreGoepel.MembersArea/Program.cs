@@ -3,10 +3,12 @@ using AndreGoepel.Marten.Identity.Stores;
 using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.MembersArea.Components;
 using AndreGoepel.MembersArea.Components.Account;
+using AndreGoepel.MembersArea.MailService;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Wolverine;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +50,7 @@ builder
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
 builder.Services.AddMarten(options =>
 {
@@ -57,6 +59,18 @@ builder.Services.AddMarten(options =>
     options.InitializeIdentity();
     options.AutoCreateSchemaObjects = AutoCreate.All;
 });
+
+//.IntegrateWithWolverine();
+
+builder.Host.UseWolverine(options =>
+{
+    options.ServiceName = "MembersArea";
+
+    options.Discovery.IncludeAssembly(typeof(SendEmailMessageHandler).Assembly);
+    //options.PersistMessagesWithMarten();
+});
+
+builder.AddEmailService();
 
 var app = builder.Build();
 
