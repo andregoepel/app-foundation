@@ -14,6 +14,9 @@ public class User : IdentityUser
     public string? AuthenticatorKey { get; set; }
     public string? RecoveryCodes { get; set; }
 
+    // Todo: Use Hashset
+    public Dictionary<string, UserPasskey> Passkeys { get; set; } = [];
+
     public UserId CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
     public UserId ChangedBy { get; set; }

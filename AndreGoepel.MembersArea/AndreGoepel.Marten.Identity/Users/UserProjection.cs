@@ -66,4 +66,21 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;
     }
+
+    public void Apply(PasskeyCreated @event, User user)
+    {
+        var passkeyInfo = new UserPasskey { PasskeyInfo = @event.Passkey };
+        user.Passkeys[passkeyInfo.CredentialId] = passkeyInfo;
+    }
+
+    public void Apply(PasskeyUpdated @event, User user)
+    {
+        var passkeyInfo = new UserPasskey { PasskeyInfo = @event.Passkey };
+        user.Passkeys[passkeyInfo.CredentialId] = passkeyInfo;
+    }
+
+    public void Apply(PasskeyDeleted @event, User user)
+    {
+        user.Passkeys.Remove(Convert.ToBase64String(@event.CredentialId));
+    }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using AndreGoepel.Marten.Identity.Users.Events;
+using JasperFx.Events;
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -20,10 +22,11 @@ public class UserStore<TUser>(
         IUserAuthenticatorKeyStore<TUser>,
         IUserTwoFactorRecoveryCodeStore<TUser>,
         IQueryableUserStore<TUser>,
-        IUserClaimStore<TUser>
+        IUserClaimStore<TUser>,
+        IUserPasskeyStore<TUser>
     where TUser : User
 {
-    private const string UserDataProtectionPurpose = "UserDataProtection";
+    private const string _userDataProtectionPurpose = "UserDataProtection";
 
     public IQueryable<TUser> Users
     {
@@ -98,7 +101,12 @@ public class UserStore<TUser>(
 
             using var session = documentStore.LightweightSession();
 
-            var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+            var existingUser = await session
+                .Query<TUser>()
+                .FirstOrDefaultAsync(x => x.Id == user.Id);
+
+            if (existingUser != null && existingUser.AreEqual(user))
+                return IdentityResult.Success;
 
             session.Events.Append(
                 userId.Value,
@@ -307,7 +315,7 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var protector = dataProtectionProvider.CreateProtector(_userDataProtectionPurpose);
 
         user.AuthenticatorKey = protector.Protect(key);
         return Task.CompletedTask;
@@ -315,7 +323,7 @@ public class UserStore<TUser>(
 
     public Task<string?> GetAuthenticatorKeyAsync(TUser user, CancellationToken cancellationToken)
     {
-        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var protector = dataProtectionProvider.CreateProtector(_userDataProtectionPurpose);
         return Task.FromResult(
             user.AuthenticatorKey == null ? null : protector.Unprotect(user.AuthenticatorKey)
         );
@@ -329,7 +337,7 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var protector = dataProtectionProvider.CreateProtector(_userDataProtectionPurpose);
 
         user.RecoveryCodes = protector.Protect(string.Join(';', recoveryCodes));
         return Task.CompletedTask;
@@ -337,7 +345,7 @@ public class UserStore<TUser>(
 
     public Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken)
     {
-        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var protector = dataProtectionProvider.CreateProtector(_userDataProtectionPurpose);
 
         var codes = (user.RecoveryCodes == null ? "" : protector.Unprotect(user.RecoveryCodes))
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
@@ -356,7 +364,7 @@ public class UserStore<TUser>(
 
     public Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken)
     {
-        var protector = dataProtectionProvider.CreateProtector(UserDataProtectionPurpose);
+        var protector = dataProtectionProvider.CreateProtector(_userDataProtectionPurpose);
         var recoveryCodes = (
             user.RecoveryCodes == null ? "" : protector.Unprotect(user.RecoveryCodes)
         );
@@ -499,5 +507,104 @@ public class UserStore<TUser>(
             .ToListAsync(cancellationToken);
 
         return [.. readonlyList];
+    }
+
+    public async Task AddOrUpdatePasskeyAsync(
+        TUser user,
+        UserPasskeyInfo passkey,
+        CancellationToken cancellationToken
+    )
+    {
+        using var session = documentStore.LightweightSession();
+
+        var userId = UserId.Parse(user.Id);
+        var credentialId = Convert.ToBase64String(passkey.CredentialId);
+
+        var userEntity =
+            await session
+                .Query<TUser>()
+                .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
+            ?? throw new Exception("User not found");
+
+        var isUpdate = userEntity.Passkeys.ContainsKey(credentialId);
+
+        if (isUpdate && userEntity.Passkeys[credentialId].PasskeyInfo.OnlyCountChanged(passkey))
+            return;
+
+        session.Events.Append(
+            userId.Value,
+            isUpdate ? new PasskeyUpdated(userId, passkey) : new PasskeyCreated(userId, passkey)
+        );
+
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IList<UserPasskeyInfo>> GetPasskeysAsync(
+        TUser user,
+        CancellationToken cancellationToken
+    )
+    {
+        using var session = documentStore.LightweightSession();
+
+        var userId = UserId.Parse(user.Id);
+
+        var userEntity =
+            await session
+                .Query<TUser>()
+                .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
+            ?? throw new Exception("User not found");
+
+        return [.. userEntity.Passkeys.Select(kvp => kvp.Value.PasskeyInfo)];
+    }
+
+    public async Task<TUser?> FindByPasskeyIdAsync(
+        byte[] credentialId,
+        CancellationToken cancellationToken
+    )
+    {
+        using var session = documentStore.LightweightSession();
+
+        var user = await session
+            .Query<TUser>()
+            .FirstOrDefaultAsync(
+                x => x.Passkeys.Keys.Contains(Convert.ToBase64String(credentialId)),
+                cancellationToken
+            );
+
+        return user;
+    }
+
+    public async Task<UserPasskeyInfo?> FindPasskeyAsync(
+        TUser user,
+        byte[] credentialId,
+        CancellationToken cancellationToken
+    )
+    {
+        using var session = documentStore.LightweightSession();
+        var userId = UserId.Parse(user.Id);
+
+        var userEntity =
+            await session
+                .Query<TUser>()
+                .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
+            ?? throw new Exception("User not found");
+
+        return userEntity.Passkeys.TryGetValue(
+            Convert.ToBase64String(credentialId),
+            out var passkey
+        )
+            ? passkey.PasskeyInfo
+            : null;
+    }
+
+    public async Task RemovePasskeyAsync(
+        TUser user,
+        byte[] credentialId,
+        CancellationToken cancellationToken
+    )
+    {
+        using var session = documentStore.LightweightSession();
+        session.Events.Append(user.UserId, new PasskeyDeleted(UserId.Parse(user.Id), credentialId));
+        await session.SaveChangesAsync(cancellationToken);
     }
 }
