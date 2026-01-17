@@ -8,8 +8,4 @@
   <ItemGroup>
     <PackageReference Include="Marten.AspNetCore" Version="8.17.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="NewFolder\" />
-  </ItemGroup>
 </Project>

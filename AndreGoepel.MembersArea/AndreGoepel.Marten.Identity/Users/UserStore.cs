@@ -1,9 +1,7 @@
 ﻿using System.Security.Claims;
 using AndreGoepel.Marten.Identity.Users.Events;
-using JasperFx.Events;
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +9,7 @@ namespace AndreGoepel.Marten.Identity.Users;
 
 public class UserStore<TUser>(
     IDocumentStore documentStore,
+    IQuerySession querySession,
     IDataProtectionProvider dataProtectionProvider,
     ILogger<UserStore<TUser>> logger
 )
@@ -28,14 +27,7 @@ public class UserStore<TUser>(
 {
     private const string _userDataProtectionPurpose = "UserDataProtection";
 
-    public IQueryable<TUser> Users
-    {
-        get
-        {
-            using var session = documentStore.LightweightSession();
-            return session.Query<TUser>();
-        }
-    }
+    public IQueryable<TUser> Users => querySession.Query<TUser>();
 
     public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken) =>
         Task.FromResult(user.Id);
@@ -99,14 +91,14 @@ public class UserStore<TUser>(
         {
             var userId = UserId.Parse(user.Id);
 
-            using var session = documentStore.LightweightSession();
-
-            var existingUser = await session
+            var existingUser = await querySession
                 .Query<TUser>()
-                .FirstOrDefaultAsync(x => x.Id == user.Id);
+                .FirstOrDefaultAsync(x => x.Id == user.Id, token: cancellationToken);
 
             if (existingUser != null && existingUser.AreEqual(user))
                 return IdentityResult.Success;
+
+            using var session = documentStore.LightweightSession();
 
             session.Events.Append(
                 userId.Value,
@@ -127,10 +119,7 @@ public class UserStore<TUser>(
         }
         catch (Exception ex)
         {
-            if (logger.IsEnabled(LogLevel.Error))
-            {
-                logger.LogError(ex, "Failed to update the user in Marten.");
-            }
+            logger.LogError(ex, "Failed to update the user in Marten.");
             return IdentityResult.Failed(
                 new IdentityError() { Description = "Something went wrong saving the user." }
             );
@@ -161,29 +150,21 @@ public class UserStore<TUser>(
         }
     }
 
-    public async Task<TUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
-    {
-        using var session = documentStore.LightweightSession();
-
-        return await session
+    public async Task<TUser?> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
+        await querySession
             .Query<TUser>()
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
-    }
 
     public async Task<TUser?> FindByNameAsync(
         string normalizedUserName,
         CancellationToken cancellationToken
-    )
-    {
-        using var session = documentStore.LightweightSession();
-
-        return await session
+    ) =>
+        await querySession
             .Query<TUser>()
             .FirstOrDefaultAsync(
                 x => x.NormalizedUserName == normalizedUserName,
                 cancellationToken
             );
-    }
 
     public void Dispose()
     {
@@ -238,14 +219,10 @@ public class UserStore<TUser>(
     public async Task<TUser?> FindByEmailAsync(
         string normalizedEmail,
         CancellationToken cancellationToken
-    )
-    {
-        using var session = documentStore.LightweightSession();
-
-        return await session
+    ) =>
+        await querySession
             .Query<TUser>()
             .FirstOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
-    }
 
     public Task<string?> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken) =>
         Task.FromResult(user.NormalizedEmail);
@@ -379,9 +356,7 @@ public class UserStore<TUser>(
 
     public async Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken)
     {
-        using var session = documentStore.LightweightSession();
-
-        var resolvedUser = await session
+        var resolvedUser = await querySession
             .Query<TUser>()
             .FirstOrDefaultAsync(x => x.NormalizedEmail == user.NormalizedEmail, cancellationToken);
 
@@ -497,17 +472,7 @@ public class UserStore<TUser>(
     public async Task<IList<TUser>> GetUsersForClaimAsync(
         Claim claim,
         CancellationToken cancellationToken
-    )
-    {
-        using var session = documentStore.LightweightSession();
-
-        IReadOnlyList<TUser> readonlyList = await session
-            .Query<TUser>()
-            //.Where(x => x.RoleClaims.Contains(claim.Value))
-            .ToListAsync(cancellationToken);
-
-        return [.. readonlyList];
-    }
+    ) => [.. await querySession.Query<TUser>().ToListAsync(cancellationToken)];
 
     public async Task AddOrUpdatePasskeyAsync(
         TUser user,
@@ -515,13 +480,11 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        using var session = documentStore.LightweightSession();
-
         var userId = UserId.Parse(user.Id);
         var credentialId = Convert.ToBase64String(passkey.CredentialId);
 
         var userEntity =
-            await session
+            await querySession
                 .Query<TUser>()
                 .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
             ?? throw new Exception("User not found");
@@ -530,6 +493,8 @@ public class UserStore<TUser>(
 
         if (isUpdate && userEntity.Passkeys[credentialId].PasskeyInfo.OnlyCountChanged(passkey))
             return;
+
+        using var session = documentStore.LightweightSession();
 
         session.Events.Append(
             userId.Value,
@@ -544,12 +509,10 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        using var session = documentStore.LightweightSession();
-
         var userId = UserId.Parse(user.Id);
 
         var userEntity =
-            await session
+            await querySession
                 .Query<TUser>()
                 .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
             ?? throw new Exception("User not found");
@@ -560,19 +523,13 @@ public class UserStore<TUser>(
     public async Task<TUser?> FindByPasskeyIdAsync(
         byte[] credentialId,
         CancellationToken cancellationToken
-    )
-    {
-        using var session = documentStore.LightweightSession();
-
-        var user = await session
+    ) =>
+        await querySession
             .Query<TUser>()
             .FirstOrDefaultAsync(
                 x => x.Passkeys.Keys.Contains(Convert.ToBase64String(credentialId)),
                 cancellationToken
             );
-
-        return user;
-    }
 
     public async Task<UserPasskeyInfo?> FindPasskeyAsync(
         TUser user,
@@ -580,11 +537,8 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        using var session = documentStore.LightweightSession();
-        var userId = UserId.Parse(user.Id);
-
         var userEntity =
-            await session
+            await querySession
                 .Query<TUser>()
                 .FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken)
             ?? throw new Exception("User not found");

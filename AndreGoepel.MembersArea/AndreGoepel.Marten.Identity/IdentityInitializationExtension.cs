@@ -1,5 +1,4 @@
 ﻿using AndreGoepel.Marten.Identity.Users;
-using JasperFx.Events.Projections;
 using Marten;
 
 namespace AndreGoepel.Marten.Identity;

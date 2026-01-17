@@ -1,10 +1,16 @@
-﻿using AndreGoepel.Marten.Identity.Users.Events;
+﻿using System.Diagnostics.CodeAnalysis;
+using AndreGoepel.Marten.Identity.Users.Events;
 using Marten.Events.Aggregation;
 
 namespace AndreGoepel.Marten.Identity.Users;
 
 internal class UserProjection : SingleStreamProjection<User, Guid>
 {
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(UserCreated @event, User user)
     {
         user.Id = @event.UserId.Value.ToString();
@@ -20,6 +26,11 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.ChangedAt = @event.CreatedAt;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(UserDeleted @event, User user)
     {
         user.UserName = null;
@@ -30,6 +41,11 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.DeletedAt = @event.DeletedAt;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(UserUpdated @event, User user)
     {
         if (@event.UserName is not null)
@@ -38,6 +54,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
             user.NormalizedUserName = @event.UserName?.ToUpper();
         }
 
+        user.EmailConfirmed = @event.EmailConfirmed;
         if (@event.Email is not null)
         {
             user.Email = @event.Email;
@@ -62,23 +79,37 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
 
         #endregion TwoFactor Authentication
 
-        user.EmailConfirmed = @event.EmailConfirmed;
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(PasskeyCreated @event, User user)
     {
         var passkeyInfo = new UserPasskey { PasskeyInfo = @event.Passkey };
         user.Passkeys[passkeyInfo.CredentialId] = passkeyInfo;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(PasskeyUpdated @event, User user)
     {
         var passkeyInfo = new UserPasskey { PasskeyInfo = @event.Passkey };
         user.Passkeys[passkeyInfo.CredentialId] = passkeyInfo;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
     public void Apply(PasskeyDeleted @event, User user)
     {
         user.Passkeys.Remove(Convert.ToBase64String(@event.CredentialId));

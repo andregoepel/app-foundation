@@ -1,6 +1,4 @@
-﻿using AndreGoepel.Marten.Identity.Users;
-
-namespace AndreGoepel.Marten.Identity.Users.Events;
+﻿namespace AndreGoepel.Marten.Identity.Users.Events;
 
 public record UserUpdated(UserId UserId)
 {
@@ -11,7 +9,7 @@ public record UserUpdated(UserId UserId)
     public string? AuthenticatorKey { get; init; }
     public bool EmailConfirmed { get; init; }
     public UserId UpdatedBy { get; init; } = UserId;
-    public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset UpdatedAt { get; init; } = DateTimeOffset.UtcNow;
     public bool TwoFactorEnabled { get; internal set; }
     public string? RecoveryCodes { get; internal set; }
 }

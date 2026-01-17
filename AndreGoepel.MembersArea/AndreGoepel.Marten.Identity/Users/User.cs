@@ -18,9 +18,9 @@ public class User : IdentityUser
     public Dictionary<string, UserPasskey> Passkeys { get; set; } = [];
 
     public UserId CreatedBy { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public UserId ChangedBy { get; set; }
-    public DateTime ChangedAt { get; set; }
+    public DateTimeOffset ChangedAt { get; set; }
     public UserId? DeletedBy { get; set; }
-    public DateTime? DeletedAt { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }
