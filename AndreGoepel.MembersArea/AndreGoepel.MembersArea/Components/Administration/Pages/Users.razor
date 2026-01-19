@@ -1,0 +1,32 @@
+﻿@page "/Administration/Users"
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<User> UserManager
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<ul>
+    @foreach (var user in _users)
+    {
+        <li>@user.UserName</li>
+    }
+</ul>
+
+@code {
+    private List<User> _users = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = UserManager.Users.ToList();
+
+        await base.OnInitializedAsync();
+    }
+}

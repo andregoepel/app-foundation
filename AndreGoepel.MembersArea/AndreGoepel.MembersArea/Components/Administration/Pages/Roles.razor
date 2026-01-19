@@ -1,0 +1,34 @@
+﻿@page "/Administration/Roles"
+
+@using AndreGoepel.Marten.Identity.Roles
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+
+@inject RoleManager<Role> RoleManager
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Roles</PageTitle>
+
+<h1>Roles</h1>
+
+<ul>
+    @foreach (var role in _roles)
+    {
+        <li>@role.Name</li>
+    }
+</ul>
+
+@code {
+    private List<Role> _roles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _roles = RoleManager.Roles.ToList();
+
+        await base.OnInitializedAsync();
+    }
+}
