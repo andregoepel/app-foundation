@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using AndreGoepel.Marten.Identity.Roles;
+using AndreGoepel.Marten.Identity.Services;
 using AndreGoepel.Marten.Identity.Users.Events;
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
@@ -11,6 +13,7 @@ public class UserStore<TUser>(
     IDocumentStore documentStore,
     IQuerySession querySession,
     IDataProtectionProvider dataProtectionProvider,
+    ICurrentUserService currentUserService,
     ILogger<UserStore<TUser>> logger
 )
     : IUserStore<TUser>,
@@ -22,7 +25,8 @@ public class UserStore<TUser>(
         IUserTwoFactorRecoveryCodeStore<TUser>,
         IQueryableUserStore<TUser>,
         IUserClaimStore<TUser>,
-        IUserPasskeyStore<TUser>
+        IUserPasskeyStore<TUser>,
+        IUserRoleStore<TUser>
     where TUser : User
 {
     private const string _userDataProtectionPurpose = "UserDataProtection";
@@ -75,10 +79,7 @@ public class UserStore<TUser>(
         }
         catch (Exception ex)
         {
-            if (logger.IsEnabled(LogLevel.Error))
-            {
-                logger.LogError(ex, "Failed to create the user in Marten.");
-            }
+            logger.LogError(ex, "Failed to create the user in Marten.");
             return IdentityResult.Failed(
                 new IdentityError() { Description = "Something went wrong saving the user." }
             );
@@ -558,7 +559,121 @@ public class UserStore<TUser>(
     )
     {
         using var session = documentStore.LightweightSession();
-        session.Events.Append(user.UserId, new PasskeyDeleted(UserId.Parse(user.Id), credentialId));
+        session.Events.Append(user.UserId.Value, new PasskeyDeleted(user.UserId, credentialId));
         await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddToRoleAsync(
+        TUser user,
+        string roleName,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (string.IsNullOrWhiteSpace(roleName))
+            throw new ArgumentException("Role name cannot be null or empty.", nameof(roleName));
+
+        var role =
+            querySession
+                .Query<Role>()
+                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
+            ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+
+        using var session = documentStore.LightweightSession();
+        session.Events.Append(
+            user.UserId.Value,
+            new RoleAssigned(
+                user.UserId,
+                role.RoleId,
+                await currentUserService.GetCurrentUserIdAsync()
+            )
+        );
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemoveFromRoleAsync(
+        TUser user,
+        string roleName,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (string.IsNullOrWhiteSpace(roleName))
+            throw new ArgumentException("Role name cannot be null or empty.", nameof(roleName));
+
+        var role =
+            querySession
+                .Query<Role>()
+                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
+            ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+
+        using var session = documentStore.LightweightSession();
+        session.Events.Append(
+            user.UserId.Value,
+            new RoleUnassigned(
+                user.UserId,
+                role.RoleId,
+                await currentUserService.GetCurrentUserIdAsync()
+            )
+        );
+        await session.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
+    {
+        var result = new List<string>();
+
+        foreach (var userRole in user.Roles)
+        {
+            var role = await querySession
+                .Query<Role>()
+                .FirstOrDefaultAsync(r => r.StreamId == userRole.Value);
+
+            if (role?.Name != null)
+                result.Add(role.Name);
+        }
+
+        return result;
+    }
+
+    public async Task<bool> IsInRoleAsync(
+        TUser user,
+        string roleName,
+        CancellationToken cancellationToken
+    )
+    {
+        var role =
+            await querySession
+                .Query<Role>()
+                .FirstOrDefaultAsync(
+                    role => role.NormalizedName == roleName.ToUpperInvariant(),
+                    cancellationToken
+                )
+            ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+
+        return user.Roles.Any(r => r == role.RoleId);
+    }
+
+    public async Task<IList<TUser>> GetUsersInRoleAsync(
+        string roleName,
+        CancellationToken cancellationToken
+    )
+    {
+        var roleId =
+            querySession
+                .Query<Role>()
+                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
+                ?.RoleId
+            ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+
+        return
+        [
+            .. await querySession
+                .Query<TUser>()
+                .Where(user => user.Roles.Any(r => r == roleId))
+                .ToListAsync(cancellationToken),
+        ];
     }
 }

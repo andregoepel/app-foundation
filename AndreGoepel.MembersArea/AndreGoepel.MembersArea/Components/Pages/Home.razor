@@ -1,4 +1,9 @@
 ﻿@page "/"
+@using AndreGoepel.Marten.Identity.Roles
+@using global::Marten
+
+@inject IQuerySession QuerySession;
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 

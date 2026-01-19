@@ -1,14 +1,16 @@
 using AndreGoepel.Marten.Identity;
-using AndreGoepel.Marten.Identity.Stores;
+using AndreGoepel.Marten.Identity.Roles;
 using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.MembersArea.Components;
 using AndreGoepel.MembersArea.Components.Account;
 using AndreGoepel.MembersArea.MailService;
+using ImTools;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Wolverine;
+using Wolverine.Marten;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,33 +44,37 @@ builder
         options.SignIn.RequireConfirmedAccount = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
-    .AddRoles<IdentityRole>()
+    .AddRoles<Role>()
     .AddUserManager<UserManager<User>>()
     .AddUserStore<UserStore<User>>()
-    .AddRoleManager<RoleManager<IdentityRole>>()
-    .AddRoleStore<RoleStore<IdentityRole>>()
+    .AddRoleManager<RoleManager<Role>>()
+    .AddRoleStore<RoleStore<Role>>()
     .AddDefaultTokenProviders()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
-builder.Services.AddMarten(options =>
-{
-    options.Connection(connectionString);
+builder
+    .Services.AddMarten(options =>
+    {
+        options.Connection(connectionString);
 
-    options.InitializeIdentity();
-    options.AutoCreateSchemaObjects = AutoCreate.All;
-});
+        options.InitializeIdentity();
+        options.AutoCreateSchemaObjects = AutoCreate.All;
+    })
+    .IntegrateWithWolverine();
 
-//.IntegrateWithWolverine();
+builder.Services.InitializeIdentityServices();
 
 builder.Host.UseWolverine(options =>
 {
     options.ServiceName = "MembersArea";
 
+    options.Policies.UseDurableInboxOnAllListeners();
+    options.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
     options.Discovery.IncludeAssembly(typeof(SendEmailMessageHandler).Assembly);
-    //options.PersistMessagesWithMarten();
 });
 
 builder.AddEmailService();

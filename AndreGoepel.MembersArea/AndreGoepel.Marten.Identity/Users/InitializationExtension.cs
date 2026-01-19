@@ -9,7 +9,7 @@ internal static class InitializationExtension
     {
         options
             .Schema.For<User>()
-            .Identity(x => x.UserId)
+            .Identity(x => x.StreamId)
             .Duplicate(x => x.NormalizedEmail)
             .Duplicate(x => x.NormalizedUserName);
 

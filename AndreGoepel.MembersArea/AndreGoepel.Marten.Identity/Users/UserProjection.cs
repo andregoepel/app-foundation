@@ -13,12 +13,11 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     )]
     public void Apply(UserCreated @event, User user)
     {
-        user.Id = @event.UserId.Value.ToString();
-        user.UserId = @event.UserId.Value;
+        user.UserId = @event.UserId;
         user.UserName = @event.UserName;
-        user.NormalizedUserName = @event.UserName?.ToUpper();
+        user.NormalizedUserName = @event.UserName?.ToUpperInvariant();
         user.Email = @event.Email;
-        user.NormalizedEmail = @event.Email?.ToUpper();
+        user.NormalizedEmail = @event.Email?.ToUpperInvariant();
         user.PasswordHash = @event.PasswordHash;
         user.CreatedBy = @event.CreatedBy;
         user.CreatedAt = @event.CreatedAt;
@@ -51,14 +50,14 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         if (@event.UserName is not null)
         {
             user.UserName = @event.UserName;
-            user.NormalizedUserName = @event.UserName?.ToUpper();
+            user.NormalizedUserName = @event.UserName?.ToUpperInvariant();
         }
 
         user.EmailConfirmed = @event.EmailConfirmed;
         if (@event.Email is not null)
         {
             user.Email = @event.Email;
-            user.NormalizedEmail = @event.Email?.ToUpper();
+            user.NormalizedEmail = @event.Email?.ToUpperInvariant();
         }
 
         if (@event.PhoneNumber is not null)
@@ -113,5 +112,25 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     public void Apply(PasskeyDeleted @event, User user)
     {
         user.Passkeys.Remove(Convert.ToBase64String(@event.CredentialId));
+    }
+
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
+    public void Apply(RoleAssigned @event, User user)
+    {
+        user.Roles.Add(@event.RoleId);
+    }
+
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
+    public void Apply(RoleUnassigned @event, User user)
+    {
+        user.Roles.Remove(@event.RoleId);
     }
 }

@@ -1,5 +1,9 @@
 ﻿@implements IDisposable
 
+@using AndreGoepel.Marten.Identity.Roles
+@using global::Marten
+
+@inject IQuerySession QuerySession;
 @inject NavigationManager NavigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -12,17 +16,23 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
+        @if (SetupComplete)
+        {
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="admin">
+                        <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Admin
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
         <AuthorizeView>
             <Authorized>
@@ -54,11 +64,26 @@
                 </div>
             </NotAuthorized>
         </AuthorizeView>
+    }
     </nav>
 </div>
 
 @code {
     private string? currentUrl;
+
+    private bool SetupComplete = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SetupComplete = await CheckSetupCompleted();
+
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+        if (SetupComplete == false && !currentPath.Equals("setup", StringComparison.OrdinalIgnoreCase))
+            NavigationManager.NavigateTo("/Setup");
+
+        await base.OnInitializedAsync();
+    }
 
     protected override void OnInitialized()
     {
@@ -76,5 +101,7 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+
+    private async Task<bool> CheckSetupCompleted() => await QuerySession.Query<Role>().AnyAsync();
 }
 

@@ -1,14 +1,17 @@
-﻿using AndreGoepel.Marten.Identity.Events;
+﻿using AndreGoepel.Marten.Identity.Roles.Events;
+using AndreGoepel.Marten.Identity.Services;
 using Marten;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-namespace AndreGoepel.Marten.Identity.Stores;
+namespace AndreGoepel.Marten.Identity.Roles;
 
-public class RoleStore<TRole>(IDocumentSession session, ILogger<RoleStore<TRole>> logger)
-    : IRoleStore<TRole>,
-        IQueryableRoleStore<TRole>
-    where TRole : IdentityRole
+public class RoleStore<TRole>(
+    IDocumentSession session,
+    ICurrentUserService currentUserService,
+    ILogger<RoleStore<TRole>> logger
+) : IRoleStore<TRole>, IQueryableRoleStore<TRole>
+    where TRole : Role
 {
     public IQueryable<TRole> Roles => session.Query<TRole>();
 
@@ -29,7 +32,7 @@ public class RoleStore<TRole>(IDocumentSession session, ILogger<RoleStore<TRole>
             var roleId = RoleId.New();
             session.Events.Append(
                 roleId.Value,
-                new RoleCreated { RoleId = roleId, RoleName = role.Name }
+                new RoleCreated(roleId, role.Name, await currentUserService.GetCurrentUserIdAsync())
             );
             await session.SaveChangesAsync(cancellationToken);
 
