@@ -16,6 +16,7 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
         role.RoleId = @event.RoleId;
         role.Name = @event.Name;
         role.NormalizedName = @event.Name.ToUpperInvariant();
+        role.Deletable = @event.Deletable;
         role.CreatedBy = @event.CreatedBy;
         role.CreatedAt = @event.CreatedAt;
         role.ChangedBy = @event.CreatedBy;
@@ -31,6 +32,7 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
     {
         role.Name = @event.Name;
         role.NormalizedName = @event.Name.ToUpperInvariant();
+        role.Deletable = @event.Deletable;
         role.ChangedBy = @event.ChangedBy;
         role.ChangedAt = @event.ChangedAt;
     }

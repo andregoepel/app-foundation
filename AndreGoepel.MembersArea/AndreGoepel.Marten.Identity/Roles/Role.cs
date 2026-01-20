@@ -19,7 +19,9 @@ public class Role : IdentityRole
         set => RoleId = RoleId.Parse(value);
     }
 
+    public bool Deletable { get; set; } = true;
     public bool Deleted { get; set; }
+
     public UserId CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public UserId ChangedBy { get; set; }

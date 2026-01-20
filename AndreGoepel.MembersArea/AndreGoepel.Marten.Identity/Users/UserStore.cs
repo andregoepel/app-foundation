@@ -73,6 +73,10 @@ public class UserStore<TUser>(
             session.Events.Append(
                 userId.Value,
                 new UserCreated(userId, user.UserName, user.Email, user.PasswordHash)
+                {
+                    RootUser = user.RootUser,
+                    Deletable = user.Deletable,
+                }
             );
             await session.SaveChangesAsync(cancellationToken);
             return IdentityResult.Success;
@@ -113,6 +117,7 @@ public class UserStore<TUser>(
                     AuthenticatorKey = user.AuthenticatorKey,
                     RecoveryCodes = user.RecoveryCodes,
                     TwoFactorEnabled = user.TwoFactorEnabled,
+                    Deletable = user.Deletable,
                 }
             );
             await session.SaveChangesAsync(cancellationToken);
@@ -131,6 +136,13 @@ public class UserStore<TUser>(
     {
         try
         {
+            if (!user.Deletable)
+            {
+                return IdentityResult.Failed(
+                    new IdentityError() { Description = "This user cannot be deleted." }
+                );
+            }
+
             var userId = UserId.Parse(user.Id);
 
             using var session = documentStore.LightweightSession();

@@ -12,4 +12,6 @@ public record UserUpdated(UserId UserId)
     public DateTimeOffset UpdatedAt { get; init; } = DateTimeOffset.UtcNow;
     public bool TwoFactorEnabled { get; internal set; }
     public string? RecoveryCodes { get; internal set; }
+    public bool Deletable { get; init; } = true;
+
 }

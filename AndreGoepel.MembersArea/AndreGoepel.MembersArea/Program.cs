@@ -4,11 +4,11 @@ using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.MembersArea.Components;
 using AndreGoepel.MembersArea.Components.Account;
 using AndreGoepel.MembersArea.MailService;
-using ImTools;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Radzen;
 using Wolverine;
 using Wolverine.Marten;
 
@@ -17,7 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Add services to the container.
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder
+    .Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -80,6 +83,8 @@ builder.Host.UseWolverine(options =>
 builder.AddEmailService();
 
 builder.Services.AddDataProtection();
+
+builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 

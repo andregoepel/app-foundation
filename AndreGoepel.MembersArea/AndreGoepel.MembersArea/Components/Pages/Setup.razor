@@ -29,7 +29,7 @@
 <div class="row">
     <div class="col-lg-6">
         <StatusMessage Message="@Message" />
-        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="setup">
+        <EditForm Model="Input" method="post" OnValidSubmit="SetupApp" FormName="setup">
             <DataAnnotationsValidator />
             <h2>Create a new admin account.</h2>
             <hr />
@@ -81,15 +81,17 @@
         Input ??= new();
     }
 
-    public async Task RegisterUser(EditContext editContext)
+    public async Task SetupApp(EditContext editContext)
     {
         var user = Activator.CreateInstance<User>();
 
         user.Email = Input.Email;
         user.EmailConfirmed = true;
+        user.RootUser = true;
+        user.Deletable = false;
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-      
+
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
@@ -102,9 +104,31 @@
 
         var userId = await UserManager.GetUserIdAsync(user);
 
-        await RoleManager.CreateAsync(new Role { Name = "Administrator" , CreatedBy = user.UserId, ChangedBy = user.UserId});
+        await RoleManager.CreateAsync(
+            new Role 
+            {
+                Name = Roles.Administrator, 
+                Deletable = false, 
+                CreatedBy = user.UserId, 
+                ChangedBy = user.UserId 
+            });
+        await RoleManager.CreateAsync(
+            new Role 
+            { 
+                Name = Roles.Member, 
+                Deletable = false, 
+                CreatedBy = user.UserId,
+                ChangedBy = user.UserId 
+            });
+        await RoleManager.CreateAsync(
+            new Role { 
+                Name = Roles.User, 
+                Deletable = false, 
+                CreatedBy = user.UserId, 
+                ChangedBy = user.UserId 
+            });
 
-        await UserManager.AddToRoleAsync(user, "Administrator");
+        await UserManager.AddToRoleAsync(user, Roles.Administrator);
 
         var newUser = await UserManager.FindByIdAsync(userId) ?? throw new InvalidOperationException($"User {user.UserName} not found");
 

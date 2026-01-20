@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using Radzen.Blazor
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -11,6 +12,9 @@
     <link rel="stylesheet" href="@Assets["AndreGoepel.MembersArea.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
+
+    <RadzenTheme Theme="material" />
+
     <HeadOutlet />
 </head>
 
@@ -19,6 +23,7 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
 </body>
 
 </html>

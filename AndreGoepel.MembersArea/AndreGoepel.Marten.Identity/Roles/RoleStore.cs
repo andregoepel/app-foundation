@@ -1,5 +1,6 @@
 ﻿using AndreGoepel.Marten.Identity.Roles.Events;
 using AndreGoepel.Marten.Identity.Services;
+using AndreGoepel.Marten.Identity.Users;
 using Marten;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,9 @@ public class RoleStore<TRole>(
             session.Events.Append(
                 roleId.Value,
                 new RoleCreated(roleId, role.Name, await currentUserService.GetCurrentUserIdAsync())
+                {
+                    Deletable = role.Deletable,
+                }
             );
             await session.SaveChangesAsync(cancellationToken);
 
@@ -69,6 +73,13 @@ public class RoleStore<TRole>(
     {
         try
         {
+            if (!role.Deletable)
+            {
+                return IdentityResult.Failed(
+                    new IdentityError() { Description = "This role cannot be deleted." }
+                );
+            }
+
             session.Delete(role);
             await session.SaveChangesAsync(cancellationToken);
 

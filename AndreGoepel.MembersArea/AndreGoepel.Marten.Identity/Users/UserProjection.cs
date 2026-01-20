@@ -19,6 +19,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.Email = @event.Email;
         user.NormalizedEmail = @event.Email?.ToUpperInvariant();
         user.PasswordHash = @event.PasswordHash;
+        user.Deletable = @event.Deletable;
         user.CreatedBy = @event.CreatedBy;
         user.CreatedAt = @event.CreatedAt;
         user.ChangedBy = @event.CreatedBy;
@@ -77,6 +78,8 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.TwoFactorEnabled = @event.TwoFactorEnabled;
 
         #endregion TwoFactor Authentication
+
+        user.Deletable = @event.Deletable;
 
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;

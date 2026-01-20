@@ -17,6 +17,8 @@ public class User : IdentityUser
         set => UserId = UserId.Parse(value);
     }
 
+    public bool RootUser { get; set; }
+    public bool Deletable { get; set; } = true;
     public bool Deleted { get; set; }
     public string? AuthenticatorKey { get; set; }
     public string? RecoveryCodes { get; set; }
