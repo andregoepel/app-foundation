@@ -164,15 +164,12 @@ else
         return result.ToString().ToLowerInvariant();
     }
 
-    private string GenerateQrCodeUri(string email, string unformattedKey)
-    {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            AuthenticatorUriFormat,
-            UrlEncoder.Encode("andregoepel.dev"),
-            UrlEncoder.Encode(email),
-            unformattedKey);
-    }
+    private string GenerateQrCodeUri(string email, string unformattedKey) => string.Format(
+        CultureInfo.InvariantCulture,
+        AuthenticatorUriFormat,
+        UrlEncoder.Encode("andregoepel.dev"),
+        UrlEncoder.Encode(email),
+        unformattedKey);
 
     private sealed class InputModel
     {

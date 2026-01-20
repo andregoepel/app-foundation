@@ -85,6 +85,7 @@
     {
         var user = Activator.CreateInstance<User>();
 
+        user.Email = Input.Email;
         user.EmailConfirmed = true;
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

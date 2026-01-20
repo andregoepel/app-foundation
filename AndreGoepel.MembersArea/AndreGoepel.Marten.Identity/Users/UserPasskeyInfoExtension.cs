@@ -12,6 +12,7 @@ internal static class UserPasskeyInfoExtension
         && @this.IsUserVerified == other.IsUserVerified
         && @this.IsBackupEligible == other.IsBackupEligible
         && @this.IsBackedUp == other.IsBackedUp
+        && @this.Name == other.Name
         && @this.AttestationObject.SequenceEqual(other.AttestationObject)
         && @this.ClientDataJson.SequenceEqual(other.ClientDataJson);
 }
