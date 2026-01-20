@@ -20,6 +20,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
         user.NormalizedEmail = @event.Email?.ToUpperInvariant();
         user.PasswordHash = @event.PasswordHash;
         user.Deletable = @event.Deletable;
+        user.RootUser = @event.RootUser;
         user.CreatedBy = @event.CreatedBy;
         user.CreatedAt = @event.CreatedAt;
         user.ChangedBy = @event.CreatedBy;
