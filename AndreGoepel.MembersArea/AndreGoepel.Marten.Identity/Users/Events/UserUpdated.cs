@@ -13,5 +13,4 @@ public record UserUpdated(UserId UserId)
     public bool TwoFactorEnabled { get; internal set; }
     public string? RecoveryCodes { get; internal set; }
     public bool Deletable { get; init; } = true;
-
 }

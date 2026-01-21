@@ -1,5 +1,6 @@
 ﻿using AndreGoepel.Marten.Identity.Roles;
 using AndreGoepel.Marten.Identity.Services;
+using AndreGoepel.Marten.Identity.UserRoles;
 using AndreGoepel.Marten.Identity.Users;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,5 +18,6 @@ public static class IdentityInitializationExtension
     {
         options.InitializeUsersStore();
         options.InitializeRolesStore();
+        options.InitializeUserRolesStore();
     }
 }

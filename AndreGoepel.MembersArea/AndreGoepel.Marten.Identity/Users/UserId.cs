@@ -1,4 +1,6 @@
-﻿namespace AndreGoepel.Marten.Identity.Users;
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace AndreGoepel.Marten.Identity.Users;
 
 public readonly record struct UserId(Guid Value)
 {
@@ -9,4 +11,8 @@ public readonly record struct UserId(Guid Value)
     public static UserId Parse(Guid value) => new(value);
 
     public override string ToString() => Value.ToString();
+
+    public static implicit operator Guid(UserId userId) => userId.Value;
+
+    public static explicit operator UserId(Guid guid) => Parse(guid);
 }

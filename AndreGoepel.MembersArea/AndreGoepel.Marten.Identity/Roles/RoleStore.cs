@@ -1,6 +1,5 @@
 ﻿using AndreGoepel.Marten.Identity.Roles.Events;
 using AndreGoepel.Marten.Identity.Services;
-using AndreGoepel.Marten.Identity.Users;
 using Marten;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

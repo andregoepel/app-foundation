@@ -126,6 +126,8 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     public void Apply(RoleAssigned @event, User user)
     {
         user.Roles.Add(@event.RoleId);
+        user.ChangedAt = @event.AssignedAt;
+        user.ChangedBy = @event.AssignedBy;
     }
 
     [SuppressMessage(
@@ -135,6 +137,8 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     )]
     public void Apply(RoleUnassigned @event, User user)
     {
-        user.Roles.Remove(@event.RoleId);
+        user.Roles.RemoveWhere(role => role == @event.RoleId);
+        user.ChangedAt = @event.UnassignedAt;
+        user.ChangedBy = @event.UnassignedBy;
     }
 }

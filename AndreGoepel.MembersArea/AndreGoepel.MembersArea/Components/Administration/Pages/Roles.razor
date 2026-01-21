@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.MembersArea.Components.Administration.Dialogs
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 
@@ -11,6 +12,7 @@
 @using Radzen.Blazor
 
 @inject RoleManager<Role> RoleManager
+@inject UserManager<User> UserManager
 @inject DialogService DialogService
 
 @attribute [Authorize(Roles = "Administrator")]
@@ -41,6 +43,11 @@
         <RadzenDataGridColumn Property="@nameof(Role.Deleted)" Title="Deleted" />
         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
             <Template Context="data">
+                @if (!data.Deleted)
+                {
+                    <RadzenButton Text="Users" Click="@(() => ShowUsers(data))" />
+                }
+
                 @if(data.Deletable && !data.Deleted)
                 {
                     <RadzenButton Text="Delete" Click="@(() => DeleteRole(data))" />
@@ -53,6 +60,16 @@
 @code {
     private IQueryable<Role> roles = default!;
     private IList<Role> selectedRoles = [];
+
+    private async Task ShowUsers(Role role)
+    {
+        if (string.IsNullOrWhiteSpace(role.Name))
+            return;
+
+        var users = await UserManager.GetUsersInRoleAsync(role.Name);
+
+        await DialogService.OpenAsync<RoleUserDialog>("Edit Role Users", new Dictionary<string, object>() { { "RoleId", role.Id } });
+    }
 
     private async Task DeleteRole(Role role)
     {

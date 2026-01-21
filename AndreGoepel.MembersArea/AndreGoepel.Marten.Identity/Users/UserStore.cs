@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using AndreGoepel.Marten.Identity.Roles;
 using AndreGoepel.Marten.Identity.Services;
+using AndreGoepel.Marten.Identity.UserRoles;
 using AndreGoepel.Marten.Identity.Users.Events;
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
@@ -594,7 +595,7 @@ public class UserStore<TUser>(
 
         using var session = documentStore.LightweightSession();
         session.Events.Append(
-            user.UserId.Value,
+            user.StreamId,
             new RoleAssigned(
                 user.UserId,
                 role.RoleId,
@@ -623,7 +624,7 @@ public class UserStore<TUser>(
 
         using var session = documentStore.LightweightSession();
         session.Events.Append(
-            user.UserId.Value,
+            user.StreamId,
             new RoleUnassigned(
                 user.UserId,
                 role.RoleId,
@@ -680,11 +681,19 @@ public class UserStore<TUser>(
                 ?.RoleId
             ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
 
+        var userIds = (
+            await querySession
+                .Query<UserRoleAssignment>()
+                .Where(userRole => userRole.RoleGuid == roleId)
+                .Select(ura => ura.UserGuid)
+                .ToListAsync(cancellationToken)
+        ).ToArray();
+
         return
         [
             .. await querySession
                 .Query<TUser>()
-                .Where(user => user.Roles.Any(r => r == roleId))
+                .Where(user => userIds.Contains(user.StreamId))
                 .ToListAsync(cancellationToken),
         ];
     }
