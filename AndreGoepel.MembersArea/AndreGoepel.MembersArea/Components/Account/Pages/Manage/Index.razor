@@ -1,9 +1,11 @@
-﻿@page "/Account/Manage"
+﻿@page "/Account/Manage/Profile"
 
 @using System.ComponentModel.DataAnnotations
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
@@ -14,24 +16,25 @@
 <h3>Profile</h3>
 <StatusMessage />
 
-<div class="row">
-    <div class="col-xl-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number" />
-                <label for="Input.PhoneNumber" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
-    </div>
-</div>
+<EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <RadzenStack Gap="1.5rem">
+        <RadzenStack Gap="0.5rem">
+            <RadzenText TextStyle="TextStyle.Subtitle1">Choose your username</RadzenText>
+            <RadzenTextBox Value="@username" id="username" ReadOnly="true" />
+        </RadzenStack>
+        
+        <RadzenStack Gap="0.5rem">
+            <RadzenText TextStyle="TextStyle.Subtitle1">Phone number</RadzenText>
+            <RadzenTextBox @bind-Value="Input.PhoneNumber" Name="Input.PhoneNumber" id="phonenumer" />
+            <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+        </RadzenStack>
+        
+        <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+    </RadzenStack>
+</EditForm>
 
 @code {
     private User? user;

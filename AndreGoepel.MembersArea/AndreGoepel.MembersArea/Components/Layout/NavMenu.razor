@@ -1,6 +1,8 @@
 ﻿@implements IDisposable
+@rendermode InteractiveServer 
 
 @using AndreGoepel.Marten.Identity.Roles
+@using Radzen.Blazor
 @using global::Marten
 
 @inject IQuerySession QuerySession;
@@ -8,7 +10,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">AndreGoepel.MembersArea</a>
+        @* <a class="navbar-brand" href="">André Göpel - Members</a> *@
     </div>
 </div>
 
@@ -18,52 +20,55 @@
     <nav class="nav flex-column">
         @if (SetupComplete)
         {
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
 
-        <AuthorizeView Roles="Administrator">
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Administration/Users">
-                        <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Administration
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
+            <AuthorizeView Roles="Administrator">
+                <Authorized>
+                    <RadzenPanelMenuItem Text="Administration" Icon="" >
+                        <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
+                        <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
+                    </RadzenPanelMenuItem>
+                </Authorized>
+            </AuthorizeView>
 
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Account
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
+            <AuthorizeView>
+                <Authorized>
+                        <RadzenPanelMenuItem Text="Account">
+                            <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
+                            <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
+                            <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
+                            <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
+                            <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
+                            <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
+                        </RadzenPanelMenuItem>
+
+                   <div class="nav-item px-3">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="nav-link">
+                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            </button>
+                        </form>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Account/Register">
+                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="Account/Login">
+                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        </NavLink>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+
+        </RadzenPanelMenu>
+
     }
     </nav>
 </div>
