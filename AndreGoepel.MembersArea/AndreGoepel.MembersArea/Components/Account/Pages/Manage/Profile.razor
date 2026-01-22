@@ -1,0 +1,106 @@
+﻿@page "/Account/Manage/Profile"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.MembersArea
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<User> UserManager
+
+<PageTitle>Profile</PageTitle>
+
+<RadzenStack class="rz-p-0 rz-p-md-12">
+    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
+        @Message
+    </RadzenAlert>
+
+    <RadzenTemplateForm TItem="ProfileModel" Data=@Model Submit=@Submit >
+       <RadzenFieldset Text="Update Profile">
+            <RadzenStack>
+                <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                    <RadzenColumn Size="2">
+                        <RadzenLabel Component="Username" Text="Choose your username" />
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <RadzenTextBox Value="@Model.UserName" Name="Username" ReadOnly="true" Style="width: 100%" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                    <RadzenColumn Size="2">
+                        <RadzenLabel Component="PhoneNumber" Text="Phone number" />
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <RadzenTextBox @bind-Value="Model.PhoneNumber" Name="PhoneNumber" Style="display: block; width: 100%" />
+                        <RadzenRequiredValidator Component="PhoneNumber" Text="Phone number is required" Style="position: absolute" />
+                        <RadzenRegexValidator Component="PhoneNumber" Text="Input has to be a phone number" Pattern="^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$" Style="position: absolute" />
+                    </RadzenColumn>
+                </RadzenRow>
+        
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+            </RadzenStack>
+        </RadzenFieldset>
+    </RadzenTemplateForm>
+</RadzenStack>
+
+@code {
+    private User? User;
+
+    private ProfileModel Model { get; set; } = new ();
+
+    private string? Message;
+    private AlertStyle MessageStyle = AlertStyle.Success;
+    private bool MessageVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        User = await UserManager.GetUserAsync(authState.User);
+        if (User is null or {UserName: null or "" })
+        {
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            return;
+        }
+
+        Model.UserName ??= User.UserName;
+        Model.PhoneNumber ??= User.PhoneNumber ?? "";
+    }
+
+    private async Task Submit(ProfileModel model)
+    {
+        if (User is null or { UserName: null or "" })
+        {
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            return;
+        }
+
+        if (model.PhoneNumber != User.PhoneNumber)
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(User, model.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                ShowMessage("Failed to set phone number.", AlertStyle.Danger);
+                return;
+            }
+
+            ShowMessage("Your profile has been updated", AlertStyle.Success);
+        }
+    }
+
+    private void ShowMessage(string message, AlertStyle style)
+    {
+        Message = message;
+        MessageStyle = style;
+        MessageVisible = true;
+    }
+
+    private sealed class ProfileModel
+    {
+        public string? UserName { get; set; }
+        public string? PhoneNumber { get; set; }
+
+    }
+}

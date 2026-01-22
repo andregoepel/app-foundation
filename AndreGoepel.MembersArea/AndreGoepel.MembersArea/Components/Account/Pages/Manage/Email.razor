@@ -1,4 +1,5 @@
 ﻿@page "/Account/Manage/Email"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -10,120 +11,130 @@
 @using Radzen
 @using Radzen.Blazor
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
 @inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Manage email</PageTitle>
 
 <h3>Manage email</h3>
 
-<StatusMessage Message="@message"/>
-<div class="row">
-    <div class="col-xl-6">
-        <form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
-            <AntiforgeryToken />
-        </form>
-        <EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
+<RadzenStack class="rz-p-0 rz-p-md-12">
+    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
+        @Message
+    </RadzenAlert>
 
-            <RadzenStack Gap="1.5rem">
-            @if (isEmailConfirmed)
-            {
-                <RadzenStack Gap="0.5rem">
-                    <RadzenText TextStyle="TextStyle.Subtitle1">Email</RadzenText>
-                    <RadzenTextBox Value="@email" id="email" ReadOnly="true" Placeholder="Enter your email" />
-                </RadzenStack>
-            }
-            else
-            {
-                <RadzenStack Gap="0.5rem">
-                    <RadzenText TextStyle="TextStyle.Subtitle1">Email</RadzenText>
-                    <RadzenTextBox Value="@email" id="email" ReadOnly="true" Placeholder="Enter your email" />
-                    <RadzenButton ButtonType="ButtonType.Submit" Text="Send verification email" />
-                </RadzenStack>
-            }
-            
-                <RadzenStack Gap="0.5rem">
-                    <RadzenText TextStyle="TextStyle.Subtitle1">New email</RadzenText>
-                    <RadzenTextBox @bind-Value="Input.NewEmail" Name="Input.NewEmail" id="Input.NewEmail" AutoCompleteType="AutoCompleteType.Email" aria-required="true" Placeholder="Enter a new email" />
-                    
-                    <ValidationMessage For="() => Input.NewEmail" class="text-danger" />
-                </RadzenStack>
+    <RadzenTemplateForm TItem="ChangeEmailModel" Data=@Model Submit=@Submit>
+        <RadzenFieldset Text="Update Profile">
+            <RadzenStack>
+                @if (isEmailConfirmed)
+                {
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="2">
+                            <RadzenLabel TextStyle="TextStyle.Subtitle1">Email</RadzenLabel>
+                        </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <RadzenTextBox Value="@OldEmail" id="email" ReadOnly="true" Placeholder="Enter your email" Style="display: block; width: 100%" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+                else
+                {
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="2">
+                            <RadzenLabel TextStyle="TextStyle.Subtitle1">Email</RadzenLabel>
+                        </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <RadzenTextBox Value="@OldEmail" id="email" ReadOnly="true" Placeholder="Enter your email" Style="display: block; width: 100%" />
+                            <RadzenButton ButtonType="ButtonType.Submit" Text="Send verification email" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+
+                <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                    <RadzenColumn Size="2">
+                        <RadzenLabel TextStyle="TextStyle.Subtitle1">New email</RadzenLabel>
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <RadzenTextBox @bind-Value="Model.NewEmail" Name="NewEmail" AutoCompleteType="AutoCompleteType.Email" Placeholder="Enter a new email" Style="display: block; width: 100%" />
+                        <RadzenRequiredValidator Component="NewEmail" Text="New email is required" Style="position: absolute" />
+                        <RadzenEmailValidator Component="NewEmail" Style="position: absolute" />
+                        <RadzenCompareValidator Component="NewEmail" Value=@OldEmail Text="New email is not differnt to old email." Operator="CompareOperator.NotEqual" />
+                    </RadzenColumn>
+                </RadzenRow>
 
                 <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
             </RadzenStack>
-        </EditForm>
-    </div>
-</div>
+        </RadzenFieldset>
+    </RadzenTemplateForm>
+</RadzenStack>
 
 @code {
-    private string? message;
+    private string? Message;
+    private AlertStyle MessageStyle = AlertStyle.Success;
+    private bool MessageVisible;
+
     private User? user;
-    private string? email;
+    private string? OldEmail;
     private bool isEmailConfirmed;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm(FormName = "change-email")]
-    private InputModel Input { get; set; } = default!;
+    private ChangeEmailModel Model { get; set; } = new ();
 
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
+        Model ??= new();
 
-        user = await UserManager.GetUserAsync(HttpContext.User);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = await UserManager.GetUserAsync(authState.User);
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
             return;
         }
 
-        email = await UserManager.GetEmailAsync(user);
+        OldEmail = await UserManager.GetEmailAsync(user);
         isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(user);
 
-        Input.NewEmail ??= email;
+        Model.NewEmail ??= OldEmail;
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task Submit(ChangeEmailModel model)
     {
-        if (Input.NewEmail is null || Input.NewEmail == email)
+        if (model.NewEmail is null || model.NewEmail == OldEmail)
         {
-            message = "Your email is unchanged.";
+            ShowMessage("Your email is unchanged.", AlertStyle.Warning);
             return;
         }
 
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
             return;
         }
 
         var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
+        var code = await UserManager.GenerateChangeEmailTokenAsync(user, Model.NewEmail);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmailChange").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["email"] = Input.NewEmail, ["code"] = code });
+            new Dictionary<string, object?> { ["userId"] = userId, ["email"] = Model.NewEmail, ["code"] = code });
 
-        await EmailSender.SendConfirmationLinkAsync(user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(user, Model.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Confirmation link to change email sent. Please check your email.";
+        ShowMessage("Confirmation link to change email sent. Please check your email.", AlertStyle.Info);
     }
 
     private async Task OnSendEmailVerificationAsync()
     {
-        if (email is null)
+        if (OldEmail is null)
         {
             return;
         }
 
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
             return;
         }
 
@@ -134,12 +145,19 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
 
-        await EmailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(user, OldEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Verification email sent. Please check your email.";
+        ShowMessage( "Verification email sent. Please check your email.", AlertStyle.Info);
     }
 
-    private sealed class InputModel
+    private void ShowMessage(string message, AlertStyle style)
+    {
+        Message = message;
+        MessageStyle = style;
+        MessageVisible = true;
+    }
+
+    private sealed class ChangeEmailModel
     {
         [Required]
         [EmailAddress]

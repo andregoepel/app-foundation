@@ -20,21 +20,12 @@
     <nav class="nav flex-column">
         @if (SetupComplete)
         {
-        <RadzenPanelMenu>
-            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenu>
+                <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
 
-            <AuthorizeView Roles="Administrator">
-                <Authorized>
-                    <RadzenPanelMenuItem Text="Administration" Icon="" >
-                        <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
-                        <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
-                    </RadzenPanelMenuItem>
-                </Authorized>
-            </AuthorizeView>
-
-            <AuthorizeView>
-                <Authorized>
-                        <RadzenPanelMenuItem Text="Account">
+                <AuthorizeView>
+                    <Authorized>
+                        <RadzenPanelMenuItem Text="Account" Icon="manage_accounts">
                             <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
                             <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
                             <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
@@ -42,34 +33,39 @@
                             <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
                             <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
                         </RadzenPanelMenuItem>
+                    </Authorized>
+                </AuthorizeView>
 
-                   <div class="nav-item px-3">
-                        <form action="Account/Logout" method="post">
+                <AuthorizeView Roles="Administrator">
+                    <Authorized>
+                        <RadzenPanelMenuItem Text="Administration" Icon="settings">
+                            <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
+                            <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
+                        </RadzenPanelMenuItem>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView>
+                    <Authorized>
+                        <form action="Account/Logout" method="post" name="logout-form">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                            <button type="submit" class="nav-link">
-                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                            </button>
                         </form>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="Account/Register">
-                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="Account/Login">
-                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                        </NavLink>
-                    </div>
-                </NotAuthorized>
-            </AuthorizeView>
-
-        </RadzenPanelMenu>
-
-    }
+                        <RadzenProfileMenuItem Text="Logout" Value="Logout" Icon="power_settings_new" Path="javascript:document.forms['logout-form'].submit();" />
+                    </Authorized>
+                    <NotAuthorized>
+                        <RadzenPanelMenuItem Text="Register" Icon="person_add" Path="Account/Register" />
+                        <RadzenPanelMenuItem Text="Login" Icon="login" Path="Account/Login" />
+                    </NotAuthorized>
+                </AuthorizeView>
+            </RadzenPanelMenu>
+        }
+        else
+        {
+            <RadzenPanelMenu>
+                <RadzenPanelMenuItem Text="Setup" Icon="install_desktop" Path="/Setup" />
+            </RadzenPanelMenu>
+        }
     </nav>
 </div>
 
