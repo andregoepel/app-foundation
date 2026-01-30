@@ -54,7 +54,22 @@ public class RoleStore<TRole>(
     {
         try
         {
-            session.Update(role);
+            if (role.Name == null)
+            {
+                return IdentityResult.Failed(
+                    new IdentityError() { Description = "Role name cannot be null." }
+                );
+            }
+
+            session.Events.Append(
+                role.RoleId,
+                new RoleChanged(
+                    role.RoleId,
+                    role.Name,
+                    await currentUserService.GetCurrentUserIdAsync()
+                )
+            );
+
             await session.SaveChangesAsync(cancellationToken);
 
             return IdentityResult.Success;
@@ -79,6 +94,10 @@ public class RoleStore<TRole>(
                 );
             }
 
+            session.Events.Append(
+                role.RoleId,
+                new RoleDeleted(role.RoleId, await currentUserService.GetCurrentUserIdAsync())
+            );
             session.Delete(role);
             await session.SaveChangesAsync(cancellationToken);
 

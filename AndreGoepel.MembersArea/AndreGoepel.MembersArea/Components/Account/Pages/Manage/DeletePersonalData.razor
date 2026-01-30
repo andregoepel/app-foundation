@@ -1,10 +1,14 @@
 ﻿@page "/Account/Manage/DeletePersonalData"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
@@ -12,71 +16,72 @@
 
 <PageTitle>Delete Personal Data</PageTitle>
 
-<StatusMessage Message="@message" />
+<RadzenStack class="rz-p-0 rz-p-md-6">
+    <RadzenHeading Text="Delete personal data" />
 
-<h3>Delete Personal Data</h3>
+    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
+        @Message
+    </RadzenAlert>
 
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-    </p>
-</div>
+    <RadzenAlert 
+        Text="Deleting this data will permanently remove your account, and this cannot be recovered."
+        AlertStyle="AlertStyle.Warning"
+        AllowClose="false" />
 
-<div>
-    <EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post">
-        <DataAnnotationsValidator />
-        <ValidationSummary class="text-danger" role="alert" />
-        @if (requirePassword)
-        {
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label for="Input.Password" class="form-label">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-        }
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
-    </EditForm>
-</div>
+    <RadzenTemplateForm TItem="InputModel" Data=@Model Submit=@Submit>
+        <RadzenStack>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel Text="Enter password for confirmation" Component="Password" />
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenPassword @bind-Value="Model.Password" Name="Password" Placeholder="Please enter your password." Style="display: block; width: 100%" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenRequiredValidator Component="Password" Text="Password is required" Style="position: absolute" />
+            </RadzenRow>
+        </RadzenStack>
+
+        <RadzenButton ButtonType="ButtonType.Submit" Text="Delete data and close my account" />
+    </RadzenTemplateForm>
+</RadzenStack>
 
 @code {
-    private string? message;
-    private User? user;
-    private bool requirePassword;
+    private User? User;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private string? Message;
+    private AlertStyle MessageStyle = AlertStyle.Success;
+    private bool MessageVisible;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Model { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
-
-        user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        User = await UserManager.GetUserAsync(authState.User);
+        if (User is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
             return;
         }
-        requirePassword = await UserManager.HasPasswordAsync(user);
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task Submit(InputModel model)
     {
-        if (user is null)
+        if (User is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
             return;
         }
 
-        if (requirePassword && !await UserManager.CheckPasswordAsync(user, Input.Password))
+        if (!await UserManager.CheckPasswordAsync(User, Model.Password))
         {
-            message = "Error: Incorrect password.";
+            ShowMessage("Incorrect password.", AlertStyle.Danger);
             return;
         }
 
-        var result = await UserManager.DeleteAsync(user);
+        var result = await UserManager.DeleteAsync(User);
         if (!result.Succeeded)
         {
             throw new InvalidOperationException("Unexpected error occurred deleting user.");
@@ -84,10 +89,17 @@
 
         await SignInManager.SignOutAsync();
 
-        var userId = await UserManager.GetUserIdAsync(user);
+        var userId = await UserManager.GetUserIdAsync(User);
         Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
 
         RedirectManager.RedirectToCurrentPage();
+    }
+
+    private void ShowMessage(string message, AlertStyle style)
+    {
+        Message = message;
+        MessageStyle = style;
+        MessageVisible = true;
     }
 
     private sealed class InputModel

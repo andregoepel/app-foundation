@@ -21,52 +21,64 @@
 
 <h1>Roles</h1>
 
-<RadzenDataGrid 
-    Data="@roles" 
-    AllowFiltering="true"
-    AllowColumnResize="true"
-    AllowAlternatingRows="false"
-    FilterMode="FilterMode.Advanced"
-    AllowSorting="true"
-    PageSize="5"
-    AllowPaging="true"
-    PagerHorizontalAlign="HorizontalAlign.Left"
-    ShowPagingSummary="true"
-    LogicalFilterOperator="LogicalFilterOperator.Or"
-    SelectionMode="DataGridSelectionMode.Single"
-    @bind-Value="@selectedRoles">
-    <Columns>
-        <RadzenDataGridColumn Property="@nameof(Role.Id)" Title="Id" Sortable="false" Filterable="false"/>
-        <RadzenDataGridColumn Property="@nameof(Role.Name)" Title="Name"/>
-        <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" />
-        <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" />
-        <RadzenDataGridColumn Property="@nameof(Role.Deleted)" Title="Deleted" />
-        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
-            <Template Context="data">
-                @if (!data.Deleted)
-                {
-                    <RadzenButton Text="Users" Click="@(() => ShowUsers(data))" />
-                }
+<RadzenStack Gap="1rem">
+    <RadzenStack Gap="1rem" AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
+        <RadzenButton Text="New role" Click=@NewRoleAsync />
+        <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
+            <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChanged(value)) />
+            <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenRow RowGap="0.5rem">
+        <RadzenDataGrid Data="@roles"
+                        AllowFiltering="true"
+                        AllowColumnResize="true"
+                        AllowAlternatingRows="false"
+                        FilterMode="FilterMode.Advanced"
+                        AllowSorting="true"
+                        PageSize="5"
+                        AllowPaging="true"
+                        PagerHorizontalAlign="HorizontalAlign.Left"
+                        ShowPagingSummary="true"
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                        SelectionMode="DataGridSelectionMode.Single"
+                        @bind-Value="@selectedRoles">
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(Role.Id)" Title="Id" Sortable="false" Filterable="false" />
+                <RadzenDataGridColumn Property="@nameof(Role.Name)" Title="Name" />
+                <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" />
+                <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" />
+                <RadzenDataGridColumn Property="@nameof(Role.Deleted)" Title="Deleted" />
+                <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
+                    <Template Context="data">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="1em">
+                        @if (!data.Deleted)
+                        {
+                            <RadzenButton Text="Users" Click="@(() => ShowUsers(data))" />
+                        }
 
-                @if(data.Deletable && !data.Deleted)
-                {
-                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(data))" />
-                }
-            </Template>
-        </RadzenDataGridColumn>
-    </Columns>
-</RadzenDataGrid>
+                        @if (data.Deletable && !data.Deleted)
+                        {
+                            <RadzenButton Text="Delete" Click="@(() => DeleteRole(data))" />
+                        }
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenRow>
+</RadzenStack>
 
 @code {
     private IQueryable<Role> roles = default!;
     private IList<Role> selectedRoles = [];
 
+    private bool ShowDeleted { get; set; }
+
     private async Task ShowUsers(Role role)
     {
         if (string.IsNullOrWhiteSpace(role.Name))
             return;
-
-        var users = await UserManager.GetUsersInRoleAsync(role.Name);
 
         await DialogService.OpenAsync<RoleUserDialog>("Edit Role Users", new Dictionary<string, object>() { { "RoleId", role.Id } });
     }
@@ -77,16 +89,32 @@
         { 
             var deleteResult = await RoleManager.DeleteAsync(role);
             if (deleteResult.Succeeded)
-                roles = RoleManager.Roles;
+                LoadRoles();
             else
                 await DialogService.Alert("Role could not be deleted", "Error");
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    private void ShowDeletedChanged(bool _) => LoadRoles();
+
+    private void LoadRoles()
     {
-        await base.OnInitializedAsync();
+        if (ShowDeleted)
+            roles = RoleManager.Roles;
+        else
+            roles = RoleManager.Roles.Where(user => !user.Deleted);
+    }
+
+    private async Task NewRoleAsync()
+    {
+        await DialogService.OpenAsync<NewRole>("New role");
+        LoadRoles();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
         
-        roles = RoleManager.Roles;
+        LoadRoles();
     }
 }

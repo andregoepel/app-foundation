@@ -1,0 +1,100 @@
+﻿@page "/Account/Manage/Passkeys/Create"
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using System.Buffers.Text
+@using Radzen.Blazor
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignInManager<User> SignInManager
+@inject NavigationManager NavigationManager
+@inject UserManager<User> UserManager
+
+
+<PageTitle>Create a new Passkey</PageTitle>
+
+<RadzenStack class="rz-p-0 rz-p-md-6">
+    <RadzenHeading Text="Create a new Passkey" />
+
+    <p>
+        To create a new passkey please click on the button and follow the instructions of your browser
+    </p>
+
+    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
+        @Message
+    </RadzenAlert>
+
+    <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
+        <AntiforgeryToken />
+        <PasskeySubmit Operation="PasskeyOperation.Create"
+                       Name="Input"
+                       class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">
+            Add a new passkey
+        </PasskeySubmit>
+    </form>
+</RadzenStack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "add-passkey")]
+    private PasskeyInputModel Input { get; set; } = new();
+
+    public User? User { get; set; }
+
+    private string? Message;
+    private AlertStyle MessageStyle = AlertStyle.Success;
+    private bool MessageVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync(); 
+        User = await UserManager.GetUserAsync(authState.User);
+
+    }
+
+    private void ShowMessage(string message, AlertStyle style)
+    {
+        Message = message;
+        MessageStyle = style;
+        MessageVisible = true;
+    }
+
+    private async Task AddPasskey()
+    {
+        if (User is null)
+        {
+            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Input.Error))
+        {
+            ShowMessage(Input.Error, AlertStyle.Danger);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(Input.CredentialJson))
+        {
+            ShowMessage("The browser did not provide a passkey.", AlertStyle.Danger);
+            return;
+        }
+
+        var attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
+        if (!attestationResult.Succeeded)
+        {
+            ShowMessage($"Could not add the passkey: {attestationResult.Failure.Message}", AlertStyle.Danger);
+            return;
+        }
+
+        var addPasskeyResult = await UserManager.AddOrUpdatePasskeyAsync(User, attestationResult.Passkey);
+        if (!addPasskeyResult.Succeeded)
+        {
+            ShowMessage("Error: The passkey could not be added to your account.", AlertStyle.Success);
+            return;
+        }
+
+        // Immediately prompt the user to enter a name for the credential
+        var credentialIdBase64Url = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
+        NavigationManager.NavigateTo($"Account/Manage/RenamePasskey/{credentialIdBase64Url}");
+    }
+}

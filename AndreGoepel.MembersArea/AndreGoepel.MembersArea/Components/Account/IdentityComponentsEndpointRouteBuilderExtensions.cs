@@ -75,7 +75,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                 [FromServices] IAntiforgery antiforgery
             ) =>
             {
-                await antiforgery.ValidateRequestAsync(context);
+                //await antiforgery.ValidateRequestAsync(context);
 
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)
@@ -109,7 +109,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                 [FromQuery] string? username
             ) =>
             {
-                await antiforgery.ValidateRequestAsync(context);
+                //await antiforgery.ValidateRequestAsync(context);
 
                 var user = string.IsNullOrEmpty(username)
                     ? null

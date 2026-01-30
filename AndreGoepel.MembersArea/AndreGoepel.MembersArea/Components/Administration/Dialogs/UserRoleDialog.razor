@@ -5,7 +5,7 @@
 @using Radzen
 @using Radzen.Blazor
 
-@inject Radzen.DialogService dialogService
+@inject DialogService DialogService
 @inject UserManager<User> UserManager
 @inject RoleManager<Role> RoleManager
 
@@ -21,10 +21,10 @@
         Placeholder="Select Roles"
         Change="@(() => OnChange())"
         />
-        </RadzenStack>
+    </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@(() => SaveRoles())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
-        <RadzenButton Click="@(() => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
     </RadzenStack>
 </RadzenStack>
 
@@ -41,7 +41,7 @@
     {
         if (user.RootUser && !Values.Contains(AdminRole))
         {
-            await dialogService.Alert("Root user must have Administrator role.", "Warning");
+            await DialogService.Alert("Root user must have Administrator role.", "Warning");
             Values.Add(AdminRole);
         }
     }
@@ -62,13 +62,13 @@
 
         await UserManager.RemoveFromRolesAsync(user, removedRoles);
 
-        dialogService.Close(true);
+        DialogService.Close(true);
     }
 
     protected override async Task OnInitializedAsync()
     {
         user = await UserManager.FindByIdAsync(UserID) ?? throw new InvalidOperationException("User not found");
-        roles = RoleManager.Roles.ToList();
+        roles = RoleManager.Roles.Where(role => !role.Deleted).ToList();
 
         Values = [.. user.Roles.Select(roleId => roleId)];
 

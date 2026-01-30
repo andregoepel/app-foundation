@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.Marten.Identity;
 
-public static class IdentityInitializationExtension
+public static class Initialization
 {
     public static void InitializeIdentityServices(this IServiceCollection services)
     {

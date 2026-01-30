@@ -3,30 +3,31 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Personal Data</PageTitle>
 
-<StatusMessage />
-<h3>Personal Data</h3>
+<RadzenStack class="rz-p-0 rz-p-md-6">
+    <RadzenHeading Text="Personal Data" />
 
-<div class="row">
-    <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
+    Your account contains personal data that you have given us. This page allows you to download or delete that data.
+
+    <RadzenAlert Text="Deleting this data will permanently remove your account, and this cannot be recovered."
+                 AlertStyle="AlertStyle.Warning"
+                 AllowClose="false" />
+
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
         <form action="Account/Manage/DownloadPersonalData" method="post">
             <AntiforgeryToken />
-            <button class="btn btn-primary" type="submit">Download</button>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Download" />
         </form>
-        <p>
-            <a href="Account/Manage/DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
-    </div>
-</div>
+        <RadzenLink Path="Account/Manage/DeletePersonalData" Text="Delete personal data" />
+    </RadzenStack>
+</RadzenStack>
 
 @code {
     [CascadingParameter]
