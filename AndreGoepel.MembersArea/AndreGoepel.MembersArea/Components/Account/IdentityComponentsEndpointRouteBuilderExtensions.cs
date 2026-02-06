@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components.Account.Pages;
 using AndreGoepel.MembersArea.Components.Account.Pages.Manage;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -9,9 +8,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.AspNetCore.Routing;
+namespace AndreGoepel.MembersArea.Components.Account;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {
@@ -23,35 +21,6 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var accountGroup = endpoints.MapGroup("/Account");
-
-        accountGroup.MapPost(
-            "/PerformExternalLogin",
-            (
-                HttpContext context,
-                [FromServices] SignInManager<User> signInManager,
-                [FromForm] string provider,
-                [FromForm] string returnUrl
-            ) =>
-            {
-                IEnumerable<KeyValuePair<string, StringValues>> query =
-                [
-                    new("ReturnUrl", returnUrl),
-                    new("Action", ExternalLogin.LoginCallbackAction),
-                ];
-
-                var redirectUrl = UriHelper.BuildRelative(
-                    context.Request.PathBase,
-                    "/Account/ExternalLogin",
-                    QueryString.Create(query)
-                );
-
-                var properties = signInManager.ConfigureExternalAuthenticationProperties(
-                    provider,
-                    redirectUrl
-                );
-                return TypedResults.Challenge(properties, [provider]);
-            }
-        );
 
         accountGroup.MapPost(
             "/Logout",

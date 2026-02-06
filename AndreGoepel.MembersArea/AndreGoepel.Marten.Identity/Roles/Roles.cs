@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AndreGoepel.Marten.Identity.Roles;
+﻿namespace AndreGoepel.Marten.Identity.Roles;
 
 public static class Roles
 {

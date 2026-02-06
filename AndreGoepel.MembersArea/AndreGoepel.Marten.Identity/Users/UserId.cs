@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace AndreGoepel.Marten.Identity.Users;
+﻿namespace AndreGoepel.Marten.Identity.Users;
 
 public readonly record struct UserId(Guid Value)
 {

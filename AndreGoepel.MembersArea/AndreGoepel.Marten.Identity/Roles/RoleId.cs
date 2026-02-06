@@ -1,6 +1,4 @@
-﻿using AndreGoepel.Marten.Identity.Users;
-
-namespace AndreGoepel.Marten.Identity.Roles;
+﻿namespace AndreGoepel.Marten.Identity.Roles;
 
 public readonly record struct RoleId(Guid Value)
 {

@@ -1,10 +1,13 @@
 ﻿@page "/Account/Login"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
@@ -14,67 +17,66 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com" />
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <hr />
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr />
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
-</div>
+<RadzenStack class="rz-p-0 rz-p-md-6">
+    <RadzenHeading Text="Log in" />
+
+    <RadzenHeading Size="H2" Text="Use a local account to log in." />
+
+    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
+        @Message
+    </RadzenAlert>
+
+    <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
+        <RadzenStack>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Email</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenTextBox @bind-Value=@Input.Email
+                                   AutoCompleteType="AutoCompleteType.Username"
+                                   Placeholder="Enter your email"
+                                   Style="display: block; width: 100%" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Password</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="display: block; width: 100%" />
+                    <RadzenRequiredValidator Component="Password"
+                                             Text="Password is required"
+                                             Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Remember me</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenCheckBox @bind-Value=@Input.RememberMe  />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Register" />
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
+                <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
+                <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
+                <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</RadzenStack>
+    
 
 @code {
-    private string? errorMessage;
-    private EditContext editContext = default!;
+    private string? Message;
+    private AlertStyle MessageStyle = AlertStyle.Success;
+    private bool MessageVisible;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -85,44 +87,52 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    private void ShowMessage(string message, AlertStyle style)
+    {
+        Message = message;
+        MessageStyle = style;
+        MessageVisible = true;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Input ??= new();
-
-        editContext = new EditContext(Input);
-
-        if (HttpMethods.IsGet(HttpContext.Request.Method))
-        {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        }
     }
 
-    public async Task LoginUser()
+    private async Task LoginUser(InputModel model)
     {
-        if (!string.IsNullOrEmpty(Input.Passkey?.Error))
+        if (!string.IsNullOrEmpty(model.Passkey?.Error))
         {
-            errorMessage = $"Error: {Input.Passkey.Error}";
+            ShowMessage(model.Passkey.Error, AlertStyle.Danger);
             return;
         }
 
         SignInResult result;
-        if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+        if (!string.IsNullOrEmpty(model.Passkey?.CredentialJson))
         {
-            // When performing passkey sign-in, don't perform form validation.
-            result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+            result = await SignInManager.PasskeySignInAsync(model.Passkey.CredentialJson);
         }
-        else
+        else 
         {
-            // If doing a password sign-in, validate the form.
-            if (!editContext.Validate())
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await SignInManager.CanSignInAsync(user)))
             {
+                ShowMessage("Invalid login attempt.", AlertStyle.Danger);
                 return;
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, model.RememberMe);
+
+            if(result == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                NavigationManager.NavigateTo($"/login?key={key}", true);
+            }
+            else
+            {
+                ShowMessage("Invalid login attempt.", AlertStyle.Danger);
+            }
         }
 
         if (result.Succeeded)
@@ -134,7 +144,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe });
         }
         else if (result.IsLockedOut)
         {
@@ -143,23 +153,15 @@
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            ShowMessage("Invalid login attempt.", AlertStyle.Danger);
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
         public string Email { get; set; } = "";
-
-        [Required]
-        [DataType(DataType.Password)]
         public string Password { get; set; } = "";
-
-        [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
-
         public PasskeyInputModel? Passkey { get; set; }
     }
 }
