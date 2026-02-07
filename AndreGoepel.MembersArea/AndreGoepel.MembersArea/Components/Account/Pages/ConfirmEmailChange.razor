@@ -5,6 +5,7 @@
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Radzen
 
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
@@ -36,7 +37,7 @@
         if (UserId is null || Email is null || Code is null)
         {
             RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+                "Account/Login", "Invalid data", "Invalid email change confirmation link.", NotificationSeverity.Error);
             return;
         }
 

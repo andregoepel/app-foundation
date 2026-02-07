@@ -18,6 +18,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
 
 <PageTitle>Register</PageTitle>
 
@@ -25,10 +26,6 @@
     <RadzenHeading Text="Register" />
 
     <RadzenHeading Text="Create a new account." />
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@RegisterUser>
         <RadzenStack>
@@ -78,12 +75,6 @@
 </RadzenStack>
 
 @code {
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
-    private IEnumerable<IdentityError>? identityErrors;
-
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = default!;
 
@@ -93,13 +84,6 @@
     protected override void OnInitialized()
     {
         Input ??= new();
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
     }
 
     private async Task RegisterUser(InputModel model)
@@ -113,7 +97,7 @@
 
         if (!result.Succeeded)
         {
-            ShowMessage($"Error on creating a new account: {string.Join('\r', result.Errors)}", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error on creating a new account: {string.Join('\r', result.Errors)}");
             return;
         }
 

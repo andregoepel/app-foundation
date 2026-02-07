@@ -10,7 +10,7 @@
 @inject SignInManager<User> SignInManager
 @inject NavigationManager NavigationManager
 @inject UserManager<User> UserManager
-
+@inject NotificationService NotificationService
 
 <PageTitle>Create a new Passkey</PageTitle>
 
@@ -20,10 +20,6 @@
     <p>
         To create a new passkey please click on the button and follow the instructions of your browser
     </p>
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
         <AntiforgeryToken />
@@ -41,10 +37,6 @@
 
     public User? User { get; set; }
 
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync(); 
@@ -52,44 +44,37 @@
 
     }
 
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
-    }
-
     private async Task AddPasskey()
     {
         if (User is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
         if (!string.IsNullOrEmpty(Input.Error))
         {
-            ShowMessage(Input.Error, AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", Input.Error);
             return;
         }
 
         if (string.IsNullOrEmpty(Input.CredentialJson))
         {
-            ShowMessage("The browser did not provide a passkey.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "The browser did not provide a passkey.");
             return;
         }
 
         var attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
         if (!attestationResult.Succeeded)
         {
-            ShowMessage($"Could not add the passkey: {attestationResult.Failure.Message}", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Could not add the passkey: {attestationResult.Failure.Message}");
             return;
         }
 
         var addPasskeyResult = await UserManager.AddOrUpdatePasskeyAsync(User, attestationResult.Passkey);
         if (!addPasskeyResult.Succeeded)
         {
-            ShowMessage("Error: The passkey could not be added to your account.", AlertStyle.Success);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "The passkey could not be added to your account.");
             return;
         }
 

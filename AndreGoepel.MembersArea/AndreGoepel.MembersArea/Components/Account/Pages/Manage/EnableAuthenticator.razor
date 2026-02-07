@@ -1,4 +1,5 @@
 ﻿@page "/Account/Manage/EnableAuthenticator"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using System.Globalization
@@ -14,6 +15,7 @@
 @inject UrlEncoder UrlEncoder
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Configure authenticator app</PageTitle>
 
@@ -23,47 +25,49 @@
 }
 else
 {
-    <StatusMessage Message="@message" />
-    <h3>Configure authenticator app</h3>
-    <div>
-        <p>To use an authenticator app go through the following steps:</p>
+    <RadzenStack class="rz-p-0 rz-p-md-6">
+        <RadzenHeading Text="Configure authenticator app" />
+        <RadzenText>To use an authenticator app go through the following steps:</RadzenText>
         <ol class="list">
             <li>
-                <p>
+                <RadzenText>
                     Download a two-factor authenticator app like Microsoft Authenticator for
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825072">Android</a> and
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825073">iOS</a> or
+                    <RadzenLink Path="https://go.microsoft.com/fwlink/?Linkid=825072" Text="Android" /> and
+                    <RadzenLink Path="https://go.microsoft.com/fwlink/?Linkid=825073" Text="iOS" /> or
                     Google Authenticator for
-                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en">Android</a> and
-                    <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">iOS</a>.
-                </p>
+                    <RadzenLink Path="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en" Text="Android" /> and
+                    <RadzenLink Path="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8" Text="iOS" />.
+                </RadzenText>
             </li>
             <li>
-                <p>Scan the QR Code or enter this key <kbd>@sharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
+                <RadzenText>Scan the QR Code or enter this key <kbd>@sharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</RadzenText>
                 <RadzenQRCode style="max-width: 300px" Value="@authenticatorUri" />
             </li>
             <li>
-                <p>
+                <RadzenText>
                     Once you have scanned the QR code or input the key above, your two factor authentication app will provide you
                     with a unique code. Enter the code in the confirmation box below.
-                </p>
-                <div class="row">
-                    <div class="col-xl-6">
-                        <EditForm Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync" method="post">
-                            <DataAnnotationsValidator />
-                            <div class="form-floating mb-3">
-                                <InputText @bind-Value="Input.Code" id="Input.Code" class="form-control" autocomplete="off" placeholder="Enter the code" />
-                                <label for="Input.Code" class="control-label form-label">Verification Code</label>
-                                <ValidationMessage For="() => Input.Code" class="text-danger" />
-                            </div>
-                            <button type="submit" class="w-100 btn btn-lg btn-primary">Verify</button>
-                            <ValidationSummary class="text-danger" role="alert" />
-                        </EditForm>
-                    </div>
-                </div>
+                </RadzenText>
+                <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@Submit>
+                    <RadzenStack>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="2">
+                                <RadzenLabel Component="VerificationCode" Text="Verification Code" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="3">
+                                <RadzenTextBox @bind-Value="Input.Code" Name="VerificationCode" Style="width: 100%" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="2">
+                                <RadzenButton ButtonType="ButtonType.Submit" Text="Verify" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenStack>
+
+                </RadzenTemplateForm>
             </li>
         </ol>
-    </div>
+    </RadzenStack>
 }
 
 @code {
@@ -78,14 +82,12 @@ else
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
-
-        user = await UserManager.GetUserAsync(HttpContext.User);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = await UserManager.GetUserAsync(authState.User);
         if (user is null)
         {
             RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
@@ -95,7 +97,7 @@ else
         await LoadSharedKeyAndQrCodeUriAsync(user);
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task Submit(InputModel model)
     {
         if (user is null)
         {
@@ -104,7 +106,7 @@ else
         }
 
         // Strip spaces and hyphens
-        var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
         var is2faTokenValid = await UserManager.VerifyTwoFactorTokenAsync(
             user, UserManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
@@ -127,7 +129,7 @@ else
         }
         else
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", message, HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", "Authenticator added", message);
         }
     }
 
@@ -173,10 +175,6 @@ else
 
     private sealed class InputModel
     {
-        [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Text)]
-        [Display(Name = "Verification Code")]
-        public string Code { get; set; } = "";
+        public string? Code { get; set; }
     }
 }

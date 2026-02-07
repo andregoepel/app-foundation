@@ -2,12 +2,16 @@
 
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
+@using AndreGoepel.MembersArea.Components.Shared
 @using Microsoft.AspNetCore.Http.Features
 @using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 
 <PageTitle>Two-factor authentication (2FA)</PageTitle>
 
@@ -21,21 +25,21 @@
         {
             <div class="alert alert-danger">
                 <strong>You have no recovery codes left.</strong>
-                <p>You must <a href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</a> before you can log in with a recovery code.</p>
+                <p>You must <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" /> before you can log in with a recovery code.</p>
             </div>
         }
         else if (recoveryCodesLeft == 1)
         {
             <div class="alert alert-danger">
                 <strong>You have 1 recovery code left.</strong>
-                <p>You can <a href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</a>.</p>
+                <p>You can <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" />.</p>
             </div>
         }
         else if (recoveryCodesLeft <= 3)
         {
             <div class="alert alert-warning">
                 <strong>You have @recoveryCodesLeft recovery codes left.</strong>
-                <p>You should <a href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</a>.</p>
+                <p>You should <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" />.</p>
             </div>
         }
 
@@ -47,19 +51,19 @@
             </form>
         }
 
-        <a href="Account/Manage/Disable2fa" class="btn btn-primary">Disable 2FA</a>
-        <a href="Account/Manage/GenerateRecoveryCodes" class="btn btn-primary">Reset recovery codes</a>
+        <LinkButton Text="Disable 2FA" Path="Account/Manage/Disable2fa" />
+        <LinkButton Text="Reset recovery codes" Path="Account/Manage/GenerateRecoveryCodes" />
     }
 
     <h4>Authenticator app</h4>
     @if (!hasAuthenticator)
     {
-        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Add authenticator app</a>
+        <LinkButton Text="Add authenticator app" Path="Account/Manage/EnableAuthenticator" />
     }
     else
     {
-        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Set up authenticator app</a>
-        <a href="Account/Manage/ResetAuthenticator" class="btn btn-primary">Reset authenticator app</a>
+        <LinkButton Text="Set up authenticator app" Path="Account/Manage/EnableAuthenticator" />
+        <LinkButton Text="Reset authenticator app" Path="Account/Manage/ResetAuthenticator" />
     }
 }
 else
@@ -101,7 +105,7 @@ else
         await SignInManager.ForgetTwoFactorClientAsync();
 
         RedirectManager.RedirectToCurrentPageWithStatus(
-            "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
-            HttpContext);
+            "Browser forgotten", 
+            "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.");
     }
 }

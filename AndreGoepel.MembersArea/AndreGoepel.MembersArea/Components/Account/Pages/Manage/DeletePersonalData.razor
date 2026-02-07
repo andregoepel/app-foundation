@@ -13,15 +13,12 @@
 @inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
+@inject NotificationService NotificationService
 
 <PageTitle>Delete Personal Data</PageTitle>
 
 <RadzenStack class="rz-p-0 rz-p-md-6">
     <RadzenHeading Text="Delete personal data" />
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <RadzenAlert 
         Text="Deleting this data will permanently remove your account, and this cannot be recovered."
@@ -50,10 +47,6 @@
 @code {
     private User? User;
 
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     private InputModel Model { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
@@ -62,7 +55,7 @@
         User = await UserManager.GetUserAsync(authState.User);
         if (User is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Unable to load user.");
             return;
         }
     }
@@ -71,13 +64,13 @@
     {
         if (User is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
         if (!await UserManager.CheckPasswordAsync(User, Model.Password))
         {
-            ShowMessage("Incorrect password.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Incorrect password.");
             return;
         }
 
@@ -93,13 +86,6 @@
         Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
 
         RedirectManager.RedirectToCurrentPage();
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
     }
 
     private sealed class InputModel

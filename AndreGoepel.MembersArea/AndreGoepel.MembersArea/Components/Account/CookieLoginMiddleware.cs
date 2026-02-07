@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using AndreGoepel.Marten.Identity.Users;
+using JasperFx.Core;
 using Microsoft.AspNetCore.Identity;
 
 namespace AndreGoepel.MembersArea.Components.Account;
@@ -19,7 +20,7 @@ public class CookieLoginMiddleware(RequestDelegate next)
     {
         if (context.Request.Path == "/login" && context.Request.Query.ContainsKey("key"))
         {
-            var key = Guid.Parse(context.Request.Query["key"]);
+            var key = Guid.Parse(context.Request.Query["key"]!);
             var info = Logins[key];
 
             var result = await signinManager.PasswordSignInAsync(

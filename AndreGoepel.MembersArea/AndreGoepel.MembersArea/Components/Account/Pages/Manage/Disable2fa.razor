@@ -3,6 +3,7 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
 
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
@@ -69,7 +70,8 @@
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
         RedirectManager.RedirectToWithStatus(
             "Account/Manage/TwoFactorAuthentication",
+            "2FA disabled",
             "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
-            HttpContext);
+            NotificationSeverity.Info);
     }
 }

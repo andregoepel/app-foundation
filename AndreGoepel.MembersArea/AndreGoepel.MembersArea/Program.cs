@@ -56,6 +56,8 @@ builder
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddScoped<NotificationService>();
+
 builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
 builder

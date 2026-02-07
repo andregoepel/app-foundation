@@ -17,4 +17,8 @@
     <ProjectReference Include="..\AndreGoepel.MembersArea.MailService\AndreGoepel.MembersArea.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.MembersArea.ServiceDefaults\AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
 </Project>

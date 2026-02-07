@@ -13,6 +13,7 @@
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
 
 <PageTitle>Passkey Name</PageTitle>
 
@@ -25,10 +26,6 @@
     {
         <RadzenHeading Text="Add name for passkey" />
     }
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <RadzenTemplateForm TItem=RenamePasskeyModel Data=@Input Submit=@Rename>
         <RadzenStack>
@@ -53,10 +50,6 @@
 </RadzenStack>
 
 @code {
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     private User? user;
     private UserPasskeyInfo? passkey;
 
@@ -72,7 +65,7 @@
         user = (await UserManager.GetUserAsync(authState.User))!;
         if (user is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -83,14 +76,14 @@
         }
         catch (FormatException)
         {
-            ShowMessage("The specified passkey ID had an invalid format.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "The specified passkey ID had an invalid format.");
             return;
         }
 
         passkey = await UserManager.GetPasskeyAsync(user, credentialId);
         if (passkey is null)
         {
-            ShowMessage("The specified passkey could not be found.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "The specified passkey could not be found.");
             return;
         }
     }
@@ -101,19 +94,12 @@
         var result = await UserManager.AddOrUpdatePasskeyAsync(user!, passkey);
         if (!result.Succeeded)
         {
-            ShowMessage("The passkey could not be updated.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "An error occurred while updating the passkey.");
             return;
         }
 
-        ShowMessage("Passkey updated successfully.", AlertStyle.Success);
+        NotificationService.Notify(NotificationSeverity.Success, "Success", "Passkey updated successfully.");
         NavigationManager.NavigateTo("Account/Manage/Passkeys");
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
     }
 
     private sealed class RenamePasskeyModel

@@ -13,15 +13,12 @@
 @inject UserManager<User> UserManager
 @inject NavigationManager NavigationManager
 @inject DialogService DialogService
+@inject NotificationService NotificationService
 
 <PageTitle>Manage your passkeys</PageTitle>
 
 <RadzenStack class="rz-p-0 rz-p-md-6">
     <RadzenHeading Text="Manage your Passkeys" />
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     @if (currentPasskeys is { Count: > 0 })
     {
@@ -65,10 +62,6 @@
 @code {
     private const int MaxPasskeyCount = 100;
 
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     private User? User;
     private IList<UserPasskeyInfo>? currentPasskeys;
 
@@ -79,7 +72,7 @@
 
         if (User is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
         currentPasskeys = await UserManager.GetPasskeysAsync(User);
@@ -95,7 +88,7 @@
     {
         if (User is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -107,19 +100,12 @@
         var result = await UserManager.RemovePasskeyAsync(User, passkeyInfo.CredentialId);
         if (!result.Succeeded)
         {
-            ShowMessage("The passkey could not be deleted.", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "An error occurred while deleting the passkey.");
             return;
         }
 
-        ShowMessage("Passkey deleted successfully.", AlertStyle.Success);
+        NotificationService.Notify(NotificationSeverity.Success, "Success", "Passkey deleted successfully.");
 
         currentPasskeys = await UserManager.GetPasskeysAsync(User);
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
     }
 }

@@ -1,8 +1,15 @@
 ﻿@using Microsoft.AspNetCore.Antiforgery
+@using Radzen
+@using Radzen.Blazor
 
 @inject IServiceProvider Services
 
-<button type="submit" name="__passkeySubmit" @attributes="AdditionalAttributes">@ChildContent</button>
+<button type="submit"
+        name="__passkeySubmit"
+        @attributes="AdditionalAttributes"
+        class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">
+    @ChildContent
+</button>
 <passkey-submit
     operation="@Operation"
     name="@Name"

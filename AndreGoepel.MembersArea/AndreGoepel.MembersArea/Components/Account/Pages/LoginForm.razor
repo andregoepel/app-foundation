@@ -1,0 +1,138 @@
+﻿@rendermode InteractiveServer
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject UserManager<User> UserManager
+@inject SignInManager<User> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
+
+<RadzenHeading Size="H2" Text="Use a local account to log in." />
+    <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
+        <RadzenStack>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Email</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenTextBox @bind-Value=@Input.Email
+                                   AutoCompleteType="AutoCompleteType.Username"
+                                   Placeholder="Enter your email"
+                                   Style="display: block; width: 100%" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Password</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="display: block; width: 100%" />
+                    <RadzenRequiredValidator Component="Password"
+                                             Text="Password is required"
+                                             Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="2">
+                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Remember me</RadzenLabel>
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <RadzenCheckBox @bind-Value=@Input.RememberMe  />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Register" />
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
+                <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
+                <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
+                <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenTemplateForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+    }
+
+    private async Task LoginUser(InputModel model)
+    {
+        if (!string.IsNullOrEmpty(model.Passkey?.Error))
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "LoginError", model.Passkey.Error);
+            return;
+        }
+
+        SignInResult result;
+        if (!string.IsNullOrEmpty(model.Passkey?.CredentialJson))
+        {
+            result = await SignInManager.PasskeySignInAsync(model.Passkey.CredentialJson);
+        }
+        else
+        {
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await SignInManager.CanSignInAsync(user)))
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+                return;
+            }
+
+            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, model.RememberMe);
+
+            if (result == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                NavigationManager.NavigateTo($"/login?key={key}", true);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+            }
+        }
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+        }
+    }
+
+    private sealed class InputModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public bool RememberMe { get; set; }
+        public PasskeyInputModel? Passkey { get; set; }
+    }
+}

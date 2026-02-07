@@ -15,15 +15,12 @@
 @inject UserManager<User> UserManager
 @inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
 
 <PageTitle>Manage email</PageTitle>
 
 <RadzenStack class="rz-p-0 rz-p-md-6">
     <RadzenHeading Text="Manage email" />
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <RadzenTemplateForm TItem="ChangeEmailModel" Data=@Model Submit=@Submit>
         <RadzenStack>
@@ -69,10 +66,6 @@
 </RadzenStack>
 
 @code {
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     private User? user;
     private string? OldEmail;
     private bool isEmailConfirmed;
@@ -87,7 +80,7 @@
         user = await UserManager.GetUserAsync(authState.User);
         if (user is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -101,13 +94,13 @@
     {
         if (model.NewEmail is null || model.NewEmail == OldEmail)
         {
-            ShowMessage("Your email is unchanged.", AlertStyle.Warning);
+            NotificationService.Notify(NotificationSeverity.Warning, "Warning", "Your email is unchanged.");
             return;
         }
 
         if (user is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -120,7 +113,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Model.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        ShowMessage("Confirmation link to change email sent. Please check your email.", AlertStyle.Info);
+        NotificationService.Notify(NotificationSeverity.Info, "Info", "Confirmation link to change email sent. Please check your email.");
     }
 
     private async Task OnSendEmailVerificationAsync()
@@ -132,7 +125,7 @@
 
         if (user is null)
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -145,14 +138,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, OldEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        ShowMessage( "Verification email sent. Please check your email.", AlertStyle.Info);
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
+        NotificationService.Notify(NotificationSeverity.Info, "Info", "Verification email sent. Please check your email.");
     }
 
     private sealed class ChangeEmailModel

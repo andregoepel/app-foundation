@@ -10,15 +10,12 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
+@inject NotificationService NotificationService
 
 <PageTitle>Profile</PageTitle>
 
 <RadzenStack class="rz-p-0 rz-p-md-6">
     <RadzenHeading Text="Profile" />
-
-    <RadzenAlert AlertStyle=@MessageStyle Variant="Variant.Flat" Shade="Shade.Lighter" @bind-Visible="MessageVisible">
-        @Message
-    </RadzenAlert>
 
     <RadzenTemplateForm TItem="ProfileModel" Data=@Model Submit=@Submit >
         <RadzenStack>
@@ -51,17 +48,13 @@
 
     private ProfileModel Model { get; set; } = new ();
 
-    private string? Message;
-    private AlertStyle MessageStyle = AlertStyle.Success;
-    private bool MessageVisible;
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         User = await UserManager.GetUserAsync(authState.User);
         if (User is null or {UserName: null or "" })
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -73,7 +66,7 @@
     {
         if (User is null or { UserName: null or "" })
         {
-            ShowMessage("Invalid user recognized", AlertStyle.Danger);
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
             return;
         }
 
@@ -82,19 +75,12 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(User, model.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                ShowMessage("Failed to set phone number.", AlertStyle.Danger);
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to set phone number.");
                 return;
             }
 
-            ShowMessage("Your profile has been updated", AlertStyle.Success);
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Your profile has been updated");
         }
-    }
-
-    private void ShowMessage(string message, AlertStyle style)
-    {
-        Message = message;
-        MessageStyle = style;
-        MessageVisible = true;
     }
 
     private sealed class ProfileModel

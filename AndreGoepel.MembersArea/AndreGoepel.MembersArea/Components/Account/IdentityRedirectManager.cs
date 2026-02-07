@@ -1,20 +1,16 @@
 using AndreGoepel.Marten.Identity.Users;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
+using Radzen;
 
 namespace AndreGoepel.MembersArea.Components.Account;
 
-internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
+internal sealed class IdentityRedirectManager(
+    NavigationManager navigationManager,
+    NotificationService notificationService
+)
 {
     public const string StatusCookieName = "Identity.StatusMessage";
-
-    private static readonly CookieBuilder StatusCookieBuilder = new()
-    {
-        SameSite = SameSiteMode.Strict,
-        HttpOnly = true,
-        IsEssential = true,
-        MaxAge = TimeSpan.FromSeconds(5),
-    };
 
     public void RedirectTo(string? uri)
     {
@@ -36,13 +32,14 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
         RedirectTo(newUri);
     }
 
-    public void RedirectToWithStatus(string uri, string message, HttpContext context)
+    public void RedirectToWithStatus(
+        string uri,
+        string summary,
+        string message,
+        NotificationSeverity severity = NotificationSeverity.Info
+    )
     {
-        context.Response.Cookies.Append(
-            StatusCookieName,
-            message,
-            StatusCookieBuilder.Build(context)
-        );
+        notificationService.Notify(severity, summary, message, 5000);
         RedirectTo(uri);
     }
 
@@ -51,13 +48,17 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 
     public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
 
-    public void RedirectToCurrentPageWithStatus(string message, HttpContext context) =>
-        RedirectToWithStatus(CurrentPath, message, context);
+    public void RedirectToCurrentPageWithStatus(
+        string summary,
+        string message,
+        NotificationSeverity severity = NotificationSeverity.Info
+    ) => RedirectToWithStatus(CurrentPath, summary, message, severity);
 
     public void RedirectToInvalidUser(UserManager<User> userManager, HttpContext context) =>
         RedirectToWithStatus(
             "Account/InvalidUser",
-            $"Error: Unable to load user with ID '{userManager.GetUserId(context.User)}'.",
-            context
+            "Error",
+            $"Unable to load user with ID '{userManager.GetUserId(context.User)}'.",
+            NotificationSeverity.Error
         );
 }
