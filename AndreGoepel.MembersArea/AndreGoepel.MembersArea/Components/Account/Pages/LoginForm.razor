@@ -92,7 +92,7 @@
                 return;
             }
 
-            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, model.RememberMe);
+            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, true);
 
             if (result == SignInResult.Success)
             {

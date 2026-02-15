@@ -1,4 +1,5 @@
 ﻿@page "/Setup"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -10,6 +11,8 @@
 @using AndreGoepel.MembersArea.Components.Account.Shared
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Radzen
+@using Radzen.Blazor
 @using global::Marten
 
 @inject IQuerySession QuerySession
@@ -21,137 +24,216 @@
 @inject ILogger<Setup> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
 
-<PageTitle>Setup</PageTitle>
+<PageTitle>Initial Setup – nerdventures.blog</PageTitle>
 
-<h1>Setup</h1>
+<div class="rz-p-4 rz-p-md-8" style="max-width: 520px; margin: 2rem auto;">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+            
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Initial Setup
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Create your first administrator account to get started
+                </RadzenText>
+            </div>
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" method="post" OnValidSubmit="SetupApp" FormName="setup">
-            <DataAnnotationsValidator />
-            <h2>Create a new admin account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Administrator Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
+                <RadzenStack Gap="1.5rem">
+
+                    <RadzenFieldset Text="Administrator Account">
+                        <RadzenStack Gap="1.25rem">
+
+                            <div>
+                                <RadzenLabel Text="Email address *" Component="Email" />
+                                <RadzenTextBox @bind-Value=@Input.Email 
+                                               Name="Email" 
+                                               Placeholder="admin@nerdventures.blog" 
+                                               Style="width:100%" />
+                                <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                                <RadzenEmailValidator Component="Email" Text="Invalid email address" />
+                            </div>
+
+                            <div>
+                                <RadzenLabel Text="Password *" Component="Password" />
+                                <RadzenPassword @bind-Value=@Input.Password 
+                                                Name="Password" 
+                                                Style="width:100%" />
+                                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+                                <RadzenLengthValidator Component="Password" Min="6" Text="At least 6 characters" />
+                            </div>
+
+                            <div>
+                                <RadzenLabel Text="Confirm password *" Component="ConfirmPassword" />
+                                <RadzenPassword @bind-Value=@Input.ConfirmPassword 
+                                                Name="ConfirmPassword" 
+                                                Style="width:100%" />
+                                <RadzenRequiredValidator Component="ConfirmPassword" Text="Confirmation is required" />
+                                <RadzenCompareValidator Component="ConfirmPassword" 
+                                                       Value=@Input.Password 
+                                                       Text="Passwords do not match" />
+                            </div>
+
+                        </RadzenStack>
+                    </RadzenFieldset>
+
+                    <RadzenButton ButtonType="ButtonType.Submit"
+                                  Text="Create admin & complete setup"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Size="ButtonSize.Large"
+                                  IsBusy=@isProcessing
+                                  BusyText="Creating..."
+                                  Style="width:100%;" />
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
+            <RadzenText TextStyle="TextStyle.Caption" class="text-center rz-color-muted">
+                This step is only shown once.
+            </RadzenText>
+
+        </RadzenStack>
+    </RadzenCard>
 </div>
 
 @code {
-    private IEnumerable<IdentityError>? identityErrors;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
-
     protected override async Task OnInitializedAsync()
     {
-        var rolesExisting = await QuerySession.Query<Role>().AnyAsync();
-
-        if (rolesExisting)
+        var rolesExist = await QuerySession.Query<Role>().AnyAsync();
+        if (rolesExist)
         {
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
-
-        await base.OnInitializedAsync();
-    }
-    protected override void OnInitialized()
-    {
-        Input ??= new();
     }
 
-    public async Task SetupApp(EditContext editContext)
+    private async Task OnValidSubmit(InputModel model)
     {
-        var user = Activator.CreateInstance<User>();
+        isProcessing = true;
+        StateHasChanged();
 
-        user.Email = Input.Email;
-        user.EmailConfirmed = true;
-        user.RootUser = true;
-        user.Deletable = false;
-
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-
-        var result = await UserManager.CreateAsync(user, Input.Password);
-
-        if (!result.Succeeded)
+        try
         {
-            identityErrors = result.Errors;
-            return;
-        }
-
-        Logger.LogInformation("User created a new account with password.");
-
-        var userId = await UserManager.GetUserIdAsync(user);
-
-        await RoleManager.CreateAsync(
-            new Role 
+            var user = new User
             {
-                Name = Roles.Administrator, 
-                Deletable = false, 
-                CreatedBy = user.UserId, 
-                ChangedBy = user.UserId 
-            });
-        await RoleManager.CreateAsync(
-            new Role 
-            { 
-                Name = Roles.Member, 
-                Deletable = false, 
-                CreatedBy = user.UserId,
-                ChangedBy = user.UserId 
-            });
-        await RoleManager.CreateAsync(
-            new Role { 
-                Name = Roles.User, 
-                Deletable = false, 
-                CreatedBy = user.UserId, 
-                ChangedBy = user.UserId 
-            });
+                Email = Input.Email,
+                EmailConfirmed = true,
+                RootUser = true,
+                Deletable = false
+            };
 
-        await UserManager.AddToRoleAsync(user, Roles.Administrator);
+            await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
 
-        var newUser = await UserManager.FindByIdAsync(userId) ?? throw new InvalidOperationException($"User {user.UserName} not found");
+            var createResult = await UserManager.CreateAsync(user, Input.Password);
+            if (!createResult.Succeeded)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    NotificationService.Notify(
+                        NotificationSeverity.Error,
+                        summary: "Error creating admin account",
+                        detail: error.Description
+                    );
+                }
+                return;
+            }
 
-        await SignInManager.SignInAsync(newUser, isPersistent: false);
-        RedirectManager.RedirectTo(ReturnUrl);
+            Logger.LogInformation("Root admin {Email} created successfully", Input.Email);
+
+            // Create default roles if they don't exist
+            var defaultRoles = new[]
+            {
+                (Roles.Administrator, false),
+                (Roles.Member, false),
+                (Roles.User, false)
+            };
+
+            foreach (var (name, deletable) in defaultRoles)
+            {
+                if (!await RoleManager.RoleExistsAsync(name))
+                {
+                    var role = new Role
+                    {
+                        Name = name,
+                        Deletable = deletable,
+                        CreatedBy = user.UserId,
+                        ChangedBy = user.UserId
+                    };
+                    var roleResult = await RoleManager.CreateAsync(role);
+                    if (!roleResult.Succeeded)
+                    {
+                        NotificationService.Notify(
+                            NotificationSeverity.Error,
+                            summary: $"Error creating role {name}"
+                        );
+                        return;
+                    }
+                }
+            }
+
+            await UserManager.AddToRoleAsync(user, Roles.Administrator);
+
+            var signedInUser = await UserManager.FindByEmailAsync(Input.Email)
+                ?? throw new InvalidOperationException("User not found after creation");
+
+            var signingResult = await SignInManager.CheckPasswordSignInAsync(user, model.Password, true);
+
+            if (signingResult == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                NotificationService.Notify(
+                      NotificationSeverity.Success,
+                      "Success",
+                      "Administrator account created. You are now signed in."
+                );
+                NavigationManager.NavigateTo($"/login?key={key}", true);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+            }
+
+            RedirectManager.RedirectTo(ReturnUrl ?? "/");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Critical error during setup");
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Critical error",
+                "Setup could not be completed. Please try again."
+            );
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = "";
 
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
         public string Password { get; set; } = "";
 
+        [Required(ErrorMessage = "Password confirmation is required")]
+        [Compare(nameof(Password), ErrorMessage = "The password and confirmation password do not match.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
     }
 }
