@@ -19,6 +19,12 @@ public class TwoFactorLoginInfo
     public string? ReturnUrl { get; set; }
 }
 
+public class RecoveryCodeLoginInfo
+{
+    public required string Code { get; set; }
+    public string? ReturnUrl { get; set; }
+}
+
 public class CookieLoginMiddleware(RequestDelegate next)
 {
     public static IDictionary<Guid, LoginInfo> Logins { get; private set; } =
@@ -27,9 +33,35 @@ public class CookieLoginMiddleware(RequestDelegate next)
     public static IDictionary<Guid, TwoFactorLoginInfo> TwoFactorLogins { get; private set; } =
         new ConcurrentDictionary<Guid, TwoFactorLoginInfo>();
 
+    public static IDictionary<Guid, RecoveryCodeLoginInfo> RecoveryCodeLogins { get; private set; } =
+        new ConcurrentDictionary<Guid, RecoveryCodeLoginInfo>();
+
     public async Task Invoke(HttpContext context, SignInManager<User> signinManager)
     {
-        if (context.Request.Path == "/login2fa" && context.Request.Query.ContainsKey("key"))
+        if (context.Request.Path == "/loginrecovery" && context.Request.Query.ContainsKey("key"))
+        {
+            var key = Guid.Parse(context.Request.Query["key"]!);
+            var info = RecoveryCodeLogins[key];
+            RecoveryCodeLogins.Remove(key);
+
+            var code = info.Code.Replace(" ", string.Empty);
+            var result = await signinManager.TwoFactorRecoveryCodeSignInAsync(code);
+
+            if (result.Succeeded)
+            {
+                context.Response.Redirect(info.ReturnUrl ?? "/");
+            }
+            else if (result.IsLockedOut)
+            {
+                context.Response.Redirect("/Account/Lockout");
+            }
+            else
+            {
+                context.Response.Redirect("/Account/LoginWithRecoveryCode?error=invalid");
+            }
+            return;
+        }
+        else if (context.Request.Path == "/login2fa" && context.Request.Query.ContainsKey("key"))
         {
             var key = Guid.Parse(context.Request.Query["key"]!);
             var info = TwoFactorLogins[key];

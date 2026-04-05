@@ -1,88 +1,104 @@
-﻿@page "/Account/LoginWithRecoveryCode"
+@page "/Account/LoginWithRecoveryCode"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
-@using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
-@using Microsoft.AspNetCore.Identity
 @using Radzen
+@using Radzen.Blazor
 
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
-@inject IdentityRedirectManager RedirectManager
-@inject ILogger<LoginWithRecoveryCode> Logger
+@inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 
-<PageTitle>Recovery code verification</PageTitle>
+<PageTitle>Recovery code verification – nerdventures.blog</PageTitle>
 
-<h1>Recovery code verification</h1>
-<hr />
-<p>
-    You have requested to log in with a recovery code. This login will not be remembered until you provide
-    an authenticator app code at log in or disable 2FA and log in again.
-</p>
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.RecoveryCode" id="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="RecoveryCode" />
-                <label for="Input.RecoveryCode" class="form-label">Recovery Code</label>
-                <ValidationMessage For="() => Input.RecoveryCode" class="text-danger" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Recovery code verification</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    This login will not be remembered until you provide an authenticator app code or disable 2FA.
+                </RadzenText>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-        </EditForm>
-    </div>
+
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnSubmitAsync>
+                <RadzenStack Gap="1.5rem">
+
+                    <div>
+                        <RadzenLabel Text="Recovery code *" Component="RecoveryCode" />
+                        <RadzenTextBox @bind-Value=@Input.RecoveryCode
+                                       Name="RecoveryCode"
+                                       Placeholder="Enter recovery code"
+                                       AutoCompleteType="AutoCompleteType.Off"
+                                       Style="width:100%" />
+                        <RadzenRequiredValidator Component="RecoveryCode" Text="Recovery code is required" />
+                    </div>
+
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="1rem"
+                                 JustifyContent="JustifyContent.Center"
+                                 Wrap="FlexWrap.Wrap">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Log in"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Large"
+                                      IsBusy=@isProcessing
+                                      BusyText="Verifying..."
+                                      Style="width: 100%; max-width: 360px;" />
+                    </RadzenStack>
+
+                    <RadzenText TextStyle="TextStyle.Body2" class="text-center">
+                        Have your authenticator app? <RadzenLink Path="/Account/LoginWith2fa" Text="Use an authenticator code instead" />
+                    </RadzenText>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
+        </RadzenStack>
+    </RadzenCard>
 </div>
 
 @code {
-    private User user = default!;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        Input ??= new();
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
 
-        // Ensure the user has gone through the username & password screen first
-        user = await SignInManager.GetTwoFactorAuthenticationUserAsync() ??
-            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+    protected override void OnInitialized()
+    {
+        if (Error == "invalid")
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Recovery Code Error", "Invalid recovery code entered.");
+        }
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task OnSubmitAsync(InputModel model)
     {
-        var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);
+        isProcessing = true;
 
-        var result = await SignInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
-
-        var userId = await UserManager.GetUserIdAsync(user);
-
-        if (result.Succeeded)
+        try
         {
-            Logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", userId);
-            RedirectManager.RedirectTo(ReturnUrl);
+            var key = Guid.NewGuid();
+            CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
+            {
+                Code = model.RecoveryCode,
+                ReturnUrl = ReturnUrl
+            };
+            NavigationManager.NavigateTo($"/loginrecovery?key={key}", forceLoad: true);
         }
-        else if (result.IsLockedOut)
+        finally
         {
-            Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
-        }
-        else
-        {
-            Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);
-            NotificationService.Notify(NotificationSeverity.Error, "Recovery Code Error", "Invalid recovery code entered.");
+            isProcessing = false;
         }
     }
 
     private sealed class InputModel
     {
         [Required]
-        [DataType(DataType.Text)]
-        [Display(Name = "Recovery Code")]
         public string RecoveryCode { get; set; } = "";
     }
 }

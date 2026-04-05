@@ -1,67 +1,99 @@
-﻿@page "/Account/ResendEmailConfirmation"
+@page "/Account/ResendEmailConfirmation"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 @inject NotificationService NotificationService
 
-<PageTitle>Resend email confirmation</PageTitle>
+<PageTitle>Resend email confirmation – nerdventures.blog</PageTitle>
 
-<h1>Resend email confirmation</h1>
-<h2>Enter your email.</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email" class="form-label">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Resend email confirmation</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Enter your email address and we'll resend the confirmation link.
+                </RadzenText>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Resend</button>
-        </EditForm>
-    </div>
+
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnSubmitAsync>
+                <RadzenStack Gap="1.5rem">
+
+                    <div>
+                        <RadzenLabel Text="Email *" Component="Email" />
+                        <RadzenTextBox @bind-Value=@Input.Email
+                                       Name="Email"
+                                       Placeholder="name@example.com"
+                                       AutoCompleteType="AutoCompleteType.Email"
+                                       Style="width:100%" />
+                        <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                        <RadzenEmailValidator Component="Email" Text="Please enter a valid email address" />
+                    </div>
+
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="1rem"
+                                 JustifyContent="JustifyContent.Center"
+                                 Wrap="FlexWrap.Wrap">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Resend"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Large"
+                                      IsBusy=@isProcessing
+                                      BusyText="Sending..."
+                                      Style="width: 100%; max-width: 360px;" />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
+        </RadzenStack>
+    </RadzenCard>
 </div>
 
 @code {
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
 
-    protected override void OnInitialized()
+    private async Task OnSubmitAsync(InputModel model)
     {
-        Input ??= new();
-    }
+        isProcessing = true;
 
-    private async Task OnValidSubmitAsync()
-    {
-        var user = await UserManager.FindByEmailAsync(Input.Email!);
-        if (user is null)
+        try
         {
+            var user = await UserManager.FindByEmailAsync(model.Email!);
+            if (user is null)
+            {
+                // Don't reveal that the user does not exist
+                NotificationService.Notify(NotificationSeverity.Info, "Email sent", "Verification email sent. Please check your email.");
+                return;
+            }
+
+            var userId = await UserManager.GetUserIdAsync(user);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+            await EmailSender.SendConfirmationLinkAsync(user, model.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
             NotificationService.Notify(NotificationSeverity.Info, "Email sent", "Verification email sent. Please check your email.");
-            return;
         }
-
-        var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-        NotificationService.Notify(NotificationSeverity.Info, "Email sent", "Verification email sent. Please check your email.");
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
     private sealed class InputModel
