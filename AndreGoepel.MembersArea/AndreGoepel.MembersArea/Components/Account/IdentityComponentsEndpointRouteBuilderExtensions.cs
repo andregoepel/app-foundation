@@ -1,11 +1,8 @@
 using System.Security.Claims;
 using System.Text.Json;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components.Account.Pages.Manage;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -89,32 +86,6 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         );
 
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
-
-        manageGroup.MapPost(
-            "/LinkExternalLogin",
-            async (
-                HttpContext context,
-                [FromServices] SignInManager<User> signInManager,
-                [FromForm] string provider
-            ) =>
-            {
-                // Clear the existing external cookie to ensure a clean login process
-                await context.SignOutAsync(IdentityConstants.ExternalScheme);
-
-                var redirectUrl = UriHelper.BuildRelative(
-                    context.Request.PathBase,
-                    "/Account/Manage/ExternalLogins",
-                    QueryString.Create("Action", ExternalLogins.LinkLoginCallbackAction)
-                );
-
-                var properties = signInManager.ConfigureExternalAuthenticationProperties(
-                    provider,
-                    redirectUrl,
-                    signInManager.UserManager.GetUserId(context.User)
-                );
-                return TypedResults.Challenge(properties, [provider]);
-            }
-        );
 
         var loggerFactory = endpoints.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var downloadLogger = loggerFactory.CreateLogger("DownloadPersonalData");

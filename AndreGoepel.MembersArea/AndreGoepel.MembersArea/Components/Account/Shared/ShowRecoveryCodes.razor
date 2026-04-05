@@ -1,22 +1,21 @@
-<h3>Recovery codes</h3>
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Put these codes in a safe place.</strong>
-    </p>
-    <p>
+@using Radzen
+@using Radzen.Blazor
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem">
+
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" Icon="warning">
+        <strong>Put these codes in a safe place.</strong><br />
         If you lose your device and don't have the recovery codes you will lose access to your account.
-    </p>
-</div>
-<div class="row">
-    <div class="col-md-12">
+    </RadzenAlert>
+
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem">
         @foreach (var recoveryCode in RecoveryCodes)
         {
-            <div>
-                <code class="recovery-code">@recoveryCode</code>
-            </div>
+            <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-family: monospace;">@recoveryCode</RadzenText>
         }
-    </div>
-</div>
+    </RadzenStack>
+
+</RadzenStack>
 
 @code {
     [Parameter]
