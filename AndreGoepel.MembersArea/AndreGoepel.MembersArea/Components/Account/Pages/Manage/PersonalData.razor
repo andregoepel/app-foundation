@@ -1,44 +1,89 @@
 ﻿@page "/Account/Manage/PersonalData"
+@rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 
-<PageTitle>Personal Data</PageTitle>
+<PageTitle>Personal Data – nerdventures.blog</PageTitle>
 
-<RadzenStack class="rz-p-0 rz-p-md-6">
-    <RadzenHeading Text="Personal Data" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-    Your account contains personal data that you have given us. This page allows you to download or delete that data.
+            <!-- Header -->
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Personal Data
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Download or delete the personal information associated with your account
+                </RadzenText>
+            </div>
 
-    <RadzenAlert Text="Deleting this data will permanently remove your account, and this cannot be recovered."
-                 AlertStyle="AlertStyle.Warning"
-                 AllowClose="false" />
+            <!-- Erklärungstext -->
+            <RadzenText TextStyle="TextStyle.Body1">
+                This page lets you download a copy of all personal data we store about you
+                (profile information, activity logs, etc.) or permanently delete your account
+                and all related data.
+            </RadzenText>
 
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-        <form action="Account/Manage/DownloadPersonalData" method="post">
-            <AntiforgeryToken />
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Download" />
-        </form>
-        <RadzenLink Path="Account/Manage/DeletePersonalData" Text="Delete personal data" />
-    </RadzenStack>
-</RadzenStack>
+            <!-- Warnhinweis -->
+            <RadzenAlert AlertStyle="AlertStyle.Danger"
+                         AllowClose="false"
+                         Icon="warning">
+                <strong>Warning:</strong> Deleting your data will <strong>permanently delete your entire account</strong>
+                — including all content, settings and history. This action <strong>cannot be undone</strong>.
+            </RadzenAlert>
+
+            <!-- Action-Buttons -->
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         Gap="1.5rem"
+                         JustifyContent="JustifyContent.Center"
+                         AlignItems="AlignItems.Center"
+                         Wrap="FlexWrap.Wrap">
+
+                <!-- Download (POST-Formular) -->
+                <form action="/Account/Manage/DownloadPersonalData" method="post">
+                    <AntiforgeryToken />
+                    <RadzenButton ButtonType="ButtonType.Submit"
+                                  Text="Download My Data"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Size="ButtonSize.Large"
+                                  Icon="download" />
+                </form>
+
+                <!-- Delete-Link -->
+                <RadzenButton Text="Delete My Account & All Data"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Size="ButtonSize.Large"
+                              Icon="delete_forever"
+                              Click=@(() => NavigationManager.NavigateTo("/Account/Manage/DeletePersonalData")) />
+            </RadzenStack>
+
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-color-muted text-center mt-4">
+                The downloaded file usually contains your data in JSON or ZIP format.
+            </RadzenText>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        var user  = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            RedirectManager.RedirectTo("/Account/Login");
         }
     }
 }

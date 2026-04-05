@@ -92,12 +92,12 @@
                 return;
             }
 
-            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, true);
+            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (result == SignInResult.Success)
             {
                 Guid key = Guid.NewGuid();
-                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = model.RememberMe };
                 NavigationManager.NavigateTo($"/login?key={key}", true);
             }
             else

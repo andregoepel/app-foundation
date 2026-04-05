@@ -2,11 +2,9 @@
 @rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea.Components.Administration.Dialogs
 @using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
-
-@using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
@@ -17,104 +15,184 @@
 
 @attribute [Authorize(Roles = "Administrator")]
 
-<PageTitle>Roles</PageTitle>
+<PageTitle>Roles – nerdventures.blog</PageTitle>
 
-<h1>Roles</h1>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-<RadzenStack Gap="1rem">
-    <RadzenStack Gap="1rem" AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
-        <RadzenButton Text="New role" Click=@NewRoleAsync />
-        <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
-            <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChanged(value)) />
-            <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Roles
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Manage user roles and permissions
+                </RadzenText>
+            </div>
+
+            <RadzenRow AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                <RadzenButton Text="New role"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Medium"
+                              Click=@NewRoleAsync />
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             Gap="0.75rem"
+                             AlignItems="AlignItems.Center">
+                    <RadzenCheckBox Name="ShowDeleted"
+                                    @bind-Value=@ShowDeleted
+                                    Change=@((bool value) => ShowDeletedChanged(value)) />
+                    <RadzenLabel Text="Show deleted roles" Component="ShowDeleted" />
+                </RadzenStack>
+            </RadzenRow>
+
+            <RadzenDataGrid @ref="rolesGrid"
+                            Data="@roles"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            AllowAlternatingRows="false"
+                            FilterMode="FilterMode.Advanced"
+                            AllowSorting="true"
+                            PageSize="10"
+                            AllowPaging="true"
+                            PagerHorizontalAlign="HorizontalAlign.Left"
+                            ShowPagingSummary="true"
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value="@selectedRoles"
+                            Density="Density.Compact"
+                            Style="width: 100%;">
+                <Columns>
+                    <RadzenDataGridColumn Property="@nameof(Role.Id)"
+                                          Title="Id"
+                                          Sortable="false"
+                                          Filterable="false"
+                                          Width="100px" />
+
+                    <RadzenDataGridColumn Property="@nameof(Role.Name)"
+                                          Title="Role Name"
+                                          Width="180px" />
+
+                    <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)"
+                                          FormatString="{0:d} {0:t}"
+                                          Title="Created at"
+                                          Width="160px" />
+
+                    <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)"
+                                          FormatString="{0:d} {0:t}"
+                                          Title="Changed at"
+                                          Width="160px" />
+
+                    <RadzenDataGridColumn Property="@nameof(Role.Deleted)"
+                                          Title="Deleted"
+                                          Width="100px" />
+
+                    <RadzenDataGridColumn Title="Actions"
+                                          Sortable="false"
+                                          Filterable="false"
+                                          Width="220px">
+                        <Template Context="data">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                                @if (!data.Deleted)
+                                {
+                                    <RadzenButton Text="Users"
+                                                  ButtonStyle="ButtonStyle.Secondary"
+                                                  Size="ButtonSize.Small"
+                                                  Click="@(() => ShowUsers(data))" />
+                                }
+
+                                @if (data.Deletable && !data.Deleted)
+                                {
+                                    <RadzenButton Text="Delete"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Size="ButtonSize.Small"
+                                                  Click="@(() => DeleteRole(data))" />
+                                }
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+
         </RadzenStack>
-    </RadzenStack>
-    <RadzenRow RowGap="0.5rem">
-        <RadzenDataGrid Data="@roles"
-                        AllowFiltering="true"
-                        AllowColumnResize="true"
-                        AllowAlternatingRows="false"
-                        FilterMode="FilterMode.Advanced"
-                        AllowSorting="true"
-                        PageSize="5"
-                        AllowPaging="true"
-                        PagerHorizontalAlign="HorizontalAlign.Left"
-                        ShowPagingSummary="true"
-                        LogicalFilterOperator="LogicalFilterOperator.Or"
-                        SelectionMode="DataGridSelectionMode.Single"
-                        @bind-Value="@selectedRoles">
-            <Columns>
-                <RadzenDataGridColumn Property="@nameof(Role.Id)" Title="Id" Sortable="false" Filterable="false" />
-                <RadzenDataGridColumn Property="@nameof(Role.Name)" Title="Name" />
-                <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" />
-                <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" />
-                <RadzenDataGridColumn Property="@nameof(Role.Deleted)" Title="Deleted" />
-                <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
-                    <Template Context="data">
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="1em">
-                        @if (!data.Deleted)
-                        {
-                            <RadzenButton Text="Users" Click="@(() => ShowUsers(data))" />
-                        }
-
-                        @if (data.Deletable && !data.Deleted)
-                        {
-                            <RadzenButton Text="Delete" Click="@(() => DeleteRole(data))" />
-                        }
-                        </RadzenStack>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    </RadzenRow>
-</RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    private IQueryable<Role> roles = default!;
-    private IList<Role> selectedRoles = [];
+    private IQueryable<Role>? roles;
+    private IList<Role> selectedRoles = new List<Role>();
+    private RadzenDataGrid<Role>? rolesGrid;
 
     private bool ShowDeleted { get; set; }
 
+    private async Task NewRoleAsync()
+    {
+        var result = await DialogService.OpenAsync<NewRole>("Create New Role");
+        if (result != null)
+        {
+            LoadRoles();
+            // Optional: await rolesGrid?.Reload();
+        }
+    }
+
     private async Task ShowUsers(Role role)
     {
-        if (string.IsNullOrWhiteSpace(role.Name))
-            return;
+        if (string.IsNullOrWhiteSpace(role?.Name)) return;
 
-        await DialogService.OpenAsync<RoleUserDialog>("Edit Role Users", new Dictionary<string, object>() { { "RoleId", role.Id } });
+        await DialogService.OpenAsync<RoleUserDialog>(
+            $"Users in role: {role.Name}",
+            new Dictionary<string, object> { { "RoleId", role.Id } },
+            new DialogOptions { Width = "700px", Height = "500px" }
+        );
     }
 
     private async Task DeleteRole(Role role)
     {
-        if (await DialogService.Confirm("Are you sure you want to delete this role?", "Delete Role") == true)
-        { 
-            var deleteResult = await RoleManager.DeleteAsync(role);
-            if (deleteResult.Succeeded)
-                LoadRoles();
-            else
-                await DialogService.Alert("Role could not be deleted", "Error");
+        if (await DialogService.Confirm(
+            $"Are you sure you want to delete the role **{role.Name}**?",
+            "Delete Role") != true)
+        {
+            return;
+        }
+
+        var result = await RoleManager.DeleteAsync(role);
+
+        if (result.Succeeded)
+        {
+            LoadRoles();
+            // Optional: await rolesGrid?.Reload();
+        }
+        else
+        {
+            await DialogService.Alert(
+                string.Join("\n", result.Errors.Select(e => e.Description)),
+                "Deletion failed");
         }
     }
 
-    private void ShowDeletedChanged(bool _) => LoadRoles();
+    private void ShowDeletedChanged(bool value)
+    {
+        ShowDeleted = value;
+        LoadRoles();
+    }
 
     private void LoadRoles()
     {
         if (ShowDeleted)
+        {
             roles = RoleManager.Roles;
+        }
         else
-            roles = RoleManager.Roles.Where(user => !user.Deleted);
-    }
+        {
+            roles = RoleManager.Roles.Where(r => !r.Deleted);
+        }
 
-    private async Task NewRoleAsync()
-    {
-        await DialogService.OpenAsync<NewRole>("New role");
-        LoadRoles();
+        // StateHasChanged(); // meist nicht nötig, weil DataGrid reagiert
     }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
         LoadRoles();
     }
 }

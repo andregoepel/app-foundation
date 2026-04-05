@@ -14,61 +14,75 @@
 
 @attribute [Authorize(Roles = "Administrator")]
 
-<PageTitle>Users</PageTitle>
+<PageTitle>Users – nerdventures.blog</PageTitle>
 
-<h1>Users</h1>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Users
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Manage user accounts
+                </RadzenText>
+            </div>
+            <RadzenRow AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             Gap="0.75rem"
+                             AlignItems="AlignItems.Center">
+                    <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChanged(value)) />
+                    <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
+                </RadzenStack>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenDataGrid Data="@users"
+                                AllowFiltering="true"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="false"
+                                FilterMode="FilterMode.Advanced"
+                                AllowSorting="true"
+                                PageSize="10"
+                                AllowPaging="true"
+                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                ShowPagingSummary="true"
+                                LogicalFilterOperator="LogicalFilterOperator.Or"
+                                SelectionMode="DataGridSelectionMode.Single"
+                                @bind-Value=@selectedUsers
+                                Density="Density.Compact"
+                                Style="width: 100%;">
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(User.Id)" Title="Id" Sortable="false" Filterable="false" Width="100px" />
+                        <RadzenDataGridColumn Property="@nameof(User.Email)" Title="Email" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(User.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(User.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(User.EmailConfirmed)" Title="Email confirmed" Width="120px" />
+                        <RadzenDataGridColumn Property="@nameof(User.Deleted)" Title="Deleted" Width="100px" />
+                        <RadzenDataGridColumn Property="@nameof(User.Deletable)" Title="Deletable" Width="100px" />
+                        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="200px">
+                            <Template Context="data">
+                                @if (!data.Deleted)
+                                {
+                                    <RadzenButton Text="Roles" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(() => SetRoles(data))" />
+                                }
 
-<RadzenStack Gap="0.5rem">
-    <RadzenRow RowGap="0.5rem" >
-        <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChanged(value)) />
-        <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
-    </RadzenRow>
-    <RadzenRow RowGap="0.5rem">
-        <RadzenDataGrid 
-            Data="@users" 
-            AllowFiltering="true" 
-            AllowColumnResize="true" 
-            AllowAlternatingRows="false" 
-            FilterMode="FilterMode.Advanced" 
-            AllowSorting="true" 
-            PageSize="5" 
-            AllowPaging="true" 
-            PagerHorizontalAlign="HorizontalAlign.Left" 
-            ShowPagingSummary="true"
-            LogicalFilterOperator="LogicalFilterOperator.Or" 
-            SelectionMode="DataGridSelectionMode.Single"
-            @bind-Value=@selectedUsers>
-            <Columns>
-                <RadzenDataGridColumn Property="@nameof(User.Id)" Title="Id" Sortable="false" Filterable="false" />
-                <RadzenDataGridColumn Property="@nameof(User.Email)" Title="Email" />
-                <RadzenDataGridColumn Property="@nameof(User.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" />
-                <RadzenDataGridColumn Property="@nameof(User.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" />
-                <RadzenDataGridColumn Property="@nameof(User.EmailConfirmed)" Title="Email confirmed" />
-                <RadzenDataGridColumn Property="@nameof(User.Deleted)" Title="Deleted" />
-                <RadzenDataGridColumn Property="@nameof(User.Deletable)" Title="Deletable" />
-                <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
-                    <Template Context="data">
-                        @if (!data.Deleted)
-                        {
-                            <RadzenButton Text="Roles" Click="@(() => SetRoles(data))" />
-                        }
-
-                        @if (data.Deletable && !data.Deleted)
-                        {
-                            <RadzenButton Text="Delete" Click="@(() => DeleteUser(data))" />
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    </RadzenRow>
-</RadzenStack>
+                                @if (data.Deletable && !data.Deleted)
+                                {
+                                    <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => DeleteUser(data))" />
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenRow>
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    private IQueryable<User> users = default!;
-    private IList<User> selectedUsers = [];
-
-    private bool ShowDeleted{ get; set; }
+    private IQueryable<User>? users;
+    private IList<User> selectedUsers = new List<User>();  @* Initialized as List for clarity *@
+    private bool ShowDeleted { get; set; }
 
     private async Task SetRoles(User user)
     {
@@ -77,35 +91,48 @@
             new DialogOptions() { Width = "600px", Height = "400px" });
 
         if (result == true)
-            users = UserManager.Users;
-    }
-
-    private async Task DeleteUser(User role)
-    {
-        if(await DialogService.Confirm("Are you sure you want to delete this user?", "Delete User") == true)
         {
-            var deleteResult = await UserManager.DeleteAsync(role);
-            if (deleteResult.Succeeded)
-                users = UserManager.Users;
-            else
-                await DialogService.Alert("User could not be deleted", "Error");
+            LoadUsers();  @* Reload to reflect changes *@
         }
     }
 
-    private void ShowDeletedChanged(bool _) => LoadUsers();
+    private async Task DeleteUser(User user)
+    {
+        if (await DialogService.Confirm("Are you sure you want to delete this user?", "Delete User") == true)
+        {
+            var deleteResult = await UserManager.DeleteAsync(user);
+            if (deleteResult.Succeeded)
+            {
+                LoadUsers();  @* Reload to reflect deletion *@
+            }
+            else
+            {
+                await DialogService.Alert("User could not be deleted", "Error");
+            }
+        }
+    }
+
+    private void ShowDeletedChanged(bool value)
+    {
+        ShowDeleted = value;
+        LoadUsers();
+    }
 
     private void LoadUsers()
     {
         if (ShowDeleted)
+        {
             users = UserManager.Users;
+        }
         else
+        {
             users = UserManager.Users.Where(user => !user.Deleted);
+        }
     }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-
         LoadUsers();
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using AndreGoepel.Marten.Identity.Users;
-using JasperFx.Core;
 using Microsoft.AspNetCore.Identity;
 
 namespace AndreGoepel.MembersArea.Components.Account;
@@ -9,6 +8,7 @@ public class LoginInfo
 {
     public required string Email { get; set; }
     public required string Password { get; set; }
+    public bool RememberMe { get; set; }
 }
 
 public class CookieLoginMiddleware(RequestDelegate next)
@@ -29,7 +29,7 @@ public class CookieLoginMiddleware(RequestDelegate next)
                 false,
                 lockoutOnFailure: true
             );
-            info.Password = null;
+            Logins.Remove(key);
             if (result.Succeeded)
             {
                 Logins.Remove(key);

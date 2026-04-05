@@ -1,111 +1,152 @@
 ﻿@page "/Account/Manage/TwoFactorAuthentication"
 
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using AndreGoepel.MembersArea.Components.Shared
-@using Microsoft.AspNetCore.Http.Features
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
-@inject IdentityRedirectManager RedirectManager
 @inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
 
-<PageTitle>Two-factor authentication (2FA)</PageTitle>
+<PageTitle>Two-Factor Authentication – nerdventures.blog</PageTitle>
 
-<StatusMessage />
-<h3>Two-factor authentication (2FA)</h3>
-@if (canTrack)
-{
-    if (is2faEnabled)
-    {
-        if (recoveryCodesLeft == 0)
-        {
-            <div class="alert alert-danger">
-                <strong>You have no recovery codes left.</strong>
-                <p>You must <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" /> before you can log in with a recovery code.</p>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Two-Factor Authentication (2FA)
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Add an extra layer of security to your account
+                </RadzenText>
             </div>
-        }
-        else if (recoveryCodesLeft == 1)
-        {
-            <div class="alert alert-danger">
-                <strong>You have 1 recovery code left.</strong>
-                <p>You can <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" />.</p>
-            </div>
-        }
-        else if (recoveryCodesLeft <= 3)
-        {
-            <div class="alert alert-warning">
-                <strong>You have @recoveryCodesLeft recovery codes left.</strong>
-                <p>You should <RadzenLink Path="Account/Manage/GenerateRecoveryCodes" Text="generate a new set of recovery codes" />.</p>
-            </div>
-        }
 
-        if (isMachineRemembered)
-        {
-            <form style="display: inline-block" @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
-                <AntiforgeryToken />
-                <button type="submit" class="btn btn-primary">Forget this browser</button>
-            </form>
-        }
+            @if (is2faEnabled)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Icon="shield" AllowClose="false">
+                    Two-factor authentication is <strong>currently enabled</strong>.
+                </RadzenAlert>
 
-        <LinkButton Text="Disable 2FA" Path="Account/Manage/Disable2fa" />
-        <LinkButton Text="Reset recovery codes" Path="Account/Manage/GenerateRecoveryCodes" />
-    }
+                @if (recoveryCodesLeft == 0)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Danger" Icon="error_outline">
+                        <strong>You have no recovery codes left!</strong><br />
+                        Generate a new set before you can use recovery codes to log in.
+                        <div class="mt-4">
+                            <RadzenButton Text="Generate New Recovery Codes"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Size="ButtonSize.Large"
+                                          Click="@(() => NavigationManager.NavigateTo("/Account/Manage/GenerateRecoveryCodes"))" />
+                        </div>
+                    </RadzenAlert>
+                }
+                else if (recoveryCodesLeft <= 3)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Icon="warning">
+                        <strong>@recoveryCodesLeft recovery code@(recoveryCodesLeft == 1 ? "" : "s") remaining</strong><br />
+                        Consider generating a new set soon.
+                        <div class="mt-4">
+                            <RadzenButton Text="Generate New Recovery Codes"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Size="ButtonSize.Large"
+                                          Click="@(() => NavigationManager.NavigateTo("/Account/Manage/GenerateRecoveryCodes"))" />
+                        </div>
+                    </RadzenAlert>
+                }
 
-    <h4>Authenticator app</h4>
-    @if (!hasAuthenticator)
-    {
-        <LinkButton Text="Add authenticator app" Path="Account/Manage/EnableAuthenticator" />
-    }
-    else
-    {
-        <LinkButton Text="Set up authenticator app" Path="Account/Manage/EnableAuthenticator" />
-        <LinkButton Text="Reset authenticator app" Path="Account/Manage/ResetAuthenticator" />
-    }
-}
-else
-{
-    <div class="alert alert-danger">
-        <strong>Privacy and cookie policy have not been accepted.</strong>
-        <p>You must accept the policy before you can enable two factor authentication.</p>
-    </div>
-}
+                @if (isMachineRemembered)
+                {
+                    <div class="mt-6">
+                        <form method="post" action="/Account/Manage/TwoFactorAuthentication/ForgetBrowser">
+                            <AntiforgeryToken />
+                            <RadzenButton ButtonType="ButtonType.Submit"
+                                          Text="Forget this browser"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Size="ButtonSize.Medium" />
+                        </form>
+                        <RadzenText TextStyle="TextStyle.Caption" class="rz-color-muted mt-2 block">
+                            Removes "remember this device" for 2FA on this browser
+                        </RadzenText>
+                    </div>
+                }
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             Gap="1rem"
+                             Wrap="FlexWrap.Wrap"
+                             class="mt-8">
+                    <LinkButton Text="Disable 2FA"
+                                ButtonStyle="ButtonStyle.Danger"
+                                Path="/Account/Manage/Disable2fa" />
+
+                    <LinkButton Text="Reset Recovery Codes"
+                                ButtonStyle="ButtonStyle.Warning"
+                                Path="/Account/Manage/GenerateRecoveryCodes" />
+                </RadzenStack>
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Icon="info" AllowClose="false">
+                    Two-factor authentication is currently <strong>disabled</strong>.
+                </RadzenAlert>
+            }
+
+            <RadzenFieldset Text="Authenticator App" class="mt-8">
+                <RadzenStack Gap="1.5rem">
+                    <RadzenText TextStyle="TextStyle.Body1">
+                        Use a time-based one-time password (TOTP) app such as Google Authenticator,
+                        Microsoft Authenticator, Authy, Bitwarden, 1Password, etc.
+                    </RadzenText>
+
+                    @if (!hasAuthenticator)
+                    {
+                        <LinkButton Text="Add Authenticator App"
+                                    ButtonStyle="ButtonStyle.Primary"
+                                    Path="/Account/Manage/EnableAuthenticator" />
+                    }
+                    else
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Wrap="FlexWrap.Wrap">
+                            <LinkButton Text="Reconfigure Authenticator App"
+                                        ButtonStyle="ButtonStyle.Primary"
+                                        Path="/Account/Manage/EnableAuthenticator" />
+
+                            <LinkButton Text="Reset Authenticator App"
+                                        ButtonStyle="ButtonStyle.Danger"
+                                        Path="/Account/Manage/ResetAuthenticator" />
+                        </RadzenStack>
+                    }
+                </RadzenStack>
+            </RadzenFieldset>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    private bool canTrack;
     private bool hasAuthenticator;
     private int recoveryCodesLeft;
     private bool is2faEnabled;
     private bool isMachineRemembered;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
             return;
         }
 
-        canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
         hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
         is2faEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
         isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);
         recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(user);
-    }
-
-    private async Task OnSubmitForgetBrowserAsync()
-    {
-        await SignInManager.ForgetTwoFactorClientAsync();
-
-        RedirectManager.RedirectToCurrentPageWithStatus(
-            "Browser forgotten", 
-            "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.");
     }
 }

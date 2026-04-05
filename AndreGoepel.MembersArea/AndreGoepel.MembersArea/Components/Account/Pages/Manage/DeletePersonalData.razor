@@ -3,7 +3,6 @@
 
 @using System.ComponentModel.DataAnnotations
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
@@ -14,82 +13,178 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
 @inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
 
-<PageTitle>Delete Personal Data</PageTitle>
+<PageTitle>Delete Account – nerdventures.blog</PageTitle>
 
-<RadzenStack class="rz-p-0 rz-p-md-6">
-    <RadzenHeading Text="Delete personal data" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-    <RadzenAlert 
-        Text="Deleting this data will permanently remove your account, and this cannot be recovered."
-        AlertStyle="AlertStyle.Warning"
-        AllowClose="false" />
+            <!-- Header -->
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-color-danger">
+                    Delete Account
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Permanently remove your personal data and account
+                </RadzenText>
+            </div>
 
-    <RadzenTemplateForm TItem="InputModel" Data=@Model Submit=@Submit>
-        <RadzenStack>
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="2">
-                    <RadzenLabel Text="Enter password for confirmation" Component="Password" />
-                </RadzenColumn>
-                <RadzenColumn Size="3">
-                    <RadzenPassword @bind-Value="Model.Password" Name="Password" Placeholder="Please enter your password." Style="display: block; width: 100%" />
-                </RadzenColumn>
-            </RadzenRow>
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenRequiredValidator Component="Password" Text="Password is required" Style="position: absolute" />
-            </RadzenRow>
+            <!-- Starke Warnung -->
+            <RadzenAlert AlertStyle="AlertStyle.Danger"
+                         AllowClose="false"
+                         Icon="warning" 
+                         Title="This action is irreversible.">
+                    All your personal data, posts, comments, settings and account will be <strong>permanently deleted</strong>. This cannot be undone.
+            </RadzenAlert>
+
+            <RadzenTemplateForm TItem="InputModel"
+                                Data=@Model
+                                Submit=@OnValidSubmit>
+                <RadzenStack Gap="2rem">
+
+                    <RadzenFieldset Text="Confirmation">
+                        <RadzenStack Gap="1.5rem">
+
+                            <div>
+                                <RadzenLabel Text="To confirm deletion, enter your current password"
+                                             Component="Password"
+                                             class="rz-color-danger" />
+                                <RadzenPassword @bind-Value=@Model.Password
+                                                Name="Password"
+                                                Placeholder="Enter your password to confirm"
+                                                Style="width:100%" />
+                                <RadzenRequiredValidator Component="Password"
+                                                         Text="Password is required to confirm deletion" />
+                            </div>
+
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-danger">
+                                After successful verification your account will be immediately and permanently deleted.
+                            </RadzenText>
+
+                        </RadzenStack>
+                    </RadzenFieldset>
+
+                    <!-- Action Buttons -->
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="1rem"
+                                 JustifyContent="JustifyContent.Center"
+                                 Wrap="FlexWrap.Wrap">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Permanently Delete My Account"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Size="ButtonSize.Large"
+                                      IsBusy=@isDeleting
+                                      BusyText="Deleting account..."
+                                      Disabled=@isDeleting />
+
+                        <RadzenButton Text="Cancel – Keep my account"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Size="ButtonSize.Large"
+                                      Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Profile")) />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
         </RadzenStack>
-
-        <RadzenButton ButtonType="ButtonType.Submit" Text="Delete data and close my account" />
-    </RadzenTemplateForm>
-</RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    private User? User;
-
     private InputModel Model { get; set; } = new();
+    private User? CurrentUser;
+    private bool isDeleting;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        User = await UserManager.GetUserAsync(authState.User);
-        if (User is null)
+        CurrentUser = await UserManager.GetUserAsync(authState.User);
+
+        if (CurrentUser == null)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Unable to load user.");
-            return;
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Unable to load user profile.");
+            RedirectManager.RedirectTo("/Account/Manage/Profile");
         }
     }
 
-    private async Task Submit(InputModel model)
+    private async Task OnValidSubmit(InputModel model)
     {
-        if (User is null)
+        if (CurrentUser == null)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "User not loaded.");
             return;
         }
 
-        if (!await UserManager.CheckPasswordAsync(User, Model.Password))
+        // Zweifache Absicherung über Dialog
+        var confirm = await DialogService.Confirm(
+            "Are you absolutely sure you want to permanently delete your account?\n\nThis cannot be undone.",
+            "Final Confirmation",
+            new ConfirmOptions { OkButtonText = "Yes, Delete Forever", CancelButtonText = "No, Cancel" });
+
+        if (confirm != true)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Incorrect password.");
+            NotificationService.Notify(NotificationSeverity.Info, "Cancelled", "Account deletion cancelled.");
             return;
         }
 
-        var result = await UserManager.DeleteAsync(User);
-        if (!result.Succeeded)
+        isDeleting = true;
+        StateHasChanged();
+
+        try
         {
-            throw new InvalidOperationException("Unexpected error occurred deleting user.");
+            // Passwort prüfen
+            if (!await UserManager.CheckPasswordAsync(CurrentUser, model.Password))
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "The password you entered is incorrect.");
+                return;
+            }
+
+            var userId = await UserManager.GetUserIdAsync(CurrentUser);
+            var result = await UserManager.DeleteAsync(CurrentUser);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
+                NotificationService.Notify(NotificationSeverity.Error, "Deletion failed", errors);
+                Logger.LogWarning("Failed to delete user {UserId}: {Errors}", userId, errors);
+                return;
+            }
+
+            Logger.LogInformation("User {UserId} ({Email}) deleted their account.", userId, CurrentUser.Email);
+
+            await SignInManager.SignOutAsync();
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Account Deleted",
+                "Your account and all associated data have been permanently removed."
+            );
+
+            // Redirect zur Startseite oder Goodbye-Seite
+            RedirectManager.RedirectTo("/");
         }
-
-        await SignInManager.SignOutAsync();
-
-        var userId = await UserManager.GetUserIdAsync(User);
-        Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
-
-        RedirectManager.RedirectToCurrentPage();
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unexpected error while deleting user {UserId}", await UserManager.GetUserIdAsync(CurrentUser));
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Critical Error",
+                "An unexpected error occurred during account deletion. The process was aborted."
+            );
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
     }
 
     private sealed class InputModel
     {
+        [Required(ErrorMessage = "Password is required to confirm deletion")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
     }

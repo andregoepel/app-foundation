@@ -2,9 +2,7 @@
 @rendermode InteractiveServer
 
 @using System.Buffers.Text
-@using System.ComponentModel.DataAnnotations
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
@@ -15,97 +13,196 @@
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-<PageTitle>Manage your passkeys</PageTitle>
+<PageTitle>Manage Passkeys – nerdventures.blog</PageTitle>
 
-<RadzenStack class="rz-p-0 rz-p-md-6">
-    <RadzenHeading Text="Manage your Passkeys" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-    @if (currentPasskeys is { Count: > 0 })
-    {
-        <RadzenDataGrid Data="@currentPasskeys"
-                        PageSize="10"
-                        AllowPaging="true"
-                        PagerHorizontalAlign="HorizontalAlign.Left"
-                        ShowPagingSummary="true">
-            <Columns>
-                <RadzenDataGridColumn Property="@nameof(UserPasskeyInfo.Name)" Title="Name" Sortable="false" Filterable="false" />
-                <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
-                    <Template Context="data">
-                        <RadzenButton Text="Rename" Click="@(() => RenamePasskey(data))" />
-                        <RadzenButton Text="Delete" Click="@(() => DeletePasskey(data))" />
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    }
-    else
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Info" AllowClose="false" Text="No passkeys are registered." />
-    }
+            <!-- Header -->
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Manage Passkeys
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Add, rename or remove your security keys (WebAuthn / passkeys)
+                </RadzenText>
+            </div>
 
-    @if (currentPasskeys is { Count: >= MaxPasskeyCount })
-    {
-        <RadzenAlert 
-            AlertStyle="AlertStyle.Danger" 
-            AllowClose="false" 
-            Text="You have reached the maximum number of allowed passkeys. Please delete one before adding a new one." />                
-    }
-    else
-    {
-        <RadzenButton 
-            Text="Add new passkey" 
-            Click="@(() => NavigationManager.NavigateTo("/Account/Manage/Passkeys/Create"))" />                
-    }
+            <!-- Status & Actions -->
+            <RadzenStack Gap="1.5rem">
 
-</RadzenStack>
+                <!-- Passkey-Liste oder leerer Zustand -->
+                @if (isLoading)
+                {
+                    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                }
+                else if (currentPasskeys?.Count > 0)
+                {
+                    <RadzenDataGrid Data="@currentPasskeys"
+                                    AllowPaging="true"
+                                    PageSize="8"
+                                    PagerHorizontalAlign="HorizontalAlign.Left"
+                                    ShowPagingSummary="true"
+                                    Density="Density.Compact"
+                                    Style="width: 100%;">
+                        <Columns>
+                            <RadzenDataGridColumn Property="@nameof(UserPasskeyInfo.Name)"
+                                                  Title="Passkey Name"
+                                                  Width="280px" />
+
+                            <RadzenDataGridColumn Property="@nameof(UserPasskeyInfo.CreatedAt)"
+                                                  Title="Registered"
+                                                  FormatString="{0:MMM dd, yyyy}"
+                                                  Width="140px" />
+
+                            <RadzenDataGridColumn Title="Actions"
+                                                  Sortable="false"
+                                                  Filterable="false"
+                                                  Width="220px">
+                                <Template Context="data">
+                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                                        <RadzenButton Text="Rename"
+                                                      ButtonStyle="ButtonStyle.Secondary"
+                                                      Size="ButtonSize.Small"
+                                                      Click="@(() => RenamePasskey(data))" />
+
+                                        <RadzenButton Text="Delete"
+                                                      ButtonStyle="ButtonStyle.Danger"
+                                                      Size="ButtonSize.Small"
+                                                      Click="@(() => DeletePasskey(data))" />
+                                    </RadzenStack>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info"
+                                 AllowClose="false"
+                                 Icon="info">
+                        You don't have any passkeys registered yet.
+                    </RadzenAlert>
+                }
+
+                <!-- Limit-Warnung & Add-Button -->
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             Gap="1rem"
+                             AlignItems="AlignItems.Center"
+                             Wrap="FlexWrap.Wrap"
+                             JustifyContent="JustifyContent.Center">
+
+                    @if (currentPasskeys?.Count >= MaxPasskeyCount)
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger"
+                                     AllowClose="false"
+                                     Icon="block"
+                                     Style="margin: 0;">
+                            You have reached the maximum number of passkeys (@MaxPasskeyCount).
+                            Delete one before adding a new one.
+                        </RadzenAlert>
+                    }
+                    else
+                    {
+                        <RadzenButton Text="Register New Passkey"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Large"
+                                      Icon="add"
+                                      Disabled="@isLoading"
+                                      Click="@AddNewPasskey" />
+                    }
+                </RadzenStack>
+
+            </RadzenStack>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
     private const int MaxPasskeyCount = 100;
 
-    private User? User;
+    private User? CurrentUser;
     private IList<UserPasskeyInfo>? currentPasskeys;
+    private bool isLoading;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        User = await UserManager.GetUserAsync(authState.User);
+        isLoading = true;
+        StateHasChanged();
 
-        if (User is null)
+        try
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
-            return;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            CurrentUser = await UserManager.GetUserAsync(authState.User);
+
+            if (CurrentUser == null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
+                NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
+                return;
+            }
+
+            currentPasskeys = await UserManager.GetPasskeysAsync(CurrentUser);
         }
-        currentPasskeys = await UserManager.GetPasskeysAsync(User);
+        catch (Exception)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Failed to load passkeys.");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
-    private async Task RenamePasskey(UserPasskeyInfo passkeyInfo)
+    private void AddNewPasskey()
     {
-        var credentialIdBase64Url = Base64Url.EncodeToString(passkeyInfo.CredentialId);
-        NavigationManager.NavigateTo($"Account/Manage/RenamePasskey/{credentialIdBase64Url}");
+        NavigationManager.NavigateTo("/Account/Manage/Passkeys/Create");
     }
 
-    private async Task DeletePasskey(UserPasskeyInfo passkeyInfo)
+    private async Task RenamePasskey(UserPasskeyInfo passkey)
     {
-        if (User is null)
+        if (passkey?.CredentialId == null) return;
+
+        var credentialIdBase64 = Base64Url.EncodeToString(passkey.CredentialId);
+        NavigationManager.NavigateTo($"/Account/Manage/Passkeys/Rename/{credentialIdBase64}");
+    }
+
+    private async Task DeletePasskey(UserPasskeyInfo passkey)
+    {
+        if (CurrentUser == null || passkey?.CredentialId == null) return;
+
+        var confirmed = await DialogService.Confirm(
+            $"Delete passkey **{passkey.Name}**?\n\nThis cannot be undone.",
+            "Delete Passkey",
+            new ConfirmOptions
+            {
+                OkButtonText = "Delete",
+                CancelButtonText = "Cancel"
+            });
+
+        if (confirmed != true) return;
+
+        try
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
-            return;
+            var result = await UserManager.RemovePasskeyAsync(CurrentUser, passkey.CredentialId);
+
+            if (result.Succeeded)
+            {
+                NotificationService.Notify(NotificationSeverity.Success, "Success", "Passkey deleted.");
+                currentPasskeys = await UserManager.GetPasskeysAsync(CurrentUser);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error",
+                    result.Errors.FirstOrDefault()?.Description ?? "Could not delete passkey.");
+            }
         }
-
-        var dialogResult = await DialogService.Confirm($"Do you want to delete the passkey '{passkeyInfo.Name}'", "Delete passkey");
-
-        if (dialogResult is not true)
-            return;
-
-        var result = await UserManager.RemovePasskeyAsync(User, passkeyInfo.CredentialId);
-        if (!result.Succeeded)
+        catch (Exception)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "An error occurred while deleting the passkey.");
-            return;
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "An unexpected error occurred.");
         }
-
-        NotificationService.Notify(NotificationSeverity.Success, "Success", "Passkey deleted successfully.");
-
-        currentPasskeys = await UserManager.GetPasskeysAsync(User);
     }
 }

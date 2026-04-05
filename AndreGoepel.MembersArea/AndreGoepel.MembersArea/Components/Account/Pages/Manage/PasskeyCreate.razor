@@ -3,83 +3,171 @@
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
 @using Radzen
-@using System.Buffers.Text
 @using Radzen.Blazor
+@using System.Buffers.Text
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
 @inject NavigationManager NavigationManager
-@inject UserManager<User> UserManager
 @inject NotificationService NotificationService
 
-<PageTitle>Create a new Passkey</PageTitle>
+<PageTitle>Register New Passkey – nerdventures.blog</PageTitle>
 
-<RadzenStack class="rz-p-0 rz-p-md-6">
-    <RadzenHeading Text="Create a new Passkey" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-    <p>
-        To create a new passkey please click on the button and follow the instructions of your browser
-    </p>
+            <!-- Header -->
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Register New Passkey
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Add a secure, passwordless sign-in method using your device
+                </RadzenText>
+            </div>
 
-    <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
-        <AntiforgeryToken />
-        <PasskeySubmit Operation="PasskeyOperation.Create"
-                       Name="Input"
-                       class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">
-            Add a new passkey
-        </PasskeySubmit>
-    </form>
-</RadzenStack>
+            <!-- Explanation -->
+            <RadzenStack Gap="1.25rem">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    A passkey allows you to sign in using your device's built-in security features
+                    (fingerprint, face recognition, PIN or security key) — no password needed.
+                </RadzenText>
+
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-muted">
+                    <strong>Steps:</strong><br />
+                    1. Click the button below<br />
+                    2. Follow your browser or device instructions<br />
+                    3. Give your new passkey a name (you can change it later)
+                </RadzenText>
+            </RadzenStack>
+
+            <!-- Form / Action area -->
+            <RadzenStack Gap="2rem" AlignItems="AlignItems.Center">
+
+                @if (isProcessing)
+                {
+                    <div class="text-center">
+                        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+                        <RadzenText TextStyle="TextStyle.Body2" class="mt-3 rz-color-muted">
+                            Waiting for browser / device interaction...
+                        </RadzenText>
+                    </div>
+                }
+                else
+                {
+                    <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
+                        <AntiforgeryToken />
+
+                        <PasskeySubmit Operation="PasskeyOperation.Create"
+                                       Name="Input"
+                                       class="rz-button rz-button-lg rz-variant-filled rz-primary rz-shade-default rz-border-radius-4">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+                                <RadzenIcon Icon="fingerprint" />
+                                <span>Register Passkey</span>
+                            </RadzenStack>
+                        </PasskeySubmit>
+                    </form>
+
+                    <RadzenButton Text="Cancel"
+                                  ButtonStyle="ButtonStyle.Secondary"
+                                  Size="ButtonSize.Medium"
+                                  Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Passkeys")) />
+                }
+            </RadzenStack>
+
+            <!-- Supported devices hint -->
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-color-muted text-center mt-4">
+                Supported on Windows Hello, macOS Touch ID, Android biometrics,
+                iOS Face ID / Touch ID, YubiKey and most FIDO2 security keys.
+            </RadzenText>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
     [SupplyParameterFromForm(FormName = "add-passkey")]
     private PasskeyInputModel Input { get; set; } = new();
 
-    public User? User { get; set; }
+    private User? CurrentUser;
+    private bool isProcessing;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync(); 
-        User = await UserManager.GetUserAsync(authState.User);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        CurrentUser = await UserManager.GetUserAsync(authState.User);
 
+        if (CurrentUser == null)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
+            NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
+        }
     }
 
     private async Task AddPasskey()
     {
-        if (User is null)
+        if (CurrentUser == null)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user recognized");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user.");
             return;
         }
 
-        if (!string.IsNullOrEmpty(Input.Error))
-        {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", Input.Error);
-            return;
-        }
+        isProcessing = true;
+        StateHasChanged();
 
-        if (string.IsNullOrEmpty(Input.CredentialJson))
+        try
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "The browser did not provide a passkey.");
-            return;
-        }
+            if (!string.IsNullOrEmpty(Input.Error))
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", Input.Error);
+                return;
+            }
 
-        var attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
-        if (!attestationResult.Succeeded)
+            if (string.IsNullOrEmpty(Input.CredentialJson))
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "No passkey data received from browser.");
+                return;
+            }
+
+            var attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
+            if (!attestationResult.Succeeded)
+            {
+                NotificationService.Notify(
+                    NotificationSeverity.Error,
+                    "Registration failed",
+                    attestationResult.Failure?.Message ?? "Unknown error during passkey creation."
+                );
+                return;
+            }
+
+            var addResult = await UserManager.AddOrUpdatePasskeyAsync(CurrentUser, attestationResult.Passkey);
+            if (!addResult.Succeeded)
+            {
+                NotificationService.Notify(
+                    NotificationSeverity.Error,
+                    "Error",
+                    addResult.Errors.FirstOrDefault()?.Description ?? "Could not save passkey."
+                );
+                return;
+            }
+
+            var credentialIdBase64 = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
+            NavigationManager.NavigateTo($"/Account/Manage/Passkeys/Rename/{credentialIdBase64}");
+        }
+        catch (Exception)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Could not add the passkey: {attestationResult.Failure.Message}");
-            return;
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Unexpected error",
+                "Something went wrong while registering the passkey. Please try again."
+            );
         }
-
-        var addPasskeyResult = await UserManager.AddOrUpdatePasskeyAsync(User, attestationResult.Passkey);
-        if (!addPasskeyResult.Succeeded)
+        finally
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "The passkey could not be added to your account.");
-            return;
+            isProcessing = false;
+            StateHasChanged();
         }
-
-        // Immediately prompt the user to enter a name for the credential
-        var credentialIdBase64Url = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
-        NavigationManager.NavigateTo($"Account/Manage/RenamePasskey/{credentialIdBase64Url}");
     }
 }
