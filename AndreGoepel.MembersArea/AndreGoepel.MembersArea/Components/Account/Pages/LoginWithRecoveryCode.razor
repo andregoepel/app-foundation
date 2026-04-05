@@ -4,17 +4,18 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
 
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWithRecoveryCode> Logger
+@inject NotificationService NotificationService
 
 <PageTitle>Recovery code verification</PageTitle>
 
 <h1>Recovery code verification</h1>
 <hr />
-<StatusMessage Message="@message" />
 <p>
     You have requested to log in with a recovery code. This login will not be remembered until you provide
     an authenticator app code at log in or disable 2FA and log in again.
@@ -35,7 +36,6 @@
 </div>
 
 @code {
-    private string? message;
     private User user = default!;
 
     [SupplyParameterFromForm]
@@ -74,7 +74,7 @@
         else
         {
             Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);
-            message = "Error: Invalid recovery code entered.";
+            NotificationService.Notify(NotificationSeverity.Error, "Recovery Code Error", "Invalid recovery code entered.");
         }
     }
 

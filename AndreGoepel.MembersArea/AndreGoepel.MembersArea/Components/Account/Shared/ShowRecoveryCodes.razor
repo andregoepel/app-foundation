@@ -1,4 +1,3 @@
-﻿<StatusMessage Message="@StatusMessage" />
 <h3>Recovery codes</h3>
 <div class="alert alert-warning" role="alert">
     <p>
@@ -22,7 +21,4 @@
 @code {
     [Parameter]
     public string[] RecoveryCodes { get; set; } = [];
-
-    [Parameter]
-    public string? StatusMessage { get; set; }
 }

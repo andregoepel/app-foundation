@@ -5,23 +5,21 @@
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Radzen
 
 @inject UserManager<User> UserManager
 @inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
 
 <PageTitle>Register confirmation</PageTitle>
 
 <h1>Register confirmation</h1>
 
-<StatusMessage Message="@statusMessage" />
-
 <p role="alert">Please check your email to confirm your account.</p>
 
 @code {
-    private string? statusMessage;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -43,7 +41,7 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = "Error finding user for unspecified email";
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error finding user for unspecified email.");
         }
     }
 }

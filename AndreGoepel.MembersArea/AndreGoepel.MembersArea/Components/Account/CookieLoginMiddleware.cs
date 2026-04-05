@@ -26,26 +26,29 @@ public class CookieLoginMiddleware(RequestDelegate next)
             var result = await signinManager.PasswordSignInAsync(
                 info.Email,
                 info.Password,
-                false,
+                info.RememberMe,
                 lockoutOnFailure: true
             );
             Logins.Remove(key);
             if (result.Succeeded)
             {
-                Logins.Remove(key);
                 context.Response.Redirect("/");
                 return;
             }
             else if (result.RequiresTwoFactor)
             {
-                //TODO: redirect to 2FA razor component
-                context.Response.Redirect("/loginwith2fa/" + key);
+                var rememberMe = info.RememberMe ? "true" : "false";
+                context.Response.Redirect($"/Account/LoginWith2fa?rememberMe={rememberMe}&returnUrl=%2F");
+                return;
+            }
+            else if (result.IsLockedOut)
+            {
+                context.Response.Redirect("/Account/Lockout");
                 return;
             }
             else
             {
-                //TODO: Proper error handling
-                context.Response.Redirect("/loginfailed");
+                context.Response.Redirect("/Account/Login");
                 return;
             }
         }

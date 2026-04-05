@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/andre/source/repos/andregoepel/members-area/AndreGoepel.MembersArea -name \"*.csproj\" ! -path \"*/obj/*\" ! -path \"*/bin/*\" -exec grep -l \"Folder Include\" {} \\\\;)"
+    ]
+  }
+}

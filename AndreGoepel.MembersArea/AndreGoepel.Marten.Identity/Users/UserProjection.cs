@@ -82,6 +82,10 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
 
         user.Deletable = @event.Deletable;
 
+        user.LockoutEnabled = @event.LockoutEnabled;
+        user.LockoutEnd = @event.LockoutEnd;
+        user.AccessFailedCount = @event.AccessFailedCount;
+
         user.ChangedBy = @event.UpdatedBy;
         user.ChangedAt = @event.UpdatedAt;
     }

@@ -27,7 +27,8 @@ public class UserStore<TUser>(
         IQueryableUserStore<TUser>,
         IUserClaimStore<TUser>,
         IUserPasskeyStore<TUser>,
-        IUserRoleStore<TUser>
+        IUserRoleStore<TUser>,
+        IUserLockoutStore<TUser>
     where TUser : User
 {
     private const string _userDataProtectionPurpose = "UserDataProtection";
@@ -119,6 +120,9 @@ public class UserStore<TUser>(
                     RecoveryCodes = user.RecoveryCodes,
                     TwoFactorEnabled = user.TwoFactorEnabled,
                     Deletable = user.Deletable,
+                    LockoutEnabled = user.LockoutEnabled,
+                    LockoutEnd = user.LockoutEnd,
+                    AccessFailedCount = user.AccessFailedCount,
                 }
             );
             await session.SaveChangesAsync(cancellationToken);
@@ -667,6 +671,41 @@ public class UserStore<TUser>(
             ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
 
         return user.Roles.Any(r => r == role.RoleId);
+    }
+
+    // IUserLockoutStore
+
+    public Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.LockoutEnd);
+
+    public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+    {
+        user.LockoutEnd = lockoutEnd;
+        return Task.CompletedTask;
+    }
+
+    public Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+    {
+        user.AccessFailedCount++;
+        return Task.FromResult(user.AccessFailedCount);
+    }
+
+    public Task ResetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+    {
+        user.AccessFailedCount = 0;
+        return Task.CompletedTask;
+    }
+
+    public Task<int> GetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.AccessFailedCount);
+
+    public Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.LockoutEnabled);
+
+    public Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+    {
+        user.LockoutEnabled = enabled;
+        return Task.CompletedTask;
     }
 
     public async Task<IList<TUser>> GetUsersInRoleAsync(

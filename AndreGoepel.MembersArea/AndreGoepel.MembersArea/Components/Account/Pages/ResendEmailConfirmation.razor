@@ -7,18 +7,19 @@
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Radzen
 
 @inject UserManager<User> UserManager
 @inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
 
 <PageTitle>Resend email confirmation</PageTitle>
 
 <h1>Resend email confirmation</h1>
 <h2>Enter your email.</h2>
 <hr />
-<StatusMessage Message="@message" />
 <div class="row">
     <div class="col-md-4">
         <EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post">
@@ -35,8 +36,6 @@
 </div>
 
 @code {
-    private string? message;
-
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = default!;
 
@@ -50,7 +49,7 @@
         var user = await UserManager.FindByEmailAsync(Input.Email!);
         if (user is null)
         {
-            message = "Verification email sent. Please check your email.";
+            NotificationService.Notify(NotificationSeverity.Info, "Email sent", "Verification email sent. Please check your email.");
             return;
         }
 
@@ -62,7 +61,7 @@
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Verification email sent. Please check your email.";
+        NotificationService.Notify(NotificationSeverity.Info, "Email sent", "Verification email sent. Please check your email.");
     }
 
     private sealed class InputModel

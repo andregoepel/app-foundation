@@ -16,12 +16,13 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NotificationService NotificationService
 
 <PageTitle>Configure authenticator app</PageTitle>
 
 @if (recoveryCodes is not null)
 {
-    <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" StatusMessage="@message" />
+    <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" />
 }
 else
 {
@@ -73,7 +74,6 @@ else
 @code {
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-    private string? message;
     private User? user;
     private string? sharedKey;
     private string? authenticatorUri;
@@ -106,14 +106,14 @@ else
         }
 
         // Strip spaces and hyphens
-        var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var verificationCode = model.Code?.Replace(" ", string.Empty).Replace("-", string.Empty) ?? "";
 
         var is2faTokenValid = await UserManager.VerifyTwoFactorTokenAsync(
             user, UserManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
 
         if (!is2faTokenValid)
         {
-            message = "Error: Verification code is invalid.";
+            NotificationService.Notify(NotificationSeverity.Error, "Verification Error", "Verification code is invalid.");
             return;
         }
 
@@ -121,15 +121,14 @@ else
         var userId = await UserManager.GetUserIdAsync(user);
         Logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
 
-        message = "Your authenticator app has been verified.";
-
         if (await UserManager.CountRecoveryCodesAsync(user) == 0)
         {
             recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            NotificationService.Notify(NotificationSeverity.Success, "Authenticator verified", "Your authenticator app has been verified.");
         }
         else
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", "Authenticator added", message);
+            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", "Authenticator added", "Your authenticator app has been verified.");
         }
     }
 

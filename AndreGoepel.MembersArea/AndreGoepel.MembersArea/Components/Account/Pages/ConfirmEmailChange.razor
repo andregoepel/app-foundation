@@ -10,16 +10,13 @@
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject NotificationService NotificationService
 
 <PageTitle>Confirm email change</PageTitle>
 
 <h1>Confirm email change</h1>
 
-<StatusMessage Message="@message" />
-
 @code {
-    private string? message;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -44,7 +41,7 @@
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            message = "Unable to find user with Id '{userId}'";
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Unable to load user with ID '{UserId}'.");
             return;
         }
 
@@ -52,7 +49,7 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            message = "Error changing email.";
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error changing email.");
             return;
         }
 
@@ -61,11 +58,11 @@
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {
-            message = "Error changing user name.";
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error changing user name.");
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        message = "Thank you for confirming your email change.";
+        NotificationService.Notify(NotificationSeverity.Success, "Email change confirmed", "Thank you for confirming your email change.");
     }
 }

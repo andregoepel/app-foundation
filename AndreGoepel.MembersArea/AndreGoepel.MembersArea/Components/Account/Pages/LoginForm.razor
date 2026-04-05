@@ -48,7 +48,7 @@
                 </RadzenColumn>
             </RadzenRow>
 
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Register" />
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Login" />
 
             <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
                 <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
@@ -92,20 +92,28 @@
                 return;
             }
 
-            result = await SignInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            if (await UserManager.IsLockedOutAsync(user))
+            {
+                Logger.LogWarning("User account locked out.");
+                RedirectManager.RedirectTo("Account/Lockout");
+                return;
+            }
 
-            if (result == SignInResult.Success)
+            if (!await UserManager.CheckPasswordAsync(user, model.Password))
             {
-                Guid key = Guid.NewGuid();
-                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = model.RememberMe };
-                NavigationManager.NavigateTo($"/login?key={key}", true);
-            }
-            else
-            {
+                await UserManager.AccessFailedAsync(user);
                 NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+                return;
             }
+
+            // Password valid — hand off to middleware for cookie sign-in (handles 2FA, remember-me, etc.)
+            Guid key = Guid.NewGuid();
+            CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = model.RememberMe };
+            NavigationManager.NavigateTo($"/login?key={key}", true);
+            return;
         }
 
+        // Passkey path: PasskeySignInAsync handles the full sign-in
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");

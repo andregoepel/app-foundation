@@ -4,17 +4,18 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
 
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWith2fa> Logger
+@inject NotificationService NotificationService
 
 <PageTitle>Two-factor authentication</PageTitle>
 
 <h1>Two-factor authentication</h1>
 <hr />
-<StatusMessage Message="@message" />
 <p>Your login is protected with an authenticator app. Enter your authenticator code below.</p>
 <div class="row">
     <div class="col-md-4">
@@ -46,7 +47,6 @@
 </p>
 
 @code {
-    private string? message;
     private User user = default!;
 
     [SupplyParameterFromForm]
@@ -86,7 +86,7 @@
         else
         {
             Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
-            message = "Error: Invalid authenticator code.";
+            NotificationService.Notify(NotificationSeverity.Error, "2FA Error", "Invalid authenticator code.");
         }
     }
 

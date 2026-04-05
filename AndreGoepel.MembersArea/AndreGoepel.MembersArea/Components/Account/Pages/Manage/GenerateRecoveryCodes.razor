@@ -3,16 +3,18 @@
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
+@using Radzen
 
 @inject UserManager<User> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
+@inject NotificationService NotificationService
 
 <PageTitle>Generate two-factor authentication (2FA) recovery codes</PageTitle>
 
 @if (recoveryCodes is not null)
 {
-    <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" StatusMessage="@message" />
+    <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" />
 }
 else
 {
@@ -39,7 +41,6 @@ else
 }
 
 @code {
-    private string? message;
     private User? user;
     private IEnumerable<string>? recoveryCodes;
 
@@ -72,7 +73,7 @@ else
 
         var userId = await UserManager.GetUserIdAsync(user);
         recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-        message = "You have generated new recovery codes.";
+        NotificationService.Notify(NotificationSeverity.Success, "Recovery codes generated", "You have generated new recovery codes.");
 
         Logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
     }
