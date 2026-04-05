@@ -1,24 +1,50 @@
-﻿@page "/Account/ConfirmEmailChange"
+@page "/Account/ConfirmEmailChange"
 
 @using System.Text
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject SignInManager<User> SignInManager
-@inject IdentityRedirectManager RedirectManager
-@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
 
-<PageTitle>Confirm email change</PageTitle>
+<PageTitle>Confirm email change – nerdventures.blog</PageTitle>
 
-<h1>Confirm email change</h1>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Email change confirmation</RadzenText>
+
+            @if (succeeded)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    Thank you for confirming your email change. Your email has been updated.
+                </RadzenAlert>
+                <RadzenButton Text="Go to profile"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Profile")) />
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    @error
+                </RadzenAlert>
+                <RadzenButton Text="Go to home"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click=@(() => NavigationManager.NavigateTo("/")) />
+            }
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private bool succeeded;
+    private string error = "An error occurred confirming your email change.";
 
     [SupplyParameterFromQuery]
     private string? UserId { get; set; }
@@ -33,15 +59,14 @@
     {
         if (UserId is null || Email is null || Code is null)
         {
-            RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Invalid data", "Invalid email change confirmation link.", NotificationSeverity.Error);
+            error = "Invalid email change confirmation link.";
             return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Unable to load user with ID '{UserId}'.");
+            error = $"Unable to load user with ID '{UserId}'.";
             return;
         }
 
@@ -49,20 +74,19 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error changing email.");
+            error = "Error changing email. The link may have expired.";
             return;
         }
 
-        // In our UI email and user name are one and the same, so when we update the email
-        // we need to update the user name.
+        // In our UI email and user name are one and the same
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error changing user name.");
+            error = "Error updating user name.";
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        NotificationService.Notify(NotificationSeverity.Success, "Email change confirmed", "Thank you for confirming your email change.");
+        succeeded = true;
     }
 }

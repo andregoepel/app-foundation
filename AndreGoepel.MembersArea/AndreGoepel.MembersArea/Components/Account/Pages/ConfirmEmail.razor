@@ -1,21 +1,50 @@
-﻿@page "/Account/ConfirmEmail"
+@page "/Account/ConfirmEmail"
 
 @using System.Text
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
-@inject NotificationService NotificationService
-@inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 
-<PageTitle>Confirm email</PageTitle>
+<PageTitle>Confirm email – nerdventures.blog</PageTitle>
 
-<h1>Confirm email</h1>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Email confirmation</RadzenText>
+
+            @if (succeeded)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    Thank you for confirming your email. You can now log in.
+                </RadzenAlert>
+                <RadzenButton Text="Log in"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click=@(() => NavigationManager.NavigateTo("/Account/Login")) />
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    @error
+                </RadzenAlert>
+                <RadzenButton Text="Go to home"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click=@(() => NavigationManager.NavigateTo("/")) />
+            }
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
+    private bool succeeded;
+    private string error = "An error occurred confirming your email.";
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -29,7 +58,7 @@
     {
         if (UserId is null || Code is null)
         {
-            RedirectManager.RedirectTo("");
+            NavigationManager.NavigateTo("/");
             return;
         }
 
@@ -37,16 +66,14 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error loading user with ID {UserId}");
+            error = $"Error loading user with ID '{UserId}'.";
+            return;
         }
-        else
-        {
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
-            var result = await UserManager.ConfirmEmailAsync(user, code);
-            if (result.Succeeded) 
-                NotificationService.Notify(NotificationSeverity.Success, "Thank you for confirming your email."); 
-            else 
-                NotificationService.Notify(NotificationSeverity.Error, "Error confirming your email.");
-        }
+
+        var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
+        var result = await UserManager.ConfirmEmailAsync(user, code);
+        succeeded = result.Succeeded;
+        if (!result.Succeeded)
+            error = "Error confirming your email. The link may have expired.";
     }
 }

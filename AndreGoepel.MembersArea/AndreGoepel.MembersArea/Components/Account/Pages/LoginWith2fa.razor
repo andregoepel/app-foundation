@@ -1,56 +1,79 @@
-﻿@page "/Account/LoginWith2fa"
+@page "/Account/LoginWith2fa"
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
-@using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
-@using Microsoft.AspNetCore.Identity
 @using Radzen
+@using Radzen.Blazor
 
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
-@inject IdentityRedirectManager RedirectManager
-@inject ILogger<LoginWith2fa> Logger
+@inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 
-<PageTitle>Two-factor authentication</PageTitle>
+<PageTitle>Two-factor authentication – nerdventures.blog</PageTitle>
 
-<h1>Two-factor authentication</h1>
-<hr />
-<p>Your login is protected with an authenticator app. Enter your authenticator code below.</p>
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <input type="hidden" name="RememberMe" value="@RememberMe" />
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.TwoFactorCode" id="Input.TwoFactorCode" class="form-control" autocomplete="off" />
-                <label for="Input.TwoFactorCode" class="form-label">Authenticator code</label>
-                <ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Two-factor authentication</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Enter the code from your authenticator app.
+                </RadzenText>
             </div>
-            <div class="checkbox mb-3">
-                <label for="remember-machine" class="form-label">
-                    <InputCheckbox @bind-Value="Input.RememberMachine" />
-                    Remember this machine
-                </label>
-            </div>
-            <div>
-                <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-            </div>
-        </EditForm>
-    </div>
+
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnSubmitAsync>
+                <RadzenStack Gap="1.5rem">
+
+                    <div>
+                        <RadzenLabel Text="Authenticator code *" Component="TwoFactorCode" />
+                        <RadzenTextBox @bind-Value=@Input.TwoFactorCode
+                                       Name="TwoFactorCode"
+                                       Placeholder="6-digit code"
+                                       AutoCompleteType="AutoCompleteType.Off"
+                                       Style="width:100%" />
+                        <RadzenRequiredValidator Component="TwoFactorCode" Text="Authenticator code is required" />
+                        <RadzenLengthValidator Component="TwoFactorCode" Min="6" Max="7"
+                                               Text="Code must be 6 or 7 characters" />
+                    </div>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                        <RadzenColumn Size="1">
+                            <RadzenCheckBox @bind-Value=@Input.RememberMachine Name="RememberMachine" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="11">
+                            <RadzenLabel Text="Remember this machine" Component="RememberMachine" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="1rem"
+                                 JustifyContent="JustifyContent.Center"
+                                 Wrap="FlexWrap.Wrap">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Log in"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Large"
+                                      IsBusy=@isProcessing
+                                      BusyText="Verifying..."
+                                      Style="width: 100%; max-width: 360px;" />
+                    </RadzenStack>
+
+                    <RadzenText TextStyle="TextStyle.Body2" class="text-center">
+                        Don't have access to your authenticator device?
+                        <RadzenLink Path="@($"/Account/LoginWithRecoveryCode?returnUrl={ReturnUrl}")"
+                                    Text="Log in with a recovery code" />
+                    </RadzenText>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
+        </RadzenStack>
+    </RadzenCard>
 </div>
-<p>
-    Don't have access to your authenticator device? You can
-    <a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">log in with a recovery code</a>.
-</p>
 
 @code {
-    private User user = default!;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
@@ -58,47 +81,45 @@
     [SupplyParameterFromQuery]
     private bool RememberMe { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        Input ??= new();
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
 
-        // Ensure the user has gone through the username & password screen first
-        user = await SignInManager.GetTwoFactorAuthenticationUserAsync() ??
-            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+    protected override void OnInitialized()
+    {
+        if (Error == "invalid")
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "2FA Error", "Invalid authenticator code.");
+        }
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task OnSubmitAsync(InputModel model)
     {
-        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
-        var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
-        var userId = await UserManager.GetUserIdAsync(user);
+        isProcessing = true;
 
-        if (result.Succeeded)
+        try
         {
-            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
-            RedirectManager.RedirectTo(ReturnUrl);
+            var key = Guid.NewGuid();
+            CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
+            {
+                Code = model.TwoFactorCode!,
+                RememberMe = RememberMe,
+                RememberMachine = model.RememberMachine,
+                ReturnUrl = ReturnUrl
+            };
+            NavigationManager.NavigateTo($"/login2fa?key={key}", forceLoad: true);
         }
-        else if (result.IsLockedOut)
+        finally
         {
-            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
-            RedirectManager.RedirectTo("Account/Lockout");
-        }
-        else
-        {
-            Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
-            NotificationService.Notify(NotificationSeverity.Error, "2FA Error", "Invalid authenticator code.");
+            isProcessing = false;
         }
     }
 
     private sealed class InputModel
     {
         [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Text)]
-        [Display(Name = "Authenticator code")]
+        [StringLength(7, MinimumLength = 6)]
         public string? TwoFactorCode { get; set; }
 
-        [Display(Name = "Remember this machine")]
         public bool RememberMachine { get; set; }
     }
 }

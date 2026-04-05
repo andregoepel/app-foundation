@@ -1,39 +1,56 @@
-﻿@page "/Account/RegisterConfirmation"
+@page "/Account/RegisterConfirmation"
 
-@using System.Text
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.WebUtilities
 @using Radzen
+@using Radzen.Blazor
 
 @inject UserManager<User> UserManager
-@inject IEmailSender<User> EmailSender
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
-@inject NotificationService NotificationService
 
-<PageTitle>Register confirmation</PageTitle>
+<PageTitle>Register confirmation – nerdventures.blog</PageTitle>
 
-<h1>Register confirmation</h1>
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
 
-<p role="alert">Please check your email to confirm your account.</p>
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Check your email</RadzenText>
+
+            @if (error is not null)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    @error
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    Please check your email to confirm your account.
+                </RadzenAlert>
+            }
+
+            <RadzenButton Text="Back to login"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click=@(() => NavigationManager.NavigateTo("/Account/Login")) />
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
+    private string? error;
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     private string? Email { get; set; }
 
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
         if (Email is null)
         {
-            RedirectManager.RedirectTo("");
+            NavigationManager.NavigateTo("/");
             return;
         }
 
@@ -41,7 +58,7 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Error finding user for unspecified email.");
+            error = "Error finding user for the specified email.";
         }
     }
 }
