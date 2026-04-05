@@ -12,51 +12,53 @@
 @inject IdentityRedirectManager RedirectManager
 @inject NotificationService NotificationService
 
-<RadzenHeading Size="H2" Text="Use a local account to log in." />
-    <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
-        <RadzenStack>
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="2">
-                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Email</RadzenLabel>
-                </RadzenColumn>
-                <RadzenColumn Size="3">
-                    <RadzenTextBox @bind-Value=@Input.Email
-                                   AutoCompleteType="AutoCompleteType.Username"
-                                   Placeholder="Enter your email"
-                                   Style="display: block; width: 100%" />
-                </RadzenColumn>
-            </RadzenRow>
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
+    <RadzenStack Gap="1.5rem">
 
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="2">
-                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Password</RadzenLabel>
-                </RadzenColumn>
-                <RadzenColumn Size="3">
-                    <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="display: block; width: 100%" />
-                    <RadzenRequiredValidator Component="Password"
-                                             Text="Password is required"
-                                             Style="position: absolute" />
-                </RadzenColumn>
-            </RadzenRow>
+        <div>
+            <RadzenLabel Text="Email" Component="Email" />
+            <RadzenTextBox @bind-Value=@Input.Email
+                           Name="Email"
+                           AutoCompleteType="AutoCompleteType.Username"
+                           Placeholder="name@example.com"
+                           Style="width:100%" />
+            <RadzenRequiredValidator Component="Email" Text="Email is required" />
+        </div>
 
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="2">
-                    <RadzenLabel TextStyle="TextStyle.Subtitle1">Remember me</RadzenLabel>
-                </RadzenColumn>
-                <RadzenColumn Size="3">
-                    <RadzenCheckBox @bind-Value=@Input.RememberMe  />
-                </RadzenColumn>
-            </RadzenRow>
+        <div>
+            <RadzenLabel Text="Password" Component="Password" />
+            <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="width:100%" />
+            <RadzenRequiredValidator Component="Password" Text="Password is required" />
+        </div>
 
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Login" />
+        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+            <RadzenColumn Size="1">
+                <RadzenCheckBox @bind-Value=@Input.RememberMe Name="RememberMe" />
+            </RadzenColumn>
+            <RadzenColumn Size="11">
+                <RadzenLabel Text="Remember me" Component="RememberMe" />
+            </RadzenColumn>
+        </RadzenRow>
 
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
-                <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
-                <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
-                <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
-            </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     Gap="1rem"
+                     JustifyContent="JustifyContent.Center"
+                     Wrap="FlexWrap.Wrap">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="Log in"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Large"
+                          Style="width: 100%; max-width: 360px;" />
         </RadzenStack>
-    </RadzenTemplateForm>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
+            <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
+            <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
+        </RadzenStack>
+
+    </RadzenStack>
+</RadzenTemplateForm>
 
 @code {
     [SupplyParameterFromForm]

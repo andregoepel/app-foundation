@@ -8,7 +8,7 @@
 @using Radzen.Blazor
 
 @inject UserManager<User> UserManager
-@inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 @inject ILogger<Disable2fa> Logger
 @inject NotificationService NotificationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -35,15 +35,13 @@
             </RadzenAlert>
 
             <RadzenStack Gap="1rem" AlignItems="AlignItems.Center">
-                <form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
-                    <RadzenButton ButtonType="ButtonType.Submit"
-                                  Text="Disable 2FA"
-                                  ButtonStyle="ButtonStyle.Danger"
-                                  Size="ButtonSize.Large"
-                                  IsBusy="@isProcessing"
-                                  BusyText="Disabling..."
-                                  Style="width: 100%; max-width: 360px;" />
-                </form>
+                <RadzenButton Text="Disable 2FA"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Size="ButtonSize.Large"
+                              IsBusy="@isProcessing"
+                              BusyText="Disabling..."
+                              Style="width: 100%; max-width: 360px;"
+                              Click=@OnSubmitAsync />
             </RadzenStack>
 
             <RadzenText TextStyle="TextStyle.Caption" class="text-center rz-color-muted">
@@ -93,11 +91,9 @@
             var userId = await UserManager.GetUserIdAsync(user);
             Logger.LogInformation("User {UserId} disabled 2FA", userId);
 
-            RedirectManager.RedirectToWithStatus(
-                "/Account/Manage/TwoFactorAuthentication",
-                summary: "2FA has been disabled",
-                message: "Two-factor authentication is now turned off. You can re-enable it anytime by setting up an authenticator app.",
-                severity: NotificationSeverity.Info);
+            NotificationService.Notify(NotificationSeverity.Info, "2FA has been disabled",
+                "Two-factor authentication is now turned off. You can re-enable it anytime by setting up an authenticator app.");
+            NavigationManager.NavigateTo("/Account/Manage/TwoFactorAuthentication");
         }
         catch (Exception ex)
         {

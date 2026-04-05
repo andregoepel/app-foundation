@@ -1,41 +1,56 @@
-﻿@page "/Account/Login"
+@page "/Account/Login"
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
+@using Radzen
 @using Radzen.Blazor
 
 @inject SignInManager<User> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Log in – nerdventures.blog</PageTitle>
 
-<RadzenStack class="rz-p-0 rz-p-md-6">
-    <RadzenHeading Text="Log in" />
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
-    <LoginForm />
-    
-    <div class="d-flex flex-column">
-        <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-        <PasskeySubmit 
-            Operation="PasskeyOperation.Request" 
-            Name="Input.Passkey" 
-            EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-        </EditForm>
-    </div>
-</RadzenStack>
-    
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Log in</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Use a local account to log in.
+                </RadzenText>
+            </div>
+
+            <LoginForm />
+
+            @if (error is not null)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    @error
+                </RadzenAlert>
+            }
+
+            <RadzenStack AlignItems="AlignItems.Center">
+                <form method="post" @formname="passkey-login" @onsubmit="LoginUser">
+                    <AntiforgeryToken />
+                    <PasskeySubmit Operation="PasskeyOperation.Request"
+                                   Name="Input.Passkey"
+                                   EmailName="Input.Email">Log in with a passkey</PasskeySubmit>
+                </form>
+            </RadzenStack>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
 
 @code {
-
+    private string? error;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    private EditContext editContext = default!;
-
-    [SupplyParameterFromForm]
+    [SupplyParameterFromForm(FormName = "passkey-login")]
     private InputModel Input { get; set; } = default!;
 
     [SupplyParameterFromQuery]
@@ -45,11 +60,8 @@
     {
         Input ??= new();
 
-        editContext = new EditContext(Input);
-
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
     }
@@ -58,29 +70,28 @@
     {
         if (!string.IsNullOrEmpty(Input.Passkey?.Error))
         {
-            // ShowMessage(model.Passkey.Error, AlertStyle.Danger);
+            error = Input.Passkey.Error;
             return;
         }
 
-        SignInResult? result = null;
-        if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+        if (string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+            return;
+
+        var result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+
+        if (result.Succeeded)
         {
-            result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+            Logger.LogInformation("User logged in with passkey.");
+            NavigationManager.NavigateTo(ReturnUrl ?? "/");
         }
-       
-        if (result?.Succeeded == true)
-        {
-            Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
-        }
-        else if (result?.IsLockedOut == true)
+        else if (result.IsLockedOut)
         {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.NavigateTo("/Account/Lockout");
         }
         else
         {
-            // ShowMessage("Invalid login attempt.", AlertStyle.Danger);
+            error = "Invalid passkey login attempt.";
         }
     }
 
