@@ -141,7 +141,7 @@
 
         await DialogService.OpenAsync<RoleUserDialog>(
             $"Users in role: {role.Name}",
-            new Dictionary<string, object> { { "RoleId", role.Id } },
+            new Dictionary<string, object?> { { "RoleId", role.Id } },
             new DialogOptions { Width = "700px", Height = "500px" }
         );
     }

@@ -77,6 +77,12 @@
 
         try
         {
+            if(user == null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user.");
+                return;
+            }
+
             var result = await UserManager.SetTwoFactorEnabledAsync(user, enabled: false);
 
             if (!result.Succeeded)

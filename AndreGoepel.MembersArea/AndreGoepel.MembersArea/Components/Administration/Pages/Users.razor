@@ -87,7 +87,7 @@
     private async Task SetRoles(User user)
     {
         var result = await DialogService.OpenAsync<UserRoleDialog>("Edit User Roles",
-            new Dictionary<string, object>() { { "UserId", user.Id } },
+            new Dictionary<string, object?>() { { "UserId", user.Id } },
             new DialogOptions() { Width = "600px", Height = "400px" });
 
         if (result == true)

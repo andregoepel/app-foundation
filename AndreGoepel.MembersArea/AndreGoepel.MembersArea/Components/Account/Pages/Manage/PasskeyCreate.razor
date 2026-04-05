@@ -89,7 +89,7 @@
 
 @code {
     [SupplyParameterFromForm(FormName = "add-passkey")]
-    private PasskeyInputModel Input { get; set; } = new();
+    private PasskeyInputModel? Input { get; set; }
 
     private User? CurrentUser;
     private bool isProcessing;
@@ -119,6 +119,12 @@
 
         try
         {
+            if(Input == null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "No data received from form.");
+                return;
+            }
+
             if (!string.IsNullOrEmpty(Input.Error))
             {
                 NotificationService.Notify(NotificationSeverity.Error, "Error", Input.Error);
