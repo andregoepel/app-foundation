@@ -6,17 +6,16 @@
 @using System.Text
 @using System.Text.Encodings.Web
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
 @inject UserManager<User> UserManager
 @inject UrlEncoder UrlEncoder
-@inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Configure authenticator app</PageTitle>
 
@@ -105,9 +104,6 @@ else
     private string? authenticatorUri;
     private IEnumerable<string>? recoveryCodes;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
@@ -116,7 +112,7 @@ else
         user = await UserManager.GetUserAsync(authState.User);
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            NavigationManager.NavigateTo("/Account/InvalidUser");
             return;
         }
 
@@ -127,7 +123,7 @@ else
     {
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            NavigationManager.NavigateTo("/Account/InvalidUser");
             return;
         }
 
@@ -154,7 +150,8 @@ else
         }
         else
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", "Authenticator added", "Your authenticator app has been verified.");
+            NotificationService.Notify(NotificationSeverity.Success, "Authenticator added", "Your authenticator app has been verified.");
+            NavigationManager.NavigateTo("/Account/Manage/TwoFactorAuthentication");
         }
     }
 

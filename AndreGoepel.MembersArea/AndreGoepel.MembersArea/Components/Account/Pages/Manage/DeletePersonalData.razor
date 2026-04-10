@@ -9,8 +9,6 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
-@inject SignInManager<User> SignInManager
-@inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
 @inject NotificationService NotificationService
 @inject NavigationManager NavigationManager
@@ -106,7 +104,7 @@
         if (CurrentUser == null)
         {
             NotificationService.Notify(NotificationSeverity.Error, "Error", "Unable to load user profile.");
-            RedirectManager.RedirectTo("/Account/Manage/Profile");
+            NavigationManager.NavigateTo("/Account/Manage/Profile");
         }
     }
 
@@ -155,16 +153,8 @@
 
             Logger.LogInformation("User {UserId} ({Email}) deleted their account.", userId, CurrentUser.Email);
 
-            await SignInManager.SignOutAsync();
-
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Account Deleted",
-                "Your account and all associated data have been permanently removed."
-            );
-
-            // Redirect zur Startseite oder Goodbye-Seite
-            RedirectManager.RedirectTo("/");
+            // Sign out via GET endpoint (SignOutAsync writes cookies — must run in real HTTP context)
+            NavigationManager.NavigateTo("/Account/SignOutAndRedirect", forceLoad: true);
         }
         catch (Exception ex)
         {

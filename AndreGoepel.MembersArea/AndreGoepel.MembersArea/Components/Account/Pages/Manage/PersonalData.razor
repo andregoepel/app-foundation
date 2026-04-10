@@ -8,7 +8,6 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
-@inject IdentityRedirectManager RedirectManager
 @inject NavigationManager NavigationManager
 
 <PageTitle>Personal Data – nerdventures.blog</PageTitle>
@@ -83,7 +82,7 @@
 
         if (user == null)
         {
-            RedirectManager.RedirectTo("/Account/Login");
+            NavigationManager.NavigateTo("/Account/Login");
         }
     }
 }

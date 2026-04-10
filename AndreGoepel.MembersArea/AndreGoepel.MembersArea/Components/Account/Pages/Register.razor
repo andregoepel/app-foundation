@@ -13,11 +13,9 @@
 
 @inject UserManager<User> UserManager
 @inject IUserStore<User> UserStore
-@inject SignInManager<User> SignInManager
 @inject IEmailSender<User> EmailSender
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 @inject NotificationService NotificationService
 
 <PageTitle>Register – nerdventures.blog</PageTitle>
@@ -123,14 +121,17 @@
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = model.Email, ["returnUrl"] = ReturnUrl });
+            var confirmUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/RegisterConfirmation").AbsoluteUri,
+                new Dictionary<string, object?> { ["email"] = model.Email, ["returnUrl"] = ReturnUrl });
+            NavigationManager.NavigateTo(confirmUrl);
         }
         else
         {
-            await SignInManager.SignInAsync(user, isPersistent: false);
-            RedirectManager.RedirectTo(ReturnUrl);
+            // SignInAsync writes cookies — must go through middleware
+            Guid key = Guid.NewGuid();
+            CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = false };
+            NavigationManager.NavigateTo($"/login?key={key}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
         }
     }
 
