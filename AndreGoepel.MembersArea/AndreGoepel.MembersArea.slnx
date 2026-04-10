@@ -4,4 +4,5 @@
   <Project Path="AndreGoepel.MembersArea.MailService/AndreGoepel.MembersArea.MailService.csproj" />
   <Project Path="AndreGoepel.MembersArea.ServiceDefaults/AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   <Project Path="AndreGoepel.MembersArea/AndreGoepel.MembersArea.csproj" />
+  <Project Path="AndreGoepel.Marten.Identity.Tests/AndreGoepel.Marten.Identity.Tests.csproj" />
 </Solution>
