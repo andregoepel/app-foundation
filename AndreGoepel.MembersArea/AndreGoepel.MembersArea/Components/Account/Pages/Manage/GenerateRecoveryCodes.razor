@@ -2,13 +2,11 @@
 @rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
 @inject UserManager<User> UserManager
-@inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
 @inject NotificationService NotificationService
 @inject AuthenticationStateProvider AuthenticationStateProvider

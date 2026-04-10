@@ -1,17 +1,10 @@
 ﻿@page "/Account/Manage/ResetAuthenticator"
 @rendermode InteractiveServer
 
-@using AndreGoepel.Marten.Identity.Users
-@using AndreGoepel.MembersArea
-@using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
-@inject UserManager<User> UserManager
-@inject SignInManager<User> SignInManager
-@inject IdentityRedirectManager RedirectManager
 @inject NavigationManager NavigationManager
-@inject ILogger<ResetAuthenticator> Logger
 
 <PageTitle>Reset Authenticator Key – nerdventures.blog</PageTitle>
 
@@ -63,29 +56,3 @@
     </RadzenCard>
 </div>
 
-@code {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    private async Task OnSubmitAsync()
-    {
-        var user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
-        await UserManager.SetTwoFactorEnabledAsync(user, false);
-        await UserManager.ResetAuthenticatorKeyAsync(user);
-        var userId = await UserManager.GetUserIdAsync(user);
-        Logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", userId);
-
-        await SignInManager.RefreshSignInAsync(user);
-
-        RedirectManager.RedirectToWithStatus(
-            "Account/Manage/EnableAuthenticator",
-            "Authenticator reset",
-            "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.");
-    }
-}

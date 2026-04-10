@@ -88,7 +88,36 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 
         var loggerFactory = endpoints.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var resetAuthenticatorLogger = loggerFactory.CreateLogger("ResetAuthenticator");
         var downloadLogger = loggerFactory.CreateLogger("DownloadPersonalData");
+
+        manageGroup.MapPost(
+            "/ResetAuthenticator/ConfirmReset",
+            async (
+                HttpContext context,
+                [FromServices] UserManager<User> userManager,
+                [FromServices] SignInManager<User> signInManager
+            ) =>
+            {
+                var user = await userManager.GetUserAsync(context.User);
+                if (user is null)
+                {
+                    return Results.NotFound(
+                        $"Unable to load user with ID '{userManager.GetUserId(context.User)}'."
+                    );
+                }
+
+                await userManager.SetTwoFactorEnabledAsync(user, false);
+                await userManager.ResetAuthenticatorKeyAsync(user);
+                var userId = await userManager.GetUserIdAsync(user);
+                resetAuthenticatorLogger.LogInformation(
+                    "User with ID '{UserId}' has reset their authentication app key.", userId);
+
+                await signInManager.RefreshSignInAsync(user);
+
+                return TypedResults.LocalRedirect("~/Account/Manage/EnableAuthenticator");
+            }
+        );
 
         manageGroup.MapPost(
             "/DownloadPersonalData",
