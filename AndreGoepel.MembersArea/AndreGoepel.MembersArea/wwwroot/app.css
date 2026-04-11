@@ -1,3 +1,67 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+
+/* Login page card */
+.login-card {
+    display: flex;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 480px;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+.login-brand-panel {
+    flex: 0 0 36%;
+    background: var(--rz-primary, #3b82f6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    text-align: center;
+}
+
+.login-logo-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.login-form-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    overflow-y: auto;
+}
+
+/* Login / passkey buttons side by side */
+.login-action-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .login-card {
+        flex-direction: column;
+    }
+
+    .login-brand-panel {
+        flex: none;
+        padding: 2rem 1.5rem;
+    }
+
+    .login-form-panel {
+        padding: 2rem 1.5rem;
+    }
+}

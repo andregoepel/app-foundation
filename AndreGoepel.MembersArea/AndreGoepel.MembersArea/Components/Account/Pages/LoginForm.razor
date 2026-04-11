@@ -1,4 +1,4 @@
-﻿@rendermode InteractiveServer
+@rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
@@ -11,49 +11,32 @@
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 
-<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
-    <RadzenStack Gap="1.5rem">
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser id="login-form">
+    <RadzenStack Gap="1.25rem">
 
-        <div>
-            <RadzenLabel Text="Email" Component="Email" />
-            <RadzenTextBox @bind-Value=@Input.Email
-                           Name="Email"
-                           AutoCompleteType="AutoCompleteType.Username"
-                           Placeholder="name@example.com"
-                           Style="width:100%" />
-            <RadzenRequiredValidator Component="Email" Text="Email is required" />
-        </div>
-
-        <div>
-            <RadzenLabel Text="Password" Component="Password" />
-            <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="width:100%" />
-            <RadzenRequiredValidator Component="Password" Text="Password is required" />
-        </div>
-
-        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-            <RadzenColumn Size="1">
-                <RadzenCheckBox @bind-Value=@Input.RememberMe Name="RememberMe" />
-            </RadzenColumn>
-            <RadzenColumn Size="11">
-                <RadzenLabel Text="Remember me" Component="RememberMe" />
-            </RadzenColumn>
-        </RadzenRow>
-
-        <RadzenStack Orientation="Orientation.Horizontal"
-                     Gap="1rem"
-                     JustifyContent="JustifyContent.Center"
-                     Wrap="FlexWrap.Wrap">
-            <RadzenButton ButtonType="ButtonType.Submit"
-                          Text="Log in"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Size="ButtonSize.Large"
-                          Style="width: 100%; max-width: 360px;" />
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Email" Component="Email" Style="width: 8rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenTextBox @bind-Value=@Input.Email
+                               Name="Email"
+                               AutoCompleteType="AutoCompleteType.Username"
+                               Placeholder="name@example.com"
+                               Style="width:100%" />
+                <RadzenRequiredValidator Component="Email" Text="Email is required" />
+            </RadzenStack>
         </RadzenStack>
 
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
-            <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
-            <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
-            <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Password" Component="Password" Style="width: 8rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenPassword @bind-Value="Input.Password" Name="Password" Style="width:100%" />
+                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenCheckBox @bind-Value=@Input.RememberMe Name="RememberMe" />
+            <RadzenLabel Text="Remember me" Component="RememberMe" />
         </RadzenStack>
 
     </RadzenStack>
@@ -109,7 +92,12 @@
 
             // Password valid — hand off to middleware for cookie sign-in (handles 2FA, remember-me, etc.)
             Guid key = Guid.NewGuid();
-            CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = model.RememberMe };
+            CookieLoginMiddleware.Logins[key] = new LoginInfo
+            {
+                Email = model.Email,
+                Password = model.Password,
+                RememberMe = model.RememberMe,
+            };
             NavigationManager.NavigateTo($"/login?key={key}", true);
             return;
         }
@@ -125,7 +113,9 @@
             NavigationManager.NavigateTo(
                 NavigationManager.GetUriWithQueryParameters(
                     "Account/LoginWith2fa",
-                    new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe }));
+                    new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe }
+                )
+            );
         }
         else if (result.IsLockedOut)
         {
