@@ -1,4 +1,5 @@
-﻿@page "/Account/Register"
+@page "/Account/Register"
+@layout LoginLayout
 @rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
@@ -6,6 +7,7 @@
 @using System.Text.Encodings.Web
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea
+@using AndreGoepel.MembersArea.Components.Layout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Radzen
@@ -20,66 +22,71 @@
 
 <PageTitle>Register – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<RadzenCard class="login-card">
+    <div class="login-brand-panel">
+        <div class="login-logo-circle">
+            <img src="favicon.png" alt="nerdventures.blog" style="width: 40px; height: 40px; object-fit: contain;" />
+        </div>
+        <RadzenText TagName="TagName.Span" TextStyle="TextStyle.H6" Style="color: white; font-weight: 700; letter-spacing: 0.02em;">nerdventures.blog</RadzenText>
+        <RadzenText TagName="TagName.H2" TextStyle="TextStyle.H2" Style="color: white; font-weight: 700; margin-top: 3rem; margin-bottom: 0.75rem;">Welcome!</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: rgba(255,255,255,0.8);">Create your account to get started.</RadzenText>
+    </div>
 
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Register</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Create a new account.
-                </RadzenText>
-            </div>
+    <div class="login-form-panel">
+        <RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem" AlignItems="AlignItems.Stretch">
+
+            <RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Register</RadzenText>
 
             <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@RegisterUser>
-                <RadzenStack Gap="1.5rem">
+                <RadzenStack Gap="1.25rem">
 
-                    <div>
-                        <RadzenLabel Text="Email *" Component="Email" />
-                        <RadzenTextBox @bind-Value=@Input.Email
-                                       Name="Email"
-                                       AutoCompleteType="AutoCompleteType.Email"
-                                       Placeholder="name@example.com"
-                                       Style="width:100%" />
-                        <RadzenRequiredValidator Component="Email" Text="Email is required" />
-                        <RadzenEmailValidator Component="Email" Text="Please enter a valid email address" />
-                    </div>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Email" Component="Email" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenTextBox @bind-Value=@Input.Email
+                                           Name="Email"
+                                           AutoCompleteType="AutoCompleteType.Email"
+                                           Placeholder="name@example.com"
+                                           Style="width:100%" />
+                            <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                            <RadzenEmailValidator Component="Email" Text="Please enter a valid email address" />
+                        </RadzenStack>
+                    </RadzenStack>
 
-                    <div>
-                        <RadzenLabel Text="Password *" Component="NewPassword" />
-                        <RadzenPassword @bind-Value="Input.Password" Name="NewPassword" Style="width:100%" />
-                        <RadzenRequiredValidator Component="NewPassword" Text="Password is required" />
-                        <RadzenLengthValidator Component="NewPassword" Min="6" Max="100"
-                                               Text="Password must be between 6 and 100 characters" />
-                    </div>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Password" Component="NewPassword" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenPassword @bind-Value="Input.Password" Name="NewPassword" Style="width:100%" />
+                            <RadzenRequiredValidator Component="NewPassword" Text="Password is required" />
+                            <RadzenLengthValidator Component="NewPassword" Min="6" Max="100"
+                                                   Text="Password must be between 6 and 100 characters" />
+                        </RadzenStack>
+                    </RadzenStack>
 
-                    <div>
-                        <RadzenLabel Text="Confirm password *" Component="ConfirmPassword" />
-                        <RadzenPassword @bind-Value="Input.ConfirmPassword" Name="ConfirmPassword" Style="width:100%" />
-                        <RadzenRequiredValidator Component="ConfirmPassword" Text="Please confirm your password" />
-                        <RadzenCompareValidator Component="ConfirmPassword"
-                                               Value=@Input.Password
-                                               Text="The passwords do not match"
-                                               Operator="CompareOperator.Equal" />
-                    </div>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Confirm password" Component="ConfirmPassword" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenPassword @bind-Value="Input.ConfirmPassword" Name="ConfirmPassword" Style="width:100%" />
+                            <RadzenRequiredValidator Component="ConfirmPassword" Text="Please confirm your password" />
+                            <RadzenCompareValidator Component="ConfirmPassword"
+                                                   Value=@Input.Password
+                                                   Text="The passwords do not match"
+                                                   Operator="CompareOperator.Equal" />
+                        </RadzenStack>
+                    </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal"
-                                 Gap="1rem"
-                                 JustifyContent="JustifyContent.Center"
-                                 Wrap="FlexWrap.Wrap">
+                    <div class="login-action-row">
                         <RadzenButton ButtonType="ButtonType.Submit"
                                       Text="Register"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Size="ButtonSize.Large"
-                                      Style="width: 100%; max-width: 360px;" />
-                    </RadzenStack>
+                                      ButtonStyle="ButtonStyle.Primary" />
+                    </div>
 
                 </RadzenStack>
             </RadzenTemplateForm>
 
         </RadzenStack>
-    </RadzenCard>
-</div>
+    </div>
+</RadzenCard>
 
 @code {
     [SupplyParameterFromForm]
@@ -130,7 +137,12 @@
         {
             // SignInAsync writes cookies — must go through middleware
             Guid key = Guid.NewGuid();
-            CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password, RememberMe = false };
+            CookieLoginMiddleware.Logins[key] = new LoginInfo
+            {
+                Email = model.Email,
+                Password = model.Password,
+                RememberMe = false,
+            };
             NavigationManager.NavigateTo($"/login?key={key}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
         }
     }
