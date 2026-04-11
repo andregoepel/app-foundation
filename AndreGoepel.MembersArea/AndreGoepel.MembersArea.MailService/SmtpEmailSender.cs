@@ -19,7 +19,7 @@ internal class SmtpEmailSender(IOptions<MailConfiguration> configuration) : IEma
         await SendMailAsync(message);
     }
 
-    private async Task SendMailAsync(MimeMessage message)
+    protected virtual async Task SendMailAsync(MimeMessage message)
     {
         using var client = new SmtpClient();
 
