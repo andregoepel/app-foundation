@@ -42,24 +42,30 @@ public class LoginWithRecoveryCodeTests : BunitContext
     [Fact]
     public void WithErrorInvalid_ShowsErrorNotification()
     {
+        // Arrange / Act
         Render(error: "invalid");
 
+        // Assert
         Assert.Single(Notifications.Messages);
     }
 
     [Fact]
     public void WithErrorInvalid_NotificationHasCorrectSeverity()
     {
+        // Arrange / Act
         Render(error: "invalid");
 
+        // Assert
         Assert.Equal(NotificationSeverity.Error, Notifications.Messages[0].Severity);
     }
 
     [Fact]
     public void WithoutError_NoNotification()
     {
+        // Arrange / Act
         Render();
 
+        // Assert
         Assert.Empty(Notifications.Messages);
     }
 
@@ -70,16 +76,20 @@ public class LoginWithRecoveryCodeTests : BunitContext
     [Fact]
     public void RendersRecoveryCodeInput()
     {
+        // Arrange / Act
         var cut = Render();
 
+        // Assert
         Assert.Contains("Recovery code", cut.Markup);
     }
 
     [Fact]
     public void RendersLinkToAuthenticatorLogin()
     {
+        // Arrange / Act
         var cut = Render();
 
+        // Assert
         Assert.Contains("authenticator", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 

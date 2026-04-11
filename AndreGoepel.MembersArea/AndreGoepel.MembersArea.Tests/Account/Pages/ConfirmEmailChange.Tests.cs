@@ -84,9 +84,13 @@ public class ConfirmEmailChangeTests : BunitContext
     [Fact]
     public void MissingParameters_ShowsInvalidLinkError()
     {
+        // Arrange
         var userManager = BuildUserManager();
+
+        // Arrange / Act
         var cut = Render(userManager, BuildSignInManager(userManager));
 
+        // Assert
         Assert.Contains("Invalid email change confirmation link", cut.Markup);
     }
 
@@ -97,9 +101,11 @@ public class ConfirmEmailChangeTests : BunitContext
     [Fact]
     public void UserNotFound_ShowsUserIdInError()
     {
+        // Arrange
         var userManager = BuildUserManager();
         userManager.FindByIdAsync("missing").Returns(Task.FromResult<User?>(null));
 
+        // Arrange / Act
         var cut = Render(
             userManager,
             BuildSignInManager(userManager),
@@ -108,6 +114,7 @@ public class ConfirmEmailChangeTests : BunitContext
             code: "token"
         );
 
+        // Assert
         Assert.Contains("missing", cut.Markup);
     }
 
@@ -118,6 +125,7 @@ public class ConfirmEmailChangeTests : BunitContext
     [Fact]
     public void ChangeEmailFailed_ShowsErrorMessage()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -125,6 +133,7 @@ public class ConfirmEmailChangeTests : BunitContext
             .ChangeEmailAsync(user, Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Failed()));
 
+        // Arrange / Act
         var cut = Render(
             userManager,
             BuildSignInManager(userManager),
@@ -133,6 +142,7 @@ public class ConfirmEmailChangeTests : BunitContext
             code: "bad-token"
         );
 
+        // Assert
         Assert.Contains("Error changing email", cut.Markup);
     }
 
@@ -143,6 +153,7 @@ public class ConfirmEmailChangeTests : BunitContext
     [Fact]
     public void ChangeEmailSucceeded_ShowsSuccessMessage()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -153,6 +164,7 @@ public class ConfirmEmailChangeTests : BunitContext
             .SetUserNameAsync(user, Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Success));
 
+        // Arrange / Act
         var cut = Render(
             userManager,
             BuildSignInManager(userManager),
@@ -161,12 +173,14 @@ public class ConfirmEmailChangeTests : BunitContext
             code: "good-token"
         );
 
+        // Assert
         Assert.Contains("Thank you for confirming your email change", cut.Markup);
     }
 
     [Fact]
     public void ChangeEmailSucceeded_ShowsGoToProfileButton()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -177,6 +191,7 @@ public class ConfirmEmailChangeTests : BunitContext
             .SetUserNameAsync(user, Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Success));
 
+        // Arrange / Act
         var cut = Render(
             userManager,
             BuildSignInManager(userManager),
@@ -185,6 +200,7 @@ public class ConfirmEmailChangeTests : BunitContext
             code: "good-token"
         );
 
+        // Assert
         Assert.Contains("Go to profile", cut.Markup);
     }
 

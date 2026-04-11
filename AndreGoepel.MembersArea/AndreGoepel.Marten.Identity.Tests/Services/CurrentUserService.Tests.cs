@@ -44,18 +44,22 @@ public class CurrentUserServiceTests
     [Fact]
     public async Task GetCurrentUserIdAsync_MatchingUser_ReturnsUserId()
     {
+        // Arrange
         var userId = UserId.New();
         var user = new User { UserId = userId, UserName = "alice@example.com" };
         var service = BuildService(AuthState("alice@example.com"), [user]);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(userId, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_MultipleUsers_ReturnsCorrectUserId()
     {
+        // Arrange
         var aliceId = UserId.New();
         var bobId = UserId.New();
         var users = new List<User>
@@ -65,66 +69,83 @@ public class CurrentUserServiceTests
         };
         var service = BuildService(AuthState("bob@example.com"), users);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(bobId, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_NoMatchingUser_ReturnsDefault()
     {
+        // Arrange
         var service = BuildService(AuthState("unknown@example.com"), []);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(default, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_UnauthenticatedPrincipal_ReturnsDefault()
     {
+        // Arrange
         var user = new User { UserId = UserId.New(), UserName = "alice@example.com" };
         var service = BuildService(AuthState(nameIdentifier: null), [user]);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(default, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_WrongClaimType_ReturnsDefault()
     {
+        // Arrange
         // Has a claim, but it's Email not NameIdentifier
         var claims = new[] { new Claim(ClaimTypes.Email, "alice@example.com") };
         var user = new User { UserId = UserId.New(), UserName = "alice@example.com" };
         var service = BuildService(AuthState(claims), [user]);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(default, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_EmptyUserList_ReturnsDefault()
     {
+        // Arrange
         var service = BuildService(AuthState("alice@example.com"), []);
 
+        // Act
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(default, result);
     }
 
     [Fact]
     public async Task GetCurrentUserIdAsync_EmptyNameIdentifier_ReturnsDefault()
     {
+        // Arrange
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "") };
         var user = new User { UserId = UserId.New(), UserName = "" };
         var service = BuildService(AuthState(claims), [user]);
 
+        // Act
         // Empty string username lookup — service behaviour: returns matched user
         // (same as any other username match)
         var result = await service.GetCurrentUserIdAsync();
 
+        // Assert
         Assert.Equal(user.UserId, result);
     }
 

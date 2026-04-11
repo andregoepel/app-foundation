@@ -25,82 +25,100 @@ public class UserPasskeyTests
     [Fact]
     public void CredentialId_IsBase64OfBytes()
     {
+        // Arrange
         var bytes = new byte[] { 1, 2, 3, 4 };
         var passkey = MakePasskey(bytes);
 
+        // Assert
         Assert.Equal(Convert.ToBase64String(bytes), passkey.CredentialId);
     }
 
     [Fact]
     public void Equals_SameCredentialId_ReturnsTrue()
     {
+        // Arrange
         var bytes = new byte[] { 1, 2, 3, 4 };
         var a = MakePasskey(bytes);
         var b = MakePasskey(bytes);
 
+        // Assert
         Assert.True(a.Equals(b));
     }
 
     [Fact]
     public void Equals_DifferentCredentialId_ReturnsFalse()
     {
+        // Arrange
         var a = MakePasskey([1, 2, 3, 4]);
         var b = MakePasskey([5, 6, 7, 8]);
 
+        // Assert
         Assert.False(a.Equals(b));
     }
 
     [Fact]
     public void Equals_Null_ReturnsFalse()
     {
+        // Arrange
         var passkey = MakePasskey([1, 2, 3]);
 
+        // Assert
         Assert.False(passkey.Equals(null));
     }
 
     [Fact]
     public void Equals_Object_SameCredentialId_ReturnsTrue()
     {
+        // Arrange
         var bytes = new byte[] { 1, 2, 3 };
         var a = MakePasskey(bytes);
         object b = MakePasskey(bytes);
 
+        // Assert
         Assert.True(a.Equals(b));
     }
 
     [Fact]
     public void Equals_Object_NonPasskey_ReturnsFalse()
     {
+        // Arrange
         var passkey = MakePasskey([1, 2, 3]);
 
+        // Assert
         Assert.False(passkey.Equals("notapasskey"));
     }
 
     [Fact]
     public void GetHashCode_SameCredentialId_Equal()
     {
+        // Arrange
         var bytes = new byte[] { 1, 2, 3, 4 };
         var a = MakePasskey(bytes);
         var b = MakePasskey(bytes);
 
+        // Assert
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
     [Fact]
     public void GetHashCode_DifferentCredentialId_NotEqual()
     {
+        // Arrange
         var a = MakePasskey([1, 2, 3]);
         var b = MakePasskey([4, 5, 6]);
 
+        // Assert
         Assert.NotEqual(a.GetHashCode(), b.GetHashCode());
     }
 
     [Fact]
     public void UsableAsHashSetKey()
     {
+        // Arrange
         var bytes = new byte[] { 1, 2, 3 };
         var set = new HashSet<UserPasskey> { MakePasskey(bytes) };
 
+        // Assert
         Assert.Contains(MakePasskey(bytes), set);
         Assert.DoesNotContain(MakePasskey([9, 9, 9]), set);
     }

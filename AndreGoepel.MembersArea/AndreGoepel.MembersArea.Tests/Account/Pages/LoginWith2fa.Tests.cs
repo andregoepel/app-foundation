@@ -38,24 +38,30 @@ public class LoginWith2faTests : BunitContext
     [Fact]
     public void WithErrorInvalid_ShowsErrorNotification()
     {
+        // Arrange / Act
         Render(error: "invalid");
 
+        // Assert
         Assert.Single(Notifications.Messages);
     }
 
     [Fact]
     public void WithErrorInvalid_NotificationHasCorrectSeverity()
     {
+        // Arrange / Act
         Render(error: "invalid");
 
+        // Assert
         Assert.Equal(NotificationSeverity.Error, Notifications.Messages[0].Severity);
     }
 
     [Fact]
     public void WithoutError_NoNotification()
     {
+        // Arrange / Act
         Render();
 
+        // Assert
         Assert.Empty(Notifications.Messages);
     }
 
@@ -66,16 +72,20 @@ public class LoginWith2faTests : BunitContext
     [Fact]
     public void RendersAuthenticatorCodeInput()
     {
+        // Arrange / Act
         var cut = Render();
 
+        // Assert
         Assert.Contains("Authenticator code", cut.Markup);
     }
 
     [Fact]
     public void RendersRecoveryCodeLink()
     {
+        // Arrange / Act
         var cut = Render();
 
+        // Assert
         Assert.Contains("recovery code", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 

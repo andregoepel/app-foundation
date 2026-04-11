@@ -53,8 +53,10 @@ public class RegisterConfirmationTests : BunitContext
     [Fact]
     public void MissingEmail_RedirectsToRoot()
     {
+        // Arrange / Act
         Render(BuildUserManager(), email: null);
 
+        // Assert
         var nav = Services.GetRequiredService<NavigationManager>();
         Assert.Equal("http://localhost/", nav.Uri);
     }
@@ -66,12 +68,15 @@ public class RegisterConfirmationTests : BunitContext
     [Fact]
     public void UserFound_ShowsConfirmationMessage()
     {
+        // Arrange
         var user = new User { UserId = UserId.New(), UserName = "alice@example.com" };
         var userManager = BuildUserManager();
         userManager.FindByEmailAsync("alice@example.com").Returns(Task.FromResult<User?>(user));
 
+        // Arrange / Act
         var cut = Render(userManager, email: "alice@example.com");
 
+        // Assert
         Assert.Contains("check your email", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -82,17 +87,21 @@ public class RegisterConfirmationTests : BunitContext
     [Fact]
     public void UserNotFound_ShowsErrorMessage()
     {
+        // Arrange
         var userManager = BuildUserManager();
         userManager.FindByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
 
+        // Arrange / Act
         var cut = Render(userManager, email: "unknown@example.com");
 
+        // Assert
         Assert.Contains("Error finding user", cut.Markup);
     }
 
     [Fact]
     public void UserNotFound_Sets404StatusCode()
     {
+        // Arrange
         var userManager = BuildUserManager();
         userManager.FindByEmailAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(null));
 
@@ -102,8 +111,10 @@ public class RegisterConfirmationTests : BunitContext
         nav.NavigateTo("/Account/RegisterConfirmation?Email=unknown%40example.com");
         var httpContext = new DefaultHttpContext();
 
+        // Act
         Render<RegisterConfirmation>(p => p.AddCascadingValue(httpContext));
 
+        // Assert
         Assert.Equal(StatusCodes.Status404NotFound, httpContext.Response.StatusCode);
     }
 

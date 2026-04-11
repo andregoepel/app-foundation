@@ -26,34 +26,43 @@ public class IdentityEmailSenderTests
     [Fact]
     public async Task SendConfirmationLinkAsync_SendsToCorrectRecipient()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendConfirmationLinkAsync(AnyUser(), "alice@example.com", "http://link");
 
+        // Assert
         Assert.Equal("alice@example.com", Single(sent).Recipient);
     }
 
     [Fact]
     public async Task SendConfirmationLinkAsync_UsesCorrectSubject()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendConfirmationLinkAsync(AnyUser(), "alice@example.com", "http://link");
 
+        // Assert
         Assert.Equal("Confirm your email", Single(sent).Subject);
     }
 
     [Fact]
     public async Task SendConfirmationLinkAsync_BodyContainsLink()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendConfirmationLinkAsync(
             AnyUser(),
             "alice@example.com",
             "http://confirm?token=abc"
         );
 
+        // Assert
         Assert.Contains("http://confirm?token=abc", Single(sent).Body);
     }
 
@@ -64,34 +73,43 @@ public class IdentityEmailSenderTests
     [Fact]
     public async Task SendPasswordResetLinkAsync_SendsToCorrectRecipient()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetLinkAsync(AnyUser(), "alice@example.com", "http://reset");
 
+        // Assert
         Assert.Equal("alice@example.com", Single(sent).Recipient);
     }
 
     [Fact]
     public async Task SendPasswordResetLinkAsync_UsesCorrectSubject()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetLinkAsync(AnyUser(), "alice@example.com", "http://reset");
 
+        // Assert
         Assert.Equal("Reset your password", Single(sent).Subject);
     }
 
     [Fact]
     public async Task SendPasswordResetLinkAsync_BodyContainsLink()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetLinkAsync(
             AnyUser(),
             "alice@example.com",
             "http://reset?token=xyz"
         );
 
+        // Assert
         Assert.Contains("http://reset?token=xyz", Single(sent).Body);
     }
 
@@ -102,30 +120,39 @@ public class IdentityEmailSenderTests
     [Fact]
     public async Task SendPasswordResetCodeAsync_SendsToCorrectRecipient()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetCodeAsync(AnyUser(), "alice@example.com", "CODE123");
 
+        // Assert
         Assert.Equal("alice@example.com", Single(sent).Recipient);
     }
 
     [Fact]
     public async Task SendPasswordResetCodeAsync_UsesCorrectSubject()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetCodeAsync(AnyUser(), "alice@example.com", "CODE123");
 
+        // Assert
         Assert.Equal("Reset your password", Single(sent).Subject);
     }
 
     [Fact]
     public async Task SendPasswordResetCodeAsync_BodyContainsCode()
     {
+        // Arrange
         var (sender, sent) = Build();
 
+        // Act
         await sender.SendPasswordResetCodeAsync(AnyUser(), "alice@example.com", "CODE123");
 
+        // Assert
         Assert.Contains("CODE123", Single(sent).Body);
     }
 

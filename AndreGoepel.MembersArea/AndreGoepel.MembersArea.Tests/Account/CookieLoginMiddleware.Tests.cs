@@ -63,6 +63,7 @@ public class CookieLoginMiddlewareTests
     [Fact]
     public async Task Login_Success_RedirectsToRoot()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -78,16 +79,19 @@ public class CookieLoginMiddlewareTests
                 Arg.Any<bool>()
             )
             .Returns(Task.FromResult(SignInResult.Success));
-
         var context = BuildContext("/login", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login_RequiresTwoFactor_RedirectsToTwoFaPage()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -104,16 +108,19 @@ public class CookieLoginMiddlewareTests
                 Arg.Any<bool>()
             )
             .Returns(Task.FromResult(SignInResult.TwoFactorRequired));
-
         var context = BuildContext("/login", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.StartsWith("/Account/LoginWith2fa", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login_RequiresTwoFactor_IncludesRememberMeFlag()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -130,16 +137,19 @@ public class CookieLoginMiddlewareTests
                 Arg.Any<bool>()
             )
             .Returns(Task.FromResult(SignInResult.TwoFactorRequired));
-
         var context = BuildContext("/login", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Contains("rememberMe=true", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login_LockedOut_RedirectsToLockout()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -155,16 +165,19 @@ public class CookieLoginMiddlewareTests
                 Arg.Any<bool>()
             )
             .Returns(Task.FromResult(SignInResult.LockedOut));
-
         var context = BuildContext("/login", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/Lockout", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login_Failed_RedirectsToLoginPage()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -180,16 +193,19 @@ public class CookieLoginMiddlewareTests
                 Arg.Any<bool>()
             )
             .Returns(Task.FromResult(SignInResult.Failed));
-
         var context = BuildContext("/login", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/Login", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login_RemovesKeyFromDictionaryAfterProcessing()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.Logins[key] = new LoginInfo
         {
@@ -206,8 +222,10 @@ public class CookieLoginMiddlewareTests
             )
             .Returns(Task.FromResult(SignInResult.Success));
 
+        // Act
         await BuildMiddleware().Invoke(BuildContext("/login", key.ToString()), signInManager);
 
+        // Assert
         Assert.False(CookieLoginMiddleware.Logins.ContainsKey(key));
     }
 
@@ -218,6 +236,7 @@ public class CookieLoginMiddlewareTests
     [Fact]
     public async Task Login2fa_Success_RedirectsToReturnUrl()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
         {
@@ -228,16 +247,19 @@ public class CookieLoginMiddlewareTests
         signInManager
             .TwoFactorAuthenticatorSignInAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
             .Returns(Task.FromResult(SignInResult.Success));
-
         var context = BuildContext("/login2fa", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/dashboard", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login2fa_Success_NoReturnUrl_RedirectsToRoot()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
         {
@@ -248,48 +270,57 @@ public class CookieLoginMiddlewareTests
         signInManager
             .TwoFactorAuthenticatorSignInAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
             .Returns(Task.FromResult(SignInResult.Success));
-
         var context = BuildContext("/login2fa", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login2fa_LockedOut_RedirectsToLockout()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo { Code = "123456" };
         var signInManager = BuildSignInManager();
         signInManager
             .TwoFactorAuthenticatorSignInAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
             .Returns(Task.FromResult(SignInResult.LockedOut));
-
         var context = BuildContext("/login2fa", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/Lockout", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login2fa_Failed_RedirectsWithErrorQuery()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo { Code = "wrong" };
         var signInManager = BuildSignInManager();
         signInManager
             .TwoFactorAuthenticatorSignInAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
             .Returns(Task.FromResult(SignInResult.Failed));
-
         var context = BuildContext("/login2fa", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/LoginWith2fa?error=invalid", RedirectLocation(context));
     }
 
     [Fact]
     public async Task Login2fa_StripsSpacesAndDashesFromCode()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
         {
@@ -300,8 +331,10 @@ public class CookieLoginMiddlewareTests
             .TwoFactorAuthenticatorSignInAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
             .Returns(Task.FromResult(SignInResult.Success));
 
+        // Act
         await BuildMiddleware().Invoke(BuildContext("/login2fa", key.ToString()), signInManager);
 
+        // Assert
         await signInManager
             .Received(1)
             .TwoFactorAuthenticatorSignInAsync("123456789", Arg.Any<bool>(), Arg.Any<bool>());
@@ -314,6 +347,7 @@ public class CookieLoginMiddlewareTests
     [Fact]
     public async Task LoginRecovery_Success_RedirectsToReturnUrl()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
         {
@@ -324,16 +358,19 @@ public class CookieLoginMiddlewareTests
         signInManager
             .TwoFactorRecoveryCodeSignInAsync(Arg.Any<string>())
             .Returns(Task.FromResult(SignInResult.Success));
-
         var context = BuildContext("/loginrecovery", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/home", RedirectLocation(context));
     }
 
     [Fact]
     public async Task LoginRecovery_Success_NoReturnUrl_RedirectsToRoot()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
         {
@@ -344,32 +381,38 @@ public class CookieLoginMiddlewareTests
         signInManager
             .TwoFactorRecoveryCodeSignInAsync(Arg.Any<string>())
             .Returns(Task.FromResult(SignInResult.Success));
-
         var context = BuildContext("/loginrecovery", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/", RedirectLocation(context));
     }
 
     [Fact]
     public async Task LoginRecovery_LockedOut_RedirectsToLockout()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo { Code = "CODE" };
         var signInManager = BuildSignInManager();
         signInManager
             .TwoFactorRecoveryCodeSignInAsync(Arg.Any<string>())
             .Returns(Task.FromResult(SignInResult.LockedOut));
-
         var context = BuildContext("/loginrecovery", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/Lockout", RedirectLocation(context));
     }
 
     [Fact]
     public async Task LoginRecovery_Failed_RedirectsWithErrorQuery()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
         {
@@ -379,16 +422,19 @@ public class CookieLoginMiddlewareTests
         signInManager
             .TwoFactorRecoveryCodeSignInAsync(Arg.Any<string>())
             .Returns(Task.FromResult(SignInResult.Failed));
-
         var context = BuildContext("/loginrecovery", key.ToString());
+
+        // Act
         await BuildMiddleware().Invoke(context, signInManager);
 
+        // Assert
         Assert.Equal("/Account/LoginWithRecoveryCode?error=invalid", RedirectLocation(context));
     }
 
     [Fact]
     public async Task LoginRecovery_StripsSpacesFromCode()
     {
+        // Arrange
         var key = Guid.NewGuid();
         CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
         {
@@ -399,9 +445,11 @@ public class CookieLoginMiddlewareTests
             .TwoFactorRecoveryCodeSignInAsync(Arg.Any<string>())
             .Returns(Task.FromResult(SignInResult.Success));
 
+        // Act
         await BuildMiddleware()
             .Invoke(BuildContext("/loginrecovery", key.ToString()), signInManager);
 
+        // Assert
         await signInManager.Received(1).TwoFactorRecoveryCodeSignInAsync("ABCDEFGHI");
     }
 
@@ -412,6 +460,7 @@ public class CookieLoginMiddlewareTests
     [Fact]
     public async Task UnmatchedPath_InvokesNextMiddleware()
     {
+        // Arrange
         var nextInvoked = false;
         var middleware = new CookieLoginMiddleware(_ =>
         {
@@ -421,8 +470,10 @@ public class CookieLoginMiddlewareTests
         var context = new DefaultHttpContext();
         context.Request.Path = "/some-other-path";
 
+        // Act
         await middleware.Invoke(context, BuildSignInManager());
 
+        // Assert
         Assert.True(nextInvoked);
     }
 

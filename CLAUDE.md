@@ -45,6 +45,28 @@ private static Foo Build() => ...
 #endregion
 ```
 
+## Test structure (Arrange / Act / Assert)
+
+Every test method must have `// Arrange`, `// Act`, and `// Assert` section comments.
+
+- Combined as `// Arrange / Act` when setup and execution are inseparable (e.g. a single `Render<>()` call)
+- Skip `// Arrange` entirely when there is no meaningful setup
+
+```csharp
+[Fact]
+public void Something_DoesX()
+{
+    // Arrange
+    var sut = new Foo();
+
+    // Act
+    var result = sut.Bar();
+
+    // Assert
+    Assert.Equal(42, result);
+}
+```
+
 ## Default expressions (IDE0034)
 
 Use bare `default` instead of `default(T)` when the type is inferrable from context.

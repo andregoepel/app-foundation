@@ -22,10 +22,13 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_SetsFromAddress()
     {
+        // Arrange
         var sender = BuildSender(Config());
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Body");
 
+        // Assert
         var from = sender.CapturedMessage!.From[0] as MailboxAddress;
         Assert.NotNull(from);
         Assert.Equal("Test Sender", from.Name);
@@ -35,10 +38,13 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_SetsToAddress()
     {
+        // Arrange
         var sender = BuildSender(Config());
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Body");
 
+        // Assert
         var to = sender.CapturedMessage!.To[0] as MailboxAddress;
         Assert.NotNull(to);
         Assert.Equal("to@example.com", to.Address);
@@ -47,20 +53,26 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_SetsSubject()
     {
+        // Arrange
         var sender = BuildSender(Config());
 
+        // Act
         await sender.SendAsync("to@example.com", "Hello World", "Body");
 
+        // Assert
         Assert.Equal("Hello World", sender.CapturedMessage!.Subject);
     }
 
     [Fact]
     public async Task SendAsync_SetsBody()
     {
+        // Arrange
         var sender = BuildSender(Config());
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Hello <b>World</b>");
 
+        // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
         Assert.NotNull(body);
         Assert.Equal("Hello <b>World</b>", body.Text);
@@ -69,10 +81,13 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_Html_True_UsesHtmlSubtype()
     {
+        // Arrange
         var sender = BuildSender(Config(html: true));
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Body");
 
+        // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
         Assert.NotNull(body);
         Assert.Equal("html", body.ContentType.MediaSubtype);
@@ -81,10 +96,13 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_Html_False_UsesPlainSubtype()
     {
+        // Arrange
         var sender = BuildSender(Config(html: false));
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Body");
 
+        // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
         Assert.NotNull(body);
         Assert.Equal("plain", body.ContentType.MediaSubtype);
@@ -93,10 +111,13 @@ public class SmtpEmailSenderTests
     [Fact]
     public async Task SendAsync_CallsSendMailAsyncOnce()
     {
+        // Arrange
         var sender = BuildSender(Config());
 
+        // Act
         await sender.SendAsync("to@example.com", "Subject", "Body");
 
+        // Assert
         Assert.Equal(1, sender.SendMailCallCount);
     }
 

@@ -64,8 +64,10 @@ public class ConfirmEmailTests : BunitContext
     [Fact]
     public void MissingParameters_RedirectsToRoot()
     {
+        // Arrange / Act
         Render(BuildUserManager(), new DefaultHttpContext());
 
+        // Assert
         var nav = Services.GetRequiredService<NavigationManager>();
         Assert.Equal("http://localhost/", nav.Uri);
     }
@@ -77,23 +79,29 @@ public class ConfirmEmailTests : BunitContext
     [Fact]
     public void UserNotFound_Sets404StatusCode()
     {
+        // Arrange
         var userManager = BuildUserManager();
         userManager.FindByIdAsync("missing").Returns(Task.FromResult<User?>(null));
-
         var httpContext = new DefaultHttpContext();
+
+        // Act
         Render(userManager, httpContext, userId: "missing", code: "token");
 
+        // Assert
         Assert.Equal(StatusCodes.Status404NotFound, httpContext.Response.StatusCode);
     }
 
     [Fact]
     public void UserNotFound_ShowsUserIdInErrorMessage()
     {
+        // Arrange
         var userManager = BuildUserManager();
         userManager.FindByIdAsync("missing").Returns(Task.FromResult<User?>(null));
 
+        // Arrange / Act
         var cut = Render(userManager, new DefaultHttpContext(), userId: "missing", code: "token");
 
+        // Assert
         Assert.Contains("missing", cut.Markup);
     }
 
@@ -104,6 +112,7 @@ public class ConfirmEmailTests : BunitContext
     [Fact]
     public void ConfirmationFailed_ShowsErrorMessage()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -111,8 +120,10 @@ public class ConfirmEmailTests : BunitContext
             .ConfirmEmailAsync(user, Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Failed()));
 
+        // Arrange / Act
         var cut = Render(userManager, new DefaultHttpContext(), userId: "test", code: "bad-token");
 
+        // Assert
         Assert.Contains("Error confirming your email", cut.Markup);
     }
 
@@ -123,6 +134,7 @@ public class ConfirmEmailTests : BunitContext
     [Fact]
     public void ConfirmationSucceeded_ShowsSuccessMessage()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -130,14 +142,17 @@ public class ConfirmEmailTests : BunitContext
             .ConfirmEmailAsync(user, Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Success));
 
+        // Arrange / Act
         var cut = Render(userManager, new DefaultHttpContext(), userId: "test", code: "good-token");
 
+        // Assert
         Assert.Contains("Thank you for confirming your email", cut.Markup);
     }
 
     [Fact]
     public void ConfirmationSucceeded_ShowsLoginButton()
     {
+        // Arrange
         var user = new User { UserId = UserId.New() };
         var userManager = BuildUserManager();
         userManager.FindByIdAsync(Arg.Any<string>()).Returns(Task.FromResult<User?>(user));
@@ -145,8 +160,10 @@ public class ConfirmEmailTests : BunitContext
             .ConfirmEmailAsync(user, Arg.Any<string>())
             .Returns(Task.FromResult(IdentityResult.Success));
 
+        // Arrange / Act
         var cut = Render(userManager, new DefaultHttpContext(), userId: "test", code: "good-token");
 
+        // Assert
         Assert.Contains("Log in", cut.Markup);
     }
 

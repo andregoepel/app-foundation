@@ -56,26 +56,33 @@ public class ResetPasswordTests : BunitContext
     [Fact]
     public void MissingCode_ShowsInvalidLinkAlert()
     {
+        // Arrange / Act
         var cut = Render(BuildUserManager(), code: null);
 
+        // Assert
         Assert.Contains("invalid", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public void MissingCode_ShowsRequestNewLinkButton()
     {
+        // Arrange / Act
         var cut = Render(BuildUserManager(), code: null);
 
+        // Assert
         Assert.Contains("Request new link", cut.Markup);
     }
 
     [Fact]
     public void MissingCode_RequestNewLinkButton_NavigatesToForgotPassword()
     {
+        // Arrange
         var cut = Render(BuildUserManager(), code: null);
 
+        // Act
         cut.Find("button").Click();
 
+        // Assert
         var nav = Services.GetRequiredService<NavigationManager>();
         Assert.Equal("http://localhost/Account/ForgotPassword", nav.Uri);
     }
@@ -87,8 +94,10 @@ public class ResetPasswordTests : BunitContext
     [Fact]
     public void ValidCode_ShowsForm()
     {
+        // Arrange / Act
         var cut = Render(BuildUserManager(), code: "valid-reset-token");
 
+        // Assert
         Assert.Contains("Reset password", cut.Markup);
         Assert.DoesNotContain("invalid", cut.Markup, StringComparison.OrdinalIgnoreCase);
     }

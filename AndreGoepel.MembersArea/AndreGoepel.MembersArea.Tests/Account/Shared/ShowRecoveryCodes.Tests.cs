@@ -10,12 +10,15 @@ public class ShowRecoveryCodesTests : BunitContext
     [Fact]
     public void RendersEachRecoveryCode()
     {
+        // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
 
+        // Arrange / Act
         var cut = Render<ShowRecoveryCodes>(p =>
             p.Add(c => c.RecoveryCodes, ["CODE-ONE", "CODE-TWO", "CODE-THREE"])
         );
 
+        // Assert
         Assert.Contains("CODE-ONE", cut.Markup);
         Assert.Contains("CODE-TWO", cut.Markup);
         Assert.Contains("CODE-THREE", cut.Markup);
@@ -24,20 +27,26 @@ public class ShowRecoveryCodesTests : BunitContext
     [Fact]
     public void RendersWarningAlert()
     {
+        // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
 
+        // Arrange / Act
         var cut = Render<ShowRecoveryCodes>(p => p.Add(c => c.RecoveryCodes, ["CODE-ONE"]));
 
+        // Assert
         Assert.Contains("Put these codes in a safe place", cut.Markup);
     }
 
     [Fact]
     public void EmptyCodes_RendersNoCodes()
     {
+        // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
 
+        // Arrange / Act
         var cut = Render<ShowRecoveryCodes>(p => p.Add(c => c.RecoveryCodes, []));
 
+        // Assert
         Assert.Contains("Put these codes in a safe place", cut.Markup);
     }
 
