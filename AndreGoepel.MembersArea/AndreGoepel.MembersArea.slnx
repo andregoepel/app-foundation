@@ -1,5 +1,8 @@
 <Solution>
-  <Project Path="AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj" Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe" />
+  <Project
+    Path="AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj"
+    Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe"
+  />
   <Project Path="AndreGoepel.MembersArea.AppHost/AndreGoepel.MembersArea.AppHost.csproj" />
   <Project Path="AndreGoepel.MembersArea.MailService.Tests/AndreGoepel.MembersArea.MailService.Tests.csproj" />
   <Project Path="AndreGoepel.MembersArea.MailService/AndreGoepel.MembersArea.MailService.csproj" />

@@ -9,7 +9,7 @@ public class UserProjectionTests
 {
     private readonly UserProjection _projection = new();
 
-    // ── UserCreated ──────────────────────────────────────────────────────────
+    #region UserCreated
 
     [Fact]
     public void Apply_UserCreated_SetsUserProperties()
@@ -74,7 +74,9 @@ public class UserProjectionTests
         Assert.False(user.Deletable);
     }
 
-    // ── UserDeleted ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region UserDeleted
 
     [Fact]
     public void Apply_UserDeleted_ClearsSensitiveData()
@@ -111,7 +113,9 @@ public class UserProjectionTests
         Assert.Equal(deletedAt, user.DeletedAt);
     }
 
-    // ── UserUpdated ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region UserUpdated
 
     [Fact]
     public void Apply_UserUpdated_UpdatesEmailAndNormalized()
@@ -242,7 +246,9 @@ public class UserProjectionTests
         Assert.Equal(updatedAt, user.ChangedAt);
     }
 
-    // ── Passkey events ───────────────────────────────────────────────────────
+    #endregion
+
+    #region Passkey events
 
     [Fact]
     public void Apply_PasskeyCreated_AddsPasskeyToDict()
@@ -303,7 +309,9 @@ public class UserProjectionTests
         Assert.Null(exception);
     }
 
-    // ── Role events ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region Role events
 
     [Fact]
     public void Apply_RoleAssigned_AddsRoleToSet()
@@ -378,7 +386,9 @@ public class UserProjectionTests
         Assert.DoesNotContain(roleToRemove, user.Roles);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Helpers
 
     private static UserPasskeyInfo BuildPasskeyInfo(byte[] credentialId) =>
         new(
@@ -393,4 +403,6 @@ public class UserProjectionTests
             attestationObject: [],
             clientDataJson: []
         );
+
+    #endregion
 }

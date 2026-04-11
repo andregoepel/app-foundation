@@ -100,7 +100,7 @@ public class SmtpEmailSenderTests
         Assert.Equal(1, sender.SendMailCallCount);
     }
 
-    // ── Test double ───────────────────────────────────────────────────────────
+    #region Test double
 
     private sealed class TestableSmtpEmailSender(IOptions<MailConfiguration> options)
         : SmtpEmailSender(options)
@@ -115,4 +115,6 @@ public class SmtpEmailSenderTests
             return Task.CompletedTask;
         }
     }
+
+    #endregion
 }

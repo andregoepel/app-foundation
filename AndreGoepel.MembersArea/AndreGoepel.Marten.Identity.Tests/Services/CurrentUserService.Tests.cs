@@ -9,7 +9,7 @@ namespace AndreGoepel.Marten.Identity.Tests.Services;
 
 public class CurrentUserServiceTests
 {
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    #region Helpers
 
     private static AuthenticationState AuthState(string? nameIdentifier)
     {
@@ -37,7 +37,9 @@ public class CurrentUserServiceTests
         return new TestableCurrentUserService(authProvider, session, users);
     }
 
-    // ── Tests ─────────────────────────────────────────────────────────────
+    #endregion
+
+    #region Tests
 
     [Fact]
     public async Task GetCurrentUserIdAsync_MatchingUser_ReturnsUserId()
@@ -126,7 +128,9 @@ public class CurrentUserServiceTests
         Assert.Equal(user.UserId, result);
     }
 
-    // ── Test doubles ─────────────────────────────────────────────────────────
+    #endregion
+
+    #region Test doubles
 
     private sealed class FakeAuthStateProvider(AuthenticationState state)
         : AuthenticationStateProvider
@@ -151,4 +155,6 @@ public class CurrentUserServiceTests
                 users.Where(u => u.UserName == userName).Select(u => u.UserId).SingleOrDefault()
             );
     }
+
+    #endregion
 }

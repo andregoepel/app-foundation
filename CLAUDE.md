@@ -33,6 +33,18 @@ Use the MSBuild shorthand:
 
 Not the verbose `AssemblyAttribute` form.
 
+## Code structure
+
+Use `#region` / `#endregion` to group sections within a class, not decorative dash comments.
+
+```csharp
+#region Helpers
+
+private static Foo Build() => ...
+
+#endregion
+```
+
 ## Default expressions (IDE0034)
 
 Use bare `default` instead of `default(T)` when the type is inferrable from context.

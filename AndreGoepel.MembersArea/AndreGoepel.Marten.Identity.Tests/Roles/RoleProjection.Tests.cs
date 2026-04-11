@@ -8,7 +8,7 @@ public class RoleProjectionTests
 {
     private readonly RoleProjection _projection = new();
 
-    // ── RoleCreated ──────────────────────────────────────────────────────────
+    #region RoleCreated
 
     [Fact]
     public void Apply_RoleCreated_SetsProperties()
@@ -66,7 +66,9 @@ public class RoleProjectionTests
         Assert.Equal("SUPERADMIN", role.NormalizedName);
     }
 
-    // ── RoleChanged ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region RoleChanged
 
     [Fact]
     public void Apply_RoleChanged_UpdatesNameAndNormalized()
@@ -107,7 +109,9 @@ public class RoleProjectionTests
         Assert.Equal(changedAt, role.ChangedAt);
     }
 
-    // ── RoleDeleted ──────────────────────────────────────────────────────────
+    #endregion
+
+    #region RoleDeleted
 
     [Fact]
     public void Apply_RoleDeleted_SetsDeletedFlag()
@@ -145,4 +149,6 @@ public class RoleProjectionTests
         // Role name is preserved on delete (unlike user email/password)
         Assert.Equal("Admin", role.Name);
     }
+
+    #endregion
 }
