@@ -18,12 +18,13 @@ var membersAreaDb = postgresServer.AddDatabase("members-area-database");
 builder
     .AddProject<Projects.AndreGoepel_MembersArea>("andregoepel-membersarea")
     .WithReference(membersAreaDb)
-    .WithEnvironment("EmailSender__SenderName", "André Göpel - Member Area")
+    .WithEnvironment("EmailSender__SenderName", "AndrÃ© GÃ¶pel - Member Area")
     .WithEnvironment("EmailSender__SenderEmail", "no-reply@localhost.dev")
     .WithEnvironment("EmailSender__Username", "test-mail")
     .WithEnvironment("EmailSender__Password", "12345678")
     .WithEnvironment("EmailSender__Port", () => mailhog.GetEndpoint("smtp").Port.ToString())
     .WithEnvironment("EmailSender__Server", () => mailhog.GetEndpoint("smtp").Host)
-    .WaitFor(membersAreaDb); // TODO: remove if startup don't need db
+    .WaitFor(membersAreaDb) // TODO: remove if startup don't need db
+    .PublishAsDockerFile();
 
 builder.Build().Run();

@@ -7,4 +7,7 @@
   <Project Path="AndreGoepel.MembersArea.ServiceDefaults/AndreGoepel.MembersArea.ServiceDefaults.csproj" />
   <Project Path="AndreGoepel.MembersArea.Tests/AndreGoepel.MembersArea.Tests.csproj" />
   <Project Path="AndreGoepel.MembersArea/AndreGoepel.MembersArea.csproj" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>
