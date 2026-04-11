@@ -23,7 +23,6 @@
 @inject IEmailSender<User> EmailSender
 @inject ILogger<Setup> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 @inject NotificationService NotificationService
 
 <PageTitle>Initial Setup – nerdventures.blog</PageTitle>
@@ -202,7 +201,7 @@
                 NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
             }
 
-            RedirectManager.RedirectTo(ReturnUrl ?? "/");
+            NavigationManager.NavigateTo(ReturnUrl ?? "/");
         }
         catch (Exception ex)
         {

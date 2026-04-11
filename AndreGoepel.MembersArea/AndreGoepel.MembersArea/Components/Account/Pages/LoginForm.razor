@@ -9,7 +9,6 @@
 @inject SignInManager<User> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
-@inject IdentityRedirectManager RedirectManager
 @inject NotificationService NotificationService
 
 <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser>
@@ -97,7 +96,7 @@
             if (await UserManager.IsLockedOutAsync(user))
             {
                 Logger.LogWarning("User account locked out.");
-                RedirectManager.RedirectTo("Account/Lockout");
+                NavigationManager.NavigateTo("Account/Lockout");
                 return;
             }
 
@@ -119,18 +118,19 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.NavigateTo(ReturnUrl ?? "/");
         }
         else if (result.RequiresTwoFactor)
         {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe });
+            NavigationManager.NavigateTo(
+                NavigationManager.GetUriWithQueryParameters(
+                    "Account/LoginWith2fa",
+                    new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = model.RememberMe }));
         }
         else if (result.IsLockedOut)
         {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.NavigateTo("Account/Lockout");
         }
         else
         {
