@@ -5,21 +5,22 @@ namespace AndreGoepel.Marten.Identity.Tests.Users;
 
 public class UserPasskeyTests
 {
-    private static UserPasskey MakePasskey(byte[] credentialId) => new()
-    {
-        PasskeyInfo = new UserPasskeyInfo(
-            credentialId,
-            publicKey: [1],
-            createdAt: DateTimeOffset.UtcNow,
-            signCount: 0,
-            transports: null,
-            isUserVerified: false,
-            isBackupEligible: false,
-            isBackedUp: false,
-            attestationObject: [],
-            clientDataJson: []
-        )
-    };
+    private static UserPasskey MakePasskey(byte[] credentialId) =>
+        new()
+        {
+            PasskeyInfo = new UserPasskeyInfo(
+                credentialId,
+                publicKey: [1],
+                createdAt: DateTimeOffset.UtcNow,
+                signCount: 0,
+                transports: null,
+                isUserVerified: false,
+                isBackupEligible: false,
+                isBackedUp: false,
+                attestationObject: [],
+                clientDataJson: []
+            ),
+        };
 
     [Fact]
     public void CredentialId_IsBase64OfBytes()

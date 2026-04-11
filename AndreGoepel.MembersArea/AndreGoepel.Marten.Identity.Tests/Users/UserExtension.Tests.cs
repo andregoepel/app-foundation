@@ -4,17 +4,18 @@ namespace AndreGoepel.Marten.Identity.Tests.Users;
 
 public class UserExtensionTests
 {
-    private static User BaseUser() => new()
-    {
-        Email = "alice@example.com",
-        UserName = "alice@example.com",
-        PasswordHash = "hash",
-        EmailConfirmed = true,
-        PhoneNumber = "1234567890",
-        AuthenticatorKey = "authkey",
-        RecoveryCodes = "code1;code2",
-        TwoFactorEnabled = false,
-    };
+    private static User BaseUser() =>
+        new()
+        {
+            Email = "alice@example.com",
+            UserName = "alice@example.com",
+            PasswordHash = "hash",
+            EmailConfirmed = true,
+            PhoneNumber = "1234567890",
+            AuthenticatorKey = "authkey",
+            RecoveryCodes = "code1;code2",
+            TwoFactorEnabled = false,
+        };
 
     [Fact]
     public void AreEqual_IdenticalUsers_ReturnsTrue()

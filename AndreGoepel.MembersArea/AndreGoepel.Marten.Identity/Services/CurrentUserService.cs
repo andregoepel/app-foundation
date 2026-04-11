@@ -18,13 +18,14 @@ public class CurrentUserService(
     public async Task<UserId> GetCurrentUserIdAsync()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-
         var currentUserName = authState.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return await QueryUserIdByNameAsync(currentUserName);
+    }
 
-        return await querySession
+    protected virtual Task<UserId> QueryUserIdByNameAsync(string? userName) =>
+        querySession
             .Query<User>()
-            .Where(u => u.UserName == currentUserName)
+            .Where(u => u.UserName == userName)
             .Select(u => u.UserId)
             .SingleOrDefaultAsync();
-    }
 }

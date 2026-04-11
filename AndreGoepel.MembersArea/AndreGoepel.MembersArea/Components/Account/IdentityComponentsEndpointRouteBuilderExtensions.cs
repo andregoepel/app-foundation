@@ -34,9 +34,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
         accountGroup.MapGet(
             "/SignOutAndRedirect",
-            async (
-                [FromServices] SignInManager<User> signInManager
-            ) =>
+            async ([FromServices] SignInManager<User> signInManager) =>
             {
                 await signInManager.SignOutAsync();
                 return TypedResults.LocalRedirect("~/");
@@ -122,7 +120,9 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                 await userManager.ResetAuthenticatorKeyAsync(user);
                 var userId = await userManager.GetUserIdAsync(user);
                 resetAuthenticatorLogger.LogInformation(
-                    "User with ID '{UserId}' has reset their authentication app key.", userId);
+                    "User with ID '{UserId}' has reset their authentication app key.",
+                    userId
+                );
 
                 await signInManager.RefreshSignInAsync(user);
 

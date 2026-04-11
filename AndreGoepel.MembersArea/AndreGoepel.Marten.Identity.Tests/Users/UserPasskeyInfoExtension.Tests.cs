@@ -7,7 +7,15 @@ public class UserPasskeyInfoExtensionTests
 {
     private static readonly byte[] DefaultCredentialId = [1, 2, 3, 4];
     private static readonly byte[] DefaultPublicKey = [5, 6, 7, 8];
-    private static readonly DateTimeOffset DefaultCreatedAt = new(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset DefaultCreatedAt = new(
+        2025,
+        1,
+        1,
+        0,
+        0,
+        0,
+        TimeSpan.Zero
+    );
     private static readonly string[] DefaultTransports = ["internal", "usb"];
     private static readonly byte[] DefaultAttestation = [10, 11];
     private static readonly byte[] DefaultClientData = [20, 21];
@@ -22,7 +30,8 @@ public class UserPasskeyInfoExtensionTests
         bool isBackupEligible = false,
         bool isBackedUp = false,
         byte[]? attestationObject = null,
-        byte[]? clientDataJson = null) =>
+        byte[]? clientDataJson = null
+    ) =>
         new(
             credentialId ?? DefaultCredentialId,
             publicKey ?? DefaultPublicKey,

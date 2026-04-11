@@ -61,7 +61,11 @@ public class UserProjectionTests
     public void Apply_UserCreated_RootUserFlag()
     {
         var userId = UserId.New();
-        var @event = new UserCreated(userId, null, null, null) { RootUser = true, Deletable = false };
+        var @event = new UserCreated(userId, null, null, null)
+        {
+            RootUser = true,
+            Deletable = false,
+        };
         var user = new User();
 
         _projection.Apply(@event, user);
@@ -76,7 +80,12 @@ public class UserProjectionTests
     public void Apply_UserDeleted_ClearsSensitiveData()
     {
         var userId = UserId.New();
-        var user = new User { UserName = "alice", Email = "alice@example.com", PasswordHash = "hash" };
+        var user = new User
+        {
+            UserName = "alice",
+            Email = "alice@example.com",
+            PasswordHash = "hash",
+        };
         var @event = new UserDeleted(userId);
 
         _projection.Apply(@event, user);
@@ -189,7 +198,7 @@ public class UserProjectionTests
         {
             LockoutEnabled = true,
             LockoutEnd = lockoutEnd,
-            AccessFailedCount = 3
+            AccessFailedCount = 3,
         };
 
         _projection.Apply(@event, user);
@@ -288,7 +297,8 @@ public class UserProjectionTests
         var user = new User();
 
         var exception = Record.Exception(() =>
-            _projection.Apply(new PasskeyDeleted(userId, new byte[] { 9, 9, 9 }), user));
+            _projection.Apply(new PasskeyDeleted(userId, new byte[] { 9, 9, 9 }), user)
+        );
 
         Assert.Null(exception);
     }

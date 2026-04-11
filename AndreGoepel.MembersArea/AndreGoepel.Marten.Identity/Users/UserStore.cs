@@ -675,16 +675,25 @@ public class UserStore<TUser>(
 
     // IUserLockoutStore
 
-    public Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken) =>
-        Task.FromResult(user.LockoutEnd);
+    public Task<DateTimeOffset?> GetLockoutEndDateAsync(
+        TUser user,
+        CancellationToken cancellationToken
+    ) => Task.FromResult(user.LockoutEnd);
 
-    public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+    public Task SetLockoutEndDateAsync(
+        TUser user,
+        DateTimeOffset? lockoutEnd,
+        CancellationToken cancellationToken
+    )
     {
         user.LockoutEnd = lockoutEnd;
         return Task.CompletedTask;
     }
 
-    public Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+    public Task<int> IncrementAccessFailedCountAsync(
+        TUser user,
+        CancellationToken cancellationToken
+    )
     {
         user.AccessFailedCount++;
         return Task.FromResult(user.AccessFailedCount);
@@ -702,7 +711,11 @@ public class UserStore<TUser>(
     public Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken) =>
         Task.FromResult(user.LockoutEnabled);
 
-    public Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+    public Task SetLockoutEnabledAsync(
+        TUser user,
+        bool enabled,
+        CancellationToken cancellationToken
+    )
     {
         user.LockoutEnabled = enabled;
         return Task.CompletedTask;

@@ -33,8 +33,11 @@ public class CookieLoginMiddleware(RequestDelegate next)
     public static IDictionary<Guid, TwoFactorLoginInfo> TwoFactorLogins { get; private set; } =
         new ConcurrentDictionary<Guid, TwoFactorLoginInfo>();
 
-    public static IDictionary<Guid, RecoveryCodeLoginInfo> RecoveryCodeLogins { get; private set; } =
-        new ConcurrentDictionary<Guid, RecoveryCodeLoginInfo>();
+    public static IDictionary<Guid, RecoveryCodeLoginInfo> RecoveryCodeLogins
+    {
+        get;
+        private set;
+    } = new ConcurrentDictionary<Guid, RecoveryCodeLoginInfo>();
 
     public async Task Invoke(HttpContext context, SignInManager<User> signinManager)
     {
@@ -68,7 +71,11 @@ public class CookieLoginMiddleware(RequestDelegate next)
             TwoFactorLogins.Remove(key);
 
             var code = info.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
-            var result = await signinManager.TwoFactorAuthenticatorSignInAsync(code, info.RememberMe, info.RememberMachine);
+            var result = await signinManager.TwoFactorAuthenticatorSignInAsync(
+                code,
+                info.RememberMe,
+                info.RememberMachine
+            );
 
             if (result.Succeeded)
             {
@@ -104,7 +111,9 @@ public class CookieLoginMiddleware(RequestDelegate next)
             else if (result.RequiresTwoFactor)
             {
                 var rememberMe = info.RememberMe ? "true" : "false";
-                context.Response.Redirect($"/Account/LoginWith2fa?rememberMe={rememberMe}&returnUrl=%2F");
+                context.Response.Redirect(
+                    $"/Account/LoginWith2fa?rememberMe={rememberMe}&returnUrl=%2F"
+                );
                 return;
             }
             else if (result.IsLockedOut)
