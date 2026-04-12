@@ -77,10 +77,10 @@
     {
         Input ??= new();
 
-        if (HttpMethods.IsGet(HttpContext.Request.Method))
-        {
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        }
+        // if (HttpMethods.IsGet(HttpContext.Request.Method))
+        // {
+        //     await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        // }
     }
 
     private async Task LoginUser()

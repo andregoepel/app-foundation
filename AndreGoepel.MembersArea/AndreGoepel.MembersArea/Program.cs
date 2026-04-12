@@ -35,6 +35,7 @@ builder
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+builder.Services.AddAuthorization();
 
 var connectionString =
     builder.Configuration.GetConnectionString("members-area-database")
@@ -87,6 +88,8 @@ builder.Services.AddDataProtection();
 
 builder.Services.AddRadzenComponents();
 
+builder.Services.AddHeaderPropagation();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -98,10 +101,12 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
+app.UseHeaderPropagation();
 app.UseAntiforgery();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();

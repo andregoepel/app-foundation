@@ -1,8 +1,5 @@
-﻿@using Microsoft.AspNetCore.Antiforgery
 @using Radzen
 @using Radzen.Blazor
-
-@inject IServiceProvider Services
 
 <button type="submit"
         name="__passkeySubmit"
@@ -13,17 +10,10 @@
 <passkey-submit
     operation="@Operation"
     name="@Name"
-    email-name="@EmailName"
-    request-token-name="@tokens?.HeaderName"
-    request-token-value="@tokens?.RequestToken">
+    email-name="@EmailName">
 </passkey-submit>
 
 @code {
-    private AntiforgeryTokenSet? tokens;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     [Parameter]
     [EditorRequired]
     public PasskeyOperation Operation { get; set; }
@@ -40,9 +30,4 @@
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
-
-    protected override void OnInitialized()
-    {
-        tokens = Services.GetService<IAntiforgery>()?.GetTokens(HttpContext);
-    }
 }
