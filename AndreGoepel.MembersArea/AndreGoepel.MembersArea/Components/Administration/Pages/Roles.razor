@@ -17,35 +17,30 @@
 
 <PageTitle>Roles – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
-                    Roles
-                </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Manage user roles and permissions
-                </RadzenText>
-            </div>
-
-            <RadzenRow AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-                <RadzenButton Text="New role"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Medium"
-                              Click=@NewRoleAsync />
-
-                <RadzenStack Orientation="Orientation.Horizontal"
-                             Gap="0.75rem"
-                             AlignItems="AlignItems.Center">
+        <RadzenRow AlignItems="AlignItems.Center">
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Roles</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Manage user roles and permissions</RadzenText>
+            </RadzenColumn>
+            <RadzenColumn class="rz-text-align-right">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem" JustifyContent="JustifyContent.End">
                     <RadzenCheckBox Name="ShowDeleted"
                                     @bind-Value=@ShowDeleted
                                     Change=@((bool value) => ShowDeletedChanged(value)) />
-                    <RadzenLabel Text="Show deleted roles" Component="ShowDeleted" />
+                    <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
+                    <RadzenButton Text="New role"
+                                  Icon="add"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Size="ButtonSize.Small"
+                                  Click=@NewRoleAsync />
                 </RadzenStack>
-            </RadzenRow>
+            </RadzenColumn>
+        </RadzenRow>
 
+        <RadzenCard Style="padding: 0; overflow: hidden;">
             <RadzenDataGrid @ref="rolesGrid"
                             Data="@roles"
                             AllowFiltering="true"
@@ -63,36 +58,14 @@
                             Density="Density.Compact"
                             Style="width: 100%;">
                 <Columns>
-                    <RadzenDataGridColumn Property="@nameof(Role.Id)"
-                                          Title="Id"
-                                          Sortable="false"
-                                          Filterable="false"
-                                          Width="100px" />
-
-                    <RadzenDataGridColumn Property="@nameof(Role.Name)"
-                                          Title="Role Name"
-                                          Width="180px" />
-
-                    <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)"
-                                          FormatString="{0:d} {0:t}"
-                                          Title="Created at"
-                                          Width="160px" />
-
-                    <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)"
-                                          FormatString="{0:d} {0:t}"
-                                          Title="Changed at"
-                                          Width="160px" />
-
-                    <RadzenDataGridColumn Property="@nameof(Role.Deleted)"
-                                          Title="Deleted"
-                                          Width="100px" />
-
-                    <RadzenDataGridColumn Title="Actions"
-                                          Sortable="false"
-                                          Filterable="false"
-                                          Width="220px">
+                    <RadzenDataGridColumn Property="@nameof(Role.Id)" Title="Id" Sortable="false" Filterable="false" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(Role.Name)" Title="Role Name" Width="180px" />
+                    <RadzenDataGridColumn Property="@nameof(Role.CreatedAt)" FormatString="{0:d} {0:t}" Title="Created at" Width="160px" />
+                    <RadzenDataGridColumn Property="@nameof(Role.ChangedAt)" FormatString="{0:d} {0:t}" Title="Changed at" Width="160px" />
+                    <RadzenDataGridColumn Property="@nameof(Role.Deleted)" Title="Deleted" Width="100px" />
+                    <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="220px">
                         <Template Context="data">
-                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                                 @if (!data.Deleted)
                                 {
                                     <RadzenButton Text="Users"
@@ -100,7 +73,6 @@
                                                   Size="ButtonSize.Small"
                                                   Click="@(() => ShowUsers(data))" />
                                 }
-
                                 @if (data.Deletable && !data.Deleted)
                                 {
                                     <RadzenButton Text="Delete"
@@ -113,9 +85,9 @@
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
+        </RadzenCard>
 
-        </RadzenStack>
-    </RadzenCard>
+    </RadzenStack>
 </div>
 
 @code {

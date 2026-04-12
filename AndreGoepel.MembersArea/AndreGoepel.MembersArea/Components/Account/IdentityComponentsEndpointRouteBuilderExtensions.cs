@@ -28,7 +28,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             ) =>
             {
                 await signInManager.SignOutAsync();
-                return TypedResults.LocalRedirect($"~/{returnUrl}");
+                return TypedResults.LocalRedirect($"~{returnUrl}");
             }
         );
 

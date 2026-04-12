@@ -1,78 +1,50 @@
-﻿@implements IDisposable
-@rendermode InteractiveServer 
+@implements IDisposable
+@rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Roles
 @using Radzen.Blazor
 @using global::Marten
 
-@inject IQuerySession QuerySession;
+@inject IQuerySession QuerySession
 @inject NavigationManager NavigationManager
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        @* <a class="navbar-brand" href="">André Göpel - Members</a> *@
-    </div>
-</div>
+@if (SetupComplete)
+{
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+        <AuthorizeView>
+            <Authorized>
+                <RadzenPanelMenuItem Text="Account" Icon="manage_accounts">
+                    <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
+                    <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
+                    <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
+                    <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
+                    <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
+                    <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
+                </RadzenPanelMenuItem>
+            </Authorized>
+        </AuthorizeView>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        @if (SetupComplete)
-        {
-            <RadzenPanelMenu>
-                <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
-
-                <AuthorizeView>
-                    <Authorized>
-                        <RadzenPanelMenuItem Text="Account" Icon="manage_accounts">
-                            <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
-                            <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
-                            <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
-                            <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
-                            <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
-                            <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
-                        </RadzenPanelMenuItem>
-                    </Authorized>
-                </AuthorizeView>
-
-                <AuthorizeView Roles="Administrator">
-                    <Authorized>
-                        <RadzenPanelMenuItem Text="Administration" Icon="settings">
-                            <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
-                            <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
-                        </RadzenPanelMenuItem>
-                    </Authorized>
-                </AuthorizeView>
-
-                <AuthorizeView>
-                    <Authorized>
-                        <form action="Account/Logout" method="post" name="logout-form">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        </form>
-                        <RadzenProfileMenuItem Text="Logout" Value="Logout" Icon="power_settings_new" Path="javascript:document.forms['logout-form'].submit();" />
-                    </Authorized>
-                    <NotAuthorized>
-                        <RadzenPanelMenuItem Text="Register" Icon="person_add" Path="Account/Register" />
-                        <RadzenPanelMenuItem Text="Login" Icon="login" Path="Account/Login" />
-                    </NotAuthorized>
-                </AuthorizeView>
-            </RadzenPanelMenu>
-        }
-        else
-        {
-            <RadzenPanelMenu>
-                <RadzenPanelMenuItem Text="Setup" Icon="install_desktop" Path="/Setup" />
-            </RadzenPanelMenu>
-        }
-    </nav>
-</div>
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <RadzenPanelMenuItem Text="Administration" Icon="settings">
+                    <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
+                    <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
+                </RadzenPanelMenuItem>
+            </Authorized>
+        </AuthorizeView>
+    </RadzenPanelMenu>
+}
+else
+{
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Text="Setup" Icon="install_desktop" Path="/Setup" />
+    </RadzenPanelMenu>
+}
 
 @code {
-    private string? currentUrl;
-
-    private bool SetupComplete = false;
+    private bool SetupComplete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,7 +52,7 @@
 
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
 
-        if (SetupComplete == false && !currentPath.Equals("setup", StringComparison.OrdinalIgnoreCase))
+        if (!SetupComplete && !currentPath.Equals("setup", StringComparison.OrdinalIgnoreCase))
             NavigationManager.NavigateTo("/Setup");
 
         await base.OnInitializedAsync();
@@ -88,21 +60,17 @@
 
     protected override void OnInitialized()
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
         StateHasChanged();
-    }
 
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
-    private async Task<bool> CheckSetupCompleted() => await QuerySession.Query<Role>().AnyAsync();
+    private async Task<bool> CheckSetupCompleted() =>
+        await QuerySession.Query<Role>().AnyAsync();
 }
-
