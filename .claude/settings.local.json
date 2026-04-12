@@ -12,7 +12,8 @@
       "Bash(curl -s \"https://api.github.com/repos/radzenhq/radzen-blazor-studio/contents/CRMBlazorServerRBS/Components/Layout\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/radzenhq/radzen-blazor-studio/main/CRMBlazorServerRBS/wwwroot/css/site.css\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/radzenhq/radzen-blazor-studio/main/CRMBlazorServerRBS/Components/Layout/MainLayout.razor.cs\")",
-      "Bash(curl -s \"https://raw.githubusercontent.com/radzenhq/radzen-blazor-studio/main/CRMBlazorServerRBS/Components/Layout/LoginLayout.razor\")"
+      "Bash(curl -s \"https://raw.githubusercontent.com/radzenhq/radzen-blazor-studio/main/CRMBlazorServerRBS/Components/Layout/LoginLayout.razor\")",
+      "Bash(csharpier format:*)"
     ]
   }
 }

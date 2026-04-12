@@ -1,14 +1,12 @@
-﻿@page "/Account/Manage/Passkeys/Create"
+@page "/Account/Manage/Passkeys/Create"
 
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
-@using System.Buffers.Text
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<User> UserManager
-@inject SignInManager<User> SignInManager
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 
@@ -42,36 +40,22 @@
             </RadzenStack>
 
             <RadzenStack Gap="2rem" AlignItems="AlignItems.Center">
+                <PasskeySubmit Operation="PasskeyOperation.Create"
+                               OptionsEndpointUrl="/Account/PasskeyCreationOptions"
+                               ActionEndpointUrl="/Account/Manage/PasskeyAttestation"
+                               OnSuccess="HandlePasskeySuccess"
+                               OnError="HandlePasskeyError"
+                               class="rz-button rz-button-lg rz-variant-filled rz-primary rz-shade-default rz-border-radius-4">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+                        <RadzenIcon Icon="fingerprint" />
+                        <span>Register Passkey</span>
+                    </RadzenStack>
+                </PasskeySubmit>
 
-                @if (isProcessing)
-                {
-                    <div class="text-center">
-                        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-                        <RadzenText TextStyle="TextStyle.Body2" class="mt-3 rz-color-muted">
-                            Waiting for browser / device interaction...
-                        </RadzenText>
-                    </div>
-                }
-                else
-                {
-                    <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
-                        <AntiforgeryToken />
-
-                        <PasskeySubmit Operation="PasskeyOperation.Create"
-                                       Name="Input"
-                                       class="rz-button rz-button-lg rz-variant-filled rz-primary rz-shade-default rz-border-radius-4">
-                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
-                                <RadzenIcon Icon="fingerprint" />
-                                <span>Register Passkey</span>
-                            </RadzenStack>
-                        </PasskeySubmit>
-                    </form>
-
-                    <RadzenButton Text="Cancel"
-                                  ButtonStyle="ButtonStyle.Secondary"
-                                  Size="ButtonSize.Medium"
-                                  Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Passkeys")) />
-                }
+                <RadzenButton Text="Cancel"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Size="ButtonSize.Medium"
+                              Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Passkeys")) />
             </RadzenStack>
 
             <RadzenText TextStyle="TextStyle.Caption" class="rz-color-muted text-center mt-4">
@@ -84,92 +68,21 @@
 </div>
 
 @code {
-    [SupplyParameterFromForm(FormName = "add-passkey")]
-    private PasskeyInputModel? Input { get; set; }
-
-    private User? CurrentUser;
-    private bool isProcessing;
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        CurrentUser = await UserManager.GetUserAsync(authState.User);
+        var user = await UserManager.GetUserAsync(authState.User);
 
-        if (CurrentUser == null)
+        if (user is null)
         {
             NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
             NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
         }
     }
 
-    private async Task AddPasskey()
-    {
-        if (CurrentUser == null)
-        {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user.");
-            return;
-        }
+    private void HandlePasskeySuccess(string credentialId) =>
+        NavigationManager.NavigateTo($"/Account/Manage/Passkeys/Rename/{credentialId}");
 
-        isProcessing = true;
-        StateHasChanged();
-
-        try
-        {
-            if(Input == null)
-            {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", "No data received from form.");
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(Input.Error))
-            {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", Input.Error);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(Input.CredentialJson))
-            {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", "No passkey data received from browser.");
-                return;
-            }
-
-            var attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
-            if (!attestationResult.Succeeded)
-            {
-                NotificationService.Notify(
-                    NotificationSeverity.Error,
-                    "Registration failed",
-                    attestationResult.Failure?.Message ?? "Unknown error during passkey creation."
-                );
-                return;
-            }
-
-            var addResult = await UserManager.AddOrUpdatePasskeyAsync(CurrentUser, attestationResult.Passkey);
-            if (!addResult.Succeeded)
-            {
-                NotificationService.Notify(
-                    NotificationSeverity.Error,
-                    "Error",
-                    addResult.Errors.FirstOrDefault()?.Description ?? "Could not save passkey."
-                );
-                return;
-            }
-
-            var credentialIdBase64 = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
-            NavigationManager.NavigateTo($"/Account/Manage/Passkeys/Rename/{credentialIdBase64}");
-        }
-        catch (Exception)
-        {
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Unexpected error",
-                "Something went wrong while registering the passkey. Please try again."
-            );
-        }
-        finally
-        {
-            isProcessing = false;
-            StateHasChanged();
-        }
-    }
+    private void HandlePasskeyError(string message) =>
+        NotificationService.Notify(NotificationSeverity.Error, "Error", message);
 }

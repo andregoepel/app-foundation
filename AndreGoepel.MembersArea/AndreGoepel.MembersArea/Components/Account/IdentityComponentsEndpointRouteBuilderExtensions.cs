@@ -1,7 +1,7 @@
+using System.Buffers.Text;
 using System.Security.Claims;
 using System.Text.Json;
 using AndreGoepel.Marten.Identity.Users;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -46,12 +46,9 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             async (
                 HttpContext context,
                 [FromServices] UserManager<User> userManager,
-                [FromServices] SignInManager<User> signInManager,
-                [FromServices] IAntiforgery antiforgery
+                [FromServices] SignInManager<User> signInManager
             ) =>
             {
-                await antiforgery.ValidateRequestAsync(context);
-
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)
                 {
@@ -77,15 +74,11 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         accountGroup.MapPost(
             "/PasskeyRequestOptions",
             async (
-                HttpContext context,
                 [FromServices] UserManager<User> userManager,
                 [FromServices] SignInManager<User> signInManager,
-                [FromServices] IAntiforgery antiforgery,
                 [FromQuery] string? username
             ) =>
             {
-                await antiforgery.ValidateRequestAsync(context);
-
                 var user = string.IsNullOrEmpty(username)
                     ? null
                     : await userManager.FindByNameAsync(username);
@@ -94,11 +87,86 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             }
         );
 
+        accountGroup.MapPost(
+            "/PasskeyAssertion",
+            async (
+                HttpContext context,
+                [FromServices] SignInManager<User> signInManager,
+                [FromQuery] string? returnUrl
+            ) =>
+            {
+                using var reader = new StreamReader(context.Request.Body);
+                var credentialJson = await reader.ReadToEndAsync();
+
+                var result = await signInManager.PasskeySignInAsync(credentialJson);
+
+                var safeReturnUrl =
+                    !string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith('/') ? returnUrl : "/";
+
+                if (result.Succeeded)
+                    return Results.Content(safeReturnUrl, contentType: "text/plain");
+                if (result.IsLockedOut)
+                    return Results.Content("/Account/Lockout", contentType: "text/plain");
+                if (result.RequiresTwoFactor)
+                    return Results.Content(
+                        $"/Account/LoginWith2fa?returnUrl={Uri.EscapeDataString(safeReturnUrl)}",
+                        contentType: "text/plain"
+                    );
+
+                return Results.Content(
+                    "Invalid passkey login attempt.",
+                    contentType: "text/plain",
+                    statusCode: 400
+                );
+            }
+        );
+
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 
         var loggerFactory = endpoints.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var resetAuthenticatorLogger = loggerFactory.CreateLogger("ResetAuthenticator");
         var downloadLogger = loggerFactory.CreateLogger("DownloadPersonalData");
+
+        manageGroup.MapPost(
+            "/PasskeyAttestation",
+            async (
+                HttpContext context,
+                [FromServices] UserManager<User> userManager,
+                [FromServices] SignInManager<User> signInManager
+            ) =>
+            {
+                using var reader = new StreamReader(context.Request.Body);
+                var credentialJson = await reader.ReadToEndAsync();
+
+                var user = await userManager.GetUserAsync(context.User);
+                if (user is null)
+                    return Results.Unauthorized();
+
+                var attestationResult = await signInManager.PerformPasskeyAttestationAsync(
+                    credentialJson
+                );
+                if (!attestationResult.Succeeded)
+                    return Results.Content(
+                        attestationResult.Failure?.Message ?? "Attestation failed.",
+                        contentType: "text/plain",
+                        statusCode: 400
+                    );
+
+                var addResult = await userManager.AddOrUpdatePasskeyAsync(
+                    user,
+                    attestationResult.Passkey
+                );
+                if (!addResult.Succeeded)
+                    return Results.Content(
+                        addResult.Errors.FirstOrDefault()?.Description ?? "Could not save passkey.",
+                        contentType: "text/plain",
+                        statusCode: 400
+                    );
+
+                var credentialId = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
+                return Results.Content(credentialId, contentType: "text/plain");
+            }
+        );
 
         manageGroup.MapPost(
             "/ResetAuthenticator/ConfirmReset",

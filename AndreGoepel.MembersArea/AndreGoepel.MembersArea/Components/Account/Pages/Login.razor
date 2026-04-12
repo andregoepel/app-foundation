@@ -2,14 +2,14 @@
 @layout LoginLayout
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.MembersArea.Components.Layout
-@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
 
-@inject SignInManager<User> SignInManager
-@inject ILogger<Login> Logger
+@implements IAsyncDisposable
+
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Log in – nerdventures.blog</PageTitle>
 
@@ -43,12 +43,13 @@
                               ButtonStyle="ButtonStyle.Primary"
                               form="login-form" />
 
-                <form method="post" @formname="passkey-login" @onsubmit="LoginUser" style="display:contents">
-                    <AntiforgeryToken />
-                    <PasskeySubmit Operation="PasskeyOperation.Request"
-                                   Name="Input.Passkey"
-                                   EmailName="Input.Email">Log in with a passkey</PasskeySubmit>
-                </form>
+                <PasskeySubmit Operation="PasskeyOperation.Request"
+                               OptionsEndpointUrl="/Account/PasskeyRequestOptions"
+                               ActionEndpointUrl="@PasskeyAssertionUrl"
+                               OnSuccess="HandlePasskeySuccess"
+                               OnError="HandlePasskeyError">
+                    Log in with a passkey
+                </PasskeySubmit>
             </div>
 
             <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" Wrap="FlexWrap.Wrap">
@@ -63,57 +64,57 @@
 
 @code {
     private string? error;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm(FormName = "passkey-login")]
-    private InputModel Input { get; set; } = default!;
+    private DotNetObjectReference<Login>? _dotNetRef;
+    private IJSObjectReference? _jsModule;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        Input ??= new();
+    private string PasskeyAssertionUrl =>
+        ReturnUrl is not null
+            ? $"/Account/PasskeyAssertion?returnUrl={Uri.EscapeDataString(ReturnUrl)}"
+            : "/Account/PasskeyAssertion";
 
-        // if (HttpMethods.IsGet(HttpContext.Request.Method))
-        // {
-        //     await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        // }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+            "import", "./Components/Account/Shared/PasskeySubmit.razor.js");
+        _dotNetRef = DotNetObjectReference.Create(this);
+
+        await _jsModule.InvokeVoidAsync(
+            "startConditionalMediation",
+            "/Account/PasskeyRequestOptions",
+            PasskeyAssertionUrl,
+            _dotNetRef);
     }
 
-    private async Task LoginUser()
+    private void HandlePasskeySuccess(string redirectUrl) =>
+        NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+
+    private void HandlePasskeyError(string message) => error = message;
+
+    [JSInvokable]
+    public async Task HandlePasskeyAutofill(string redirectUrl)
     {
-        if (!string.IsNullOrEmpty(Input.Passkey?.Error))
-        {
-            error = Input.Passkey.Error;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
-            return;
-
-        var result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
-
-        if (result.Succeeded)
-        {
-            Logger.LogInformation("User logged in with passkey.");
-            NavigationManager.NavigateTo(ReturnUrl ?? "/");
-        }
-        else if (result.IsLockedOut)
-        {
-            Logger.LogWarning("User account locked out.");
-            NavigationManager.NavigateTo("/Account/Lockout");
-        }
-        else
-        {
-            error = "Invalid passkey login attempt.";
-        }
+        NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+        await InvokeAsync(StateHasChanged);
     }
 
-    private sealed class InputModel
+    public async ValueTask DisposeAsync()
     {
-        public PasskeyInputModel? Passkey { get; set; }
+        _dotNetRef?.Dispose();
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit already disconnecting due to forced navigation — safe to ignore
+            }
+        }
     }
 }
