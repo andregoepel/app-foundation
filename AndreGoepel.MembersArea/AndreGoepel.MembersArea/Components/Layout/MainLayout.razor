@@ -4,6 +4,7 @@
 @inherits LayoutComponentBase
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
@@ -20,14 +21,13 @@
                              JustifyContent="JustifyContent.End">
                     <AuthorizeView>
                         <Authorized>
-                            <RadzenProfileMenu>
+                            <RadzenProfileMenu Click="@OnProfileMenuClick">
                                 <ChildContent>
-                                    <RadzenProfileMenuItem Path="Account/Manage/Profile"
+                                    <RadzenProfileMenuItem Path="/Account/Manage/Profile"
                                                            Icon="manage_accounts"
                                                            Text="Profile" />
                                     <RadzenProfileMenuItem Text="Logout"
-                                                           Icon="power_settings_new"
-                                                           Path="Account/SignOutAndRedirect" />
+                                                           Icon="power_settings_new" />
                                 </ChildContent>
                                 <Template>
                                     <RadzenLabel Text="@currentUserName" />
@@ -90,4 +90,10 @@
     }
 
     void SidebarToggleClick() => sidebarExpanded = !sidebarExpanded;
+
+    void OnProfileMenuClick(RadzenProfileMenuItem item)
+    {
+        if (item.Text == "Logout")
+            NavigationManager.NavigateTo("/Account/SignOutAndRedirect", forceLoad: true);
+    }
 }
