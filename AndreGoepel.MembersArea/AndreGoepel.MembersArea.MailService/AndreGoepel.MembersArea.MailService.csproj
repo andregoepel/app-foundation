@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.15.1" />
-    <PackageReference Include="Marten" Version="8.28.0" />
-    <PackageReference Include="WolverineFx.Marten" Version="5.27.0" />
+    <PackageReference Include="MailKit" Version="4.16.0" />
+    <PackageReference Include="Marten" Version="8.34.2" />
+    <PackageReference Include="WolverineFx.Marten" Version="5.36.2" />
   </ItemGroup>
 </Project>
