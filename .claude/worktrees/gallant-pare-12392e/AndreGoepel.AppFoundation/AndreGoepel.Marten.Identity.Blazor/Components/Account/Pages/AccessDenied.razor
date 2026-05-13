@@ -1,0 +1,26 @@
+@page "/Account/AccessDenied"
+
+@using Radzen
+@using Radzen.Blazor
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Access denied – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Access denied</RadzenText>
+
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                You do not have access to this resource.
+            </RadzenAlert>
+
+            <RadzenButton Text="Go to home"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click=@(() => NavigationManager.NavigateTo("/")) />
+
+        </RadzenStack>
+    </RadzenCard>
+</div>

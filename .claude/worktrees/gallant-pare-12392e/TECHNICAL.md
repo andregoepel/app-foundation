@@ -308,21 +308,21 @@ In development, **MailHog** is used as the SMTP server (see §7).
 
 | Resource | Type | Ports |
 |---|---|---|
-| `app-foundation-database` | PostgreSQL container | 5432 |
+| `members-area-database` | PostgreSQL container | 5432 |
 | `mailhog` | Docker container (`mailhog/mailhog`) | 1025 (SMTP), 8025 (Web UI) |
-| `app-foundation` | Project reference | — |
+| `members-area` | Project reference | — |
 
 ### AppHost.cs
 
 ```csharp
-var postgres = builder.AddPostgres("app-foundation-database")
+var postgres = builder.AddPostgres("members-area-database")
     .WithDataVolume();
 
 var mailhog = builder.AddContainer("mailhog", "mailhog/mailhog")
     .WithHttpEndpoint(port: 8025, targetPort: 8025)
     .WithEndpoint(port: 1025, targetPort: 1025, name: "smtp");
 
-builder.AddProject<Projects.AndreGoepel_MembersArea>("app-foundation")
+builder.AddProject<Projects.AndreGoepel_MembersArea>("members-area")
     .WithReference(postgres)
     .WithEnvironment("EmailSender__Server", mailhog.GetEndpoint("smtp"));
 ```
@@ -392,7 +392,7 @@ All pages are protected by `AuthorizeRouteView` in `Routes.razor`. Unauthenticat
 ```json
 {
   "ConnectionStrings": {
-    "app-foundation-database": "Host=...;Port=...;Username=...;Password=...;Database=..."
+    "members-area-database": "Host=...;Port=...;Username=...;Password=...;Database=..."
   },
   "EmailSender": {
     "SenderName": "",

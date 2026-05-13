@@ -1,0 +1,26 @@
+@page "/Account/Lockout"
+
+@using Radzen
+@using Radzen.Blazor
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Locked out – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Account locked out</RadzenText>
+
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                This account has been locked out. Please try again later.
+            </RadzenAlert>
+
+            <RadzenButton Text="Back to login"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click=@(() => NavigationManager.NavigateTo("/Account/Login")) />
+
+        </RadzenStack>
+    </RadzenCard>
+</div>

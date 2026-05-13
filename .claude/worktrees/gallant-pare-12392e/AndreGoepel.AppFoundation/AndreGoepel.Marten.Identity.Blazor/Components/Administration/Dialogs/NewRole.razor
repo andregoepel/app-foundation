@@ -1,0 +1,41 @@
+﻿@page "/Administration/Roles/NewRole"
+@using AndreGoepel.Marten.Identity.Roles
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject DialogService DialogService
+@inject RoleManager<Role> RoleManager
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween">
+    <RadzenStack>
+        <RadzenLabel Text="Rolename" Component="Rolename" />
+        <RadzenTextBox Name="Rolename" Style="width: 100%" @bind-Value=@Rolename />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@(() => SaveRole())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
+        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private string Rolename { get; set; } = "";
+
+    private async Task SaveRole()
+    {
+        var newRole = Activator.CreateInstance<Role>();
+
+        newRole.Name = Rolename;
+
+        var result = await RoleManager.CreateAsync(newRole);
+
+        if (!result.Succeeded)
+        {
+            await DialogService.Alert($"Role cannot be added: {string.Join("\r\n", result.Errors.Select(error => error.Description))}", "Error adding role");
+        }
+        else
+        {
+            DialogService.Close(true);
+        }
+    }
+}

@@ -1,0 +1,104 @@
+@page "/Account/Login"
+@layout LoginLayout
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@implements IAsyncDisposable
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Log in – nerdventures.blog</PageTitle>
+
+<SectionContent SectionName="login-tagline">Fill in your login credentials to proceed.</SectionContent>
+
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Log in</RadzenText>
+
+<LoginForm />
+
+@if (error is not null)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+        @error
+    </RadzenAlert>
+}
+
+<div class="login-action-row">
+    <RadzenButton ButtonType="ButtonType.Submit"
+                  Text="Log in"
+                  ButtonStyle="ButtonStyle.Primary"
+                  form="login-form" />
+
+    <PasskeySubmit Operation="PasskeyOperation.Request"
+                   OptionsEndpointUrl="/Account/PasskeyRequestOptions"
+                   ActionEndpointUrl="@PasskeyAssertionUrl"
+                   OnSuccess="HandlePasskeySuccess"
+                   OnError="HandlePasskeyError">
+        Log in with a passkey
+    </PasskeySubmit>
+</div>
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" Wrap="FlexWrap.Wrap">
+    <RadzenLink Path="Account/ForgotPassword" Text="Forgot your password?" />
+    <RadzenLink Path="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" Text="Register as a new user" />
+    <RadzenLink Path="Account/ResendEmailConfirmation" Text="Resend email confirmation" />
+</RadzenStack>
+
+@code {
+    private string? error;
+    private DotNetObjectReference<Login>? _dotNetRef;
+    private IJSObjectReference? _jsModule;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private string PasskeyAssertionUrl =>
+        ReturnUrl is not null
+            ? $"/Account/PasskeyAssertion?returnUrl={Uri.EscapeDataString(ReturnUrl)}"
+            : "/Account/PasskeyAssertion";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+            "import", "./Components/Account/Shared/PasskeySubmit.razor.js");
+        _dotNetRef = DotNetObjectReference.Create(this);
+
+        await _jsModule.InvokeVoidAsync(
+            "startConditionalMediation",
+            "/Account/PasskeyRequestOptions",
+            PasskeyAssertionUrl,
+            _dotNetRef);
+    }
+
+    private void HandlePasskeySuccess(string redirectUrl) =>
+        NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+
+    private void HandlePasskeyError(string message) => error = message;
+
+    [JSInvokable]
+    public async Task HandlePasskeyAutofill(string redirectUrl)
+    {
+        NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit already disconnecting due to forced navigation — safe to ignore
+            }
+        }
+    }
+}

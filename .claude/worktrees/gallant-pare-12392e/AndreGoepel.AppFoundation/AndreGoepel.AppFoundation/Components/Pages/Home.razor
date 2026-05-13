@@ -1,0 +1,23 @@
+@page "/"
+@using Radzen.Blazor
+@attribute [Authorize]
+
+<PageTitle>Home – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
+
+        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Dashboard</RadzenText>
+
+        <RadzenCard>
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.H6">Welcome!</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1">
+                    You are signed in to the nerdventures.blog members area.
+                    Use the sidebar to navigate to account settings or administration.
+                </RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
+</div>

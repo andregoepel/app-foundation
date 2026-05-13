@@ -1,0 +1,77 @@
+﻿@page "/Administration/Users/{UserId}/Roles"
+@using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject DialogService DialogService
+@inject UserManager<User> UserManager
+@inject RoleManager<Role> RoleManager
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween">
+    <RadzenStack>
+    <RadzenListBox 
+        @bind-Value=@Values 
+        Data=@roles 
+        TextProperty="@nameof(Role.Name)" 
+        ValueProperty="@nameof(Role.RoleId)"
+        Multiple=true 
+        AllowClear=true 
+        Placeholder="Select Roles"
+        Change="@(() => OnChange())"
+        />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@(() => SaveRoles())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
+        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter] public required string UserID { get; set; }
+
+    private List<Role> roles = default!;
+    private User user = default!;
+    private List<RoleId> Values = [];
+
+    private RoleId AdminRole => roles.First(role => role.Name == Roles.Administrator).RoleId;
+
+    private async Task OnChange()
+    {
+        if (user.RootUser && !Values.Contains(AdminRole))
+        {
+            await DialogService.Alert("Root user must have Administrator role.", "Warning");
+            Values.Add(AdminRole);
+        }
+    }
+
+    private async Task SaveRoles()
+    {
+        var newRoles =
+            from value in Values.Except(user.Roles)
+            join role in roles on value equals role.RoleId
+            select role.Name;
+
+        await UserManager.AddToRolesAsync(user, newRoles);
+
+        var removedRoles =
+            from value in user.Roles.Except(Values)
+            join role in roles on value equals role.RoleId
+            select role.Name;
+
+        await UserManager.RemoveFromRolesAsync(user, removedRoles);
+
+        DialogService.Close(true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserManager.FindByIdAsync(UserID) ?? throw new InvalidOperationException("User not found");
+        roles = RoleManager.Roles.Where(role => !role.Deleted).ToList();
+
+        Values = [.. user.Roles.Select(roleId => roleId)];
+
+        await base.OnInitializedAsync();
+    }
+}

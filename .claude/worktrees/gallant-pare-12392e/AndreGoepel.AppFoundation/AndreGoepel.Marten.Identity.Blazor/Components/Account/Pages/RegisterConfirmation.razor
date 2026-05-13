@@ -1,0 +1,64 @@
+@page "/Account/RegisterConfirmation"
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject UserManager<User> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register confirmation – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Check your email</RadzenText>
+
+            @if (error is not null)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    @error
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" AllowClose="false">
+                    Please check your email to confirm your account.
+                </RadzenAlert>
+            }
+
+            <RadzenButton Text="Back to login"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click=@(() => NavigationManager.NavigateTo("/Account/Login")) />
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    private string? error;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Email is null)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        var user = await UserManager.FindByEmailAsync(Email);
+        if (user is null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            error = "Error finding user for the specified email.";
+        }
+    }
+}
