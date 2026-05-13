@@ -76,7 +76,9 @@ app.UseAuthorization();
 app.UseMartenIdentityMiddleware();
 
 app.MapStaticAssets();
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .AddAdditionalAssemblies(typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
 
