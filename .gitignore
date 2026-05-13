@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Claude Code
+.claude/worktrees/
+.claude/settings.local.json
+
 # User-specific files
 *.rsuser
 *.suo
