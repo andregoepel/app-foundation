@@ -1,0 +1,105 @@
+@page "/Account/LoginWith2fa"
+@layout LoginLayout
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using Radzen
+@using Radzen.Blazor
+
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Two-factor authentication – nerdventures.blog</PageTitle>
+
+<SectionContent SectionName="login-tagline">Enter the code from your authenticator app.</SectionContent>
+
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Two-factor authentication</RadzenText>
+
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnSubmitAsync>
+    <RadzenStack Gap="1.25rem">
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Authenticator code" Component="TwoFactorCode" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenTextBox @bind-Value=@Input.TwoFactorCode
+                               Name="TwoFactorCode"
+                               Placeholder="6-digit code"
+                               AutoCompleteType="AutoCompleteType.Off"
+                               Style="width:100%" />
+                <RadzenRequiredValidator Component="TwoFactorCode" Text="Authenticator code is required" />
+                <RadzenLengthValidator Component="TwoFactorCode" Min="6" Max="7"
+                                       Text="Code must be 6 or 7 characters" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenCheckBox @bind-Value=@Input.RememberMachine Name="RememberMachine" />
+            <RadzenLabel Text="Remember this machine" Component="RememberMachine" />
+        </RadzenStack>
+
+        <div class="login-action-row">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="Log in"
+                          ButtonStyle="ButtonStyle.Primary"
+                          IsBusy=@isProcessing
+                          BusyText="Verifying..." />
+
+            <RadzenLink Path="@($"/Account/LoginWithRecoveryCode?returnUrl={ReturnUrl}")"
+                        Text="Use a recovery code instead" />
+        </div>
+
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private bool RememberMe { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Error == "invalid")
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "2FA Error", "Invalid authenticator code.");
+        }
+    }
+
+    private async Task OnSubmitAsync(InputModel model)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var key = Guid.NewGuid();
+            CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
+            {
+                Code = model.TwoFactorCode!,
+                RememberMe = RememberMe,
+                RememberMachine = model.RememberMachine,
+                ReturnUrl = ReturnUrl,
+            };
+            NavigationManager.NavigateTo($"/login2fa?key={key}", forceLoad: true);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(7, MinimumLength = 6)]
+        public string? TwoFactorCode { get; set; }
+
+        public bool RememberMachine { get; set; }
+    }
+}

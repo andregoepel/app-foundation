@@ -1,0 +1,23 @@
+@using Radzen
+@using Radzen.Blazor
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem">
+
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" Icon="warning">
+        <strong>Put these codes in a safe place.</strong><br />
+        If you lose your device and don't have the recovery codes you will lose access to your account.
+    </RadzenAlert>
+
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem">
+        @foreach (var recoveryCode in RecoveryCodes)
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-family: monospace;">@recoveryCode</RadzenText>
+        }
+    </RadzenStack>
+
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public string[] RecoveryCodes { get; set; } = [];
+}

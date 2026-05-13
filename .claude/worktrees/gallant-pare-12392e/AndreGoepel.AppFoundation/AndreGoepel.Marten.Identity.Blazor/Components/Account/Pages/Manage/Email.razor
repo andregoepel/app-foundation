@@ -1,0 +1,261 @@
+﻿@page "/Account/Manage/Email"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Radzen
+@using Radzen.Blazor
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<User> UserManager
+@inject IEmailSender<User> EmailSender
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Manage Email – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <!-- Header -->
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Manage Email
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Update or verify your email address
+                </RadzenText>
+            </div>
+
+            <RadzenTemplateForm TItem="ChangeEmailModel"
+                                Data=@Model
+                                Submit=@OnValidSubmit>
+                <RadzenStack Gap="2rem">
+
+                    <RadzenFieldset Text="Current Email">
+                        <RadzenStack Gap="1.25rem">
+
+                            <div>
+                                <RadzenLabel Text="Current email" Component="CurrentEmail" />
+                                <RadzenTextBox @bind-Value=@CurrentEmail
+                                               Name="CurrentEmail"
+                                               ReadOnly="true"
+                                               Style="width:100%; background-color: var(--rz-input-disabled-background);" />
+                            </div>
+
+                            @if (!isEmailConfirmed)
+                            {
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Body2" class="rz-color-warning">
+                                        Your email is not yet confirmed.
+                                    </RadzenText>
+                                    <RadzenButton Text="Send verification email"
+                                                  ButtonStyle="ButtonStyle.Warning"
+                                                  Size="ButtonSize.Medium"
+                                                  IsBusy=@isSendingVerification
+                                                  BusyText="Sending..."
+                                                  Click=@SendVerificationEmail
+                                                  Style="margin-top: 0.75rem;" />
+                                </div>
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-success">
+                                    Email confirmed ✓
+                                </RadzenText>
+                            }
+
+                        </RadzenStack>
+                    </RadzenFieldset>
+
+                    <RadzenFieldset Text="Change Email Address">
+                        <RadzenStack Gap="1.5rem">
+
+                            <div>
+                                <RadzenLabel Text="New email address *" Component="NewEmail" />
+                                <RadzenTextBox @bind-Value=@Model.NewEmail
+                                               Name="NewEmail"
+                                               Placeholder="new.email@nerdventures.blog"
+                                               AutoCompleteType="AutoCompleteType.Email"
+                                               Style="width:100%" />
+                                <RadzenRequiredValidator Component="NewEmail" Text="New email is required" />
+                                <RadzenEmailValidator Component="NewEmail" Text="Please enter a valid email address" />
+                                <RadzenCompareValidator Component="NewEmail"
+                                                        Value=@CurrentEmail
+                                                        Text="New email must be different from current email"
+                                                        Operator="CompareOperator.NotEqual" />
+                            </div>
+
+                        </RadzenStack>
+                    </RadzenFieldset>
+
+                    <!-- Action Buttons -->
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="1rem"
+                                 JustifyContent="JustifyContent.Center"
+                                 Wrap="FlexWrap.Wrap">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Change Email"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Large"
+                                      IsBusy=@isChangingEmail
+                                      BusyText="Processing..." />
+
+                        <RadzenButton Text="Cancel"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Large"
+                                      Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Profile")) />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    private ChangeEmailModel Model { get; set; } = new();
+    private User? CurrentUser;
+    private string? CurrentEmail;
+    private bool isEmailConfirmed;
+    private bool isSendingVerification;
+    private bool isChangingEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        CurrentUser = await UserManager.GetUserAsync(authState.User);
+
+        if (CurrentUser == null)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
+            return;
+        }
+
+        CurrentEmail = await UserManager.GetEmailAsync(CurrentUser);
+        isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(CurrentUser);
+        Model.NewEmail = CurrentEmail;
+    }
+
+    private async Task OnValidSubmit(ChangeEmailModel model)
+    {
+        if (CurrentUser == null || string.IsNullOrWhiteSpace(CurrentEmail))
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "User not loaded.");
+            return;
+        }
+
+        if (model.NewEmail?.Trim() == CurrentEmail?.Trim())
+        {
+            NotificationService.Notify(NotificationSeverity.Info, "Info", "No email change detected.");
+            return;
+        }
+
+        isChangingEmail = true;
+        StateHasChanged();
+
+        try
+        {
+            var userId = await UserManager.GetUserIdAsync(CurrentUser);
+            var code = await UserManager.GenerateChangeEmailTokenAsync(CurrentUser, model.NewEmail!);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("/Account/ConfirmEmailChange").AbsoluteUri,
+                new Dictionary<string, object?>
+                {
+                    ["userId"] = userId,
+                    ["email"] = model.NewEmail,
+                    ["code"] = code
+                });
+
+            await EmailSender.SendConfirmationLinkAsync(
+                CurrentUser,
+                model.NewEmail!,
+                HtmlEncoder.Default.Encode(callbackUrl));
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Success",
+                "A confirmation link has been sent to your new email address. Please check your inbox."
+            );
+
+            // Optional: zurück zur Profile-Seite
+            // NavigationManager.NavigateTo("/Account/Manage/Profile");
+        }
+        catch (Exception)
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Error",
+                "Failed to send confirmation email. Please try again later."
+            );
+        }
+        finally
+        {
+            isChangingEmail = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SendVerificationEmail()
+    {
+        if (CurrentUser == null || string.IsNullOrWhiteSpace(CurrentEmail))
+            return;
+
+        isSendingVerification = true;
+        StateHasChanged();
+
+        try
+        {
+            var userId = await UserManager.GetUserIdAsync(CurrentUser);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(CurrentUser);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("/Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?>
+                {
+                    ["userId"] = userId,
+                    ["code"] = code
+                });
+
+            await EmailSender.SendConfirmationLinkAsync(
+                CurrentUser,
+                CurrentEmail,
+                HtmlEncoder.Default.Encode(callbackUrl));
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Sent",
+                "Verification email has been resent. Please check your inbox."
+            );
+        }
+        catch
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Error",
+                "Could not send verification email. Try again later."
+            );
+        }
+        finally
+        {
+            isSendingVerification = false;
+            StateHasChanged();
+        }
+    }
+
+    private sealed class ChangeEmailModel
+    {
+        [Required(ErrorMessage = "New email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string? NewEmail { get; set; }
+    }
+}

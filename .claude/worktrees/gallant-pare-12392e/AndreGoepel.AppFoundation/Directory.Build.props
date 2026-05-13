@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Authors>André Göpel</Authors>
     <Copyright>© André Göpel</Copyright>
-    <RepositoryUrl>https://github.com/andregoepel/app-foundation</RepositoryUrl>
+    <RepositoryUrl>https://github.com/andregoepel/members-area</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

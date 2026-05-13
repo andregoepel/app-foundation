@@ -1,0 +1,89 @@
+@page "/Account/LoginWithRecoveryCode"
+@layout LoginLayout
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using Radzen
+@using Radzen.Blazor
+
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Recovery code verification – nerdventures.blog</PageTitle>
+
+<SectionContent SectionName="login-tagline">Use a recovery code to regain access.</SectionContent>
+
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Recovery code verification</RadzenText>
+
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnSubmitAsync>
+    <RadzenStack Gap="1.25rem">
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Recovery code" Component="RecoveryCode" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenTextBox @bind-Value=@Input.RecoveryCode
+                               Name="RecoveryCode"
+                               Placeholder="Enter recovery code"
+                               AutoCompleteType="AutoCompleteType.Off"
+                               Style="width:100%" />
+                <RadzenRequiredValidator Component="RecoveryCode" Text="Recovery code is required" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <div class="login-action-row">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="Log in"
+                          ButtonStyle="ButtonStyle.Primary"
+                          IsBusy=@isProcessing
+                          BusyText="Verifying..." />
+
+            <RadzenLink Path="/Account/LoginWith2fa" Text="Use an authenticator code instead" />
+        </div>
+
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Error == "invalid")
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Recovery Code Error", "Invalid recovery code entered.");
+        }
+    }
+
+    private async Task OnSubmitAsync(InputModel model)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var key = Guid.NewGuid();
+            CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
+            {
+                Code = model.RecoveryCode,
+                ReturnUrl = ReturnUrl,
+            };
+            NavigationManager.NavigateTo($"/loginrecovery?key={key}", forceLoad: true);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string RecoveryCode { get; set; } = "";
+    }
+}

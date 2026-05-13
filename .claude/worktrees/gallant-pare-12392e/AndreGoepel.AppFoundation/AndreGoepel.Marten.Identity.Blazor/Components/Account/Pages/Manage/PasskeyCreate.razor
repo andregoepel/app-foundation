@@ -1,0 +1,88 @@
+@page "/Account/Manage/Passkeys/Create"
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<User> UserManager
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Register New Passkey – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Register New Passkey
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Add a secure, passwordless sign-in method using your device
+                </RadzenText>
+            </div>
+
+            <RadzenStack Gap="1.25rem">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    A passkey allows you to sign in using your device's built-in security features
+                    (fingerprint, face recognition, PIN or security key) — no password needed.
+                </RadzenText>
+
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-muted">
+                    <strong>Steps:</strong><br />
+                    1. Click the button below<br />
+                    2. Follow your browser or device instructions<br />
+                    3. Give your new passkey a name (you can change it later)
+                </RadzenText>
+            </RadzenStack>
+
+            <RadzenStack Gap="2rem" AlignItems="AlignItems.Center">
+                <PasskeySubmit Operation="PasskeyOperation.Create"
+                               OptionsEndpointUrl="/Account/PasskeyCreationOptions"
+                               ActionEndpointUrl="/Account/Manage/PasskeyAttestation"
+                               OnSuccess="HandlePasskeySuccess"
+                               OnError="HandlePasskeyError"
+                               class="rz-button rz-button-lg rz-variant-filled rz-primary rz-shade-default rz-border-radius-4">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+                        <RadzenIcon Icon="fingerprint" />
+                        <span>Register Passkey</span>
+                    </RadzenStack>
+                </PasskeySubmit>
+
+                <RadzenButton Text="Cancel"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Size="ButtonSize.Medium"
+                              Click=@(() => NavigationManager.NavigateTo("/Account/Manage/Passkeys")) />
+            </RadzenStack>
+
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-color-muted text-center mt-4">
+                Supported on Windows Hello, macOS Touch ID, Android biometrics,
+                iOS Face ID / Touch ID, YubiKey and most FIDO2 security keys.
+            </RadzenText>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user is null)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
+            NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
+        }
+    }
+
+    private void HandlePasskeySuccess(string credentialId) =>
+        NavigationManager.NavigateTo($"/Account/Manage/Passkeys/Rename/{credentialId}");
+
+    private void HandlePasskeyError(string message) =>
+        NotificationService.Notify(NotificationSeverity.Error, "Error", message);
+}

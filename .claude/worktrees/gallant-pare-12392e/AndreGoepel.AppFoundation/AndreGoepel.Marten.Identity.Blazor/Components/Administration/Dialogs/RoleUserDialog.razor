@@ -1,0 +1,80 @@
+﻿@page "/Administration/Roles/{RoleId}/Users"
+
+@using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject Radzen.DialogService DialogService
+@inject UserManager<User> UserManager
+@inject RoleManager<Role> RoleManager
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween">
+    <RadzenStack>
+        <RadzenDataGrid Data="@users"
+                        AllowFiltering="true"
+                        AllowColumnResize="true"
+                        AllowAlternatingRows="false"
+                        FilterMode="FilterMode.Advanced"
+                        AllowSorting="true"
+                        PageSize="5"
+                        AllowPaging="true"
+                        PagerHorizontalAlign="HorizontalAlign.Left"
+                        ShowPagingSummary="true"
+                        LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(User.UserName)" Title="Name" />
+                <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false">
+                    <Template Context="data">
+                            <RadzenButton Text="Remove" Click="@(() => RemoveUser(data))" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter] public required string RoleId { get; set; }
+
+    private List<User> users = default!;
+    private Role Role = default!;
+
+    private async Task RemoveUser(User user)
+    {
+        if(string.IsNullOrEmpty(Role.Name))
+            return;
+
+        if (await DialogService.Confirm("Are you sure you want to remove this user?", "Remove User") == true)
+        {
+            if (user.RootUser && Role.Name == Roles.Administrator)
+            { 
+                await DialogService.Alert($"User {user.UserName} cannot be removed from role {Role.Name}, because root user needs the role {Roles.Administrator}", "Error");
+                return;
+            }
+
+            var deleteResult = await UserManager.RemoveFromRoleAsync(user, Role.Name);
+            if (deleteResult.Succeeded)
+            {
+                users = users.Where(u => u.Id != user.Id).ToList();
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+                await DialogService.Alert("User could not be deleted", "Error");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Role = await RoleManager.FindByIdAsync(RoleId) ?? throw new InvalidOperationException("Role not found");
+
+        if(!string.IsNullOrEmpty(Role.Name))
+            users = [.. await UserManager.GetUsersInRoleAsync(Role.Name)];
+
+        await base.OnInitializedAsync();
+    }
+}

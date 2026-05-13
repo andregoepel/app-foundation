@@ -22,8 +22,8 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__app-foundation-database: >-
-        Host=postgres;Port=5432;Database=app-foundation;
+      ConnectionStrings__members-area-database: >-
+        Host=postgres;Port=5432;Database=members-area;
         Username=${DB_USER:-postgres};Password=${DB_PASSWORD:?DB_PASSWORD is required}
       EmailSender__SenderName: ${EMAIL_SENDER_NAME:-Members Area}
       EmailSender__SenderEmail: ${EMAIL_SENDER_EMAIL:?EMAIL_SENDER_EMAIL is required}
@@ -41,11 +41,11 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      POSTGRES_DB: app-foundation
+      POSTGRES_DB: members-area
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d app-foundation"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d members-area"]
       interval: 10s
       timeout: 5s
       retries: 5
