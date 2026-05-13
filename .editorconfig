@@ -1,0 +1,45 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# — formatting delegated to CSharpier
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# Razor — mixed C# and HTML
+[*.{razor,cshtml}]
+indent_style = space
+indent_size = 4
+
+# Stylesheets
+[*.{css,scss}]
+indent_style = space
+indent_size = 4
+
+# Data / config formats
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# MSBuild / XML
+[*.{xml,csproj,vbproj,fsproj,slnx,props,targets,config}]
+indent_style = space
+indent_size = 2
+
+# JavaScript (minimal — embedded in Razor)
+[*.js]
+indent_style = space
+indent_size = 2
+
+# Makefiles require tabs
+[Makefile]
+indent_style = tab
