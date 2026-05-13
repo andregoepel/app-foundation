@@ -64,7 +64,7 @@
         if (!firstRender) return;
 
         _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./Components/Account/Shared/PasskeySubmit.razor.js");
+            "import", "./_content/AndreGoepel.Marten.Identity.Blazor/Components/Account/Shared/PasskeySubmit.razor.js");
         _dotNetRef = DotNetObjectReference.Create(this);
 
         await _jsModule.InvokeVoidAsync(
