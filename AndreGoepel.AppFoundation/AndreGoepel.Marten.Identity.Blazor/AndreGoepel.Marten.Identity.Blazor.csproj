@@ -10,8 +10,13 @@
     <Version>1.0.0</Version>
     <Description>Blazor Server UI components for AndreGoepel.Marten.Identity — login, registration, 2FA, passkeys, and user/role administration pages built with Radzen.</Description>
     <PackageTags>aspnetcore;blazor;identity;marten;radzen</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
