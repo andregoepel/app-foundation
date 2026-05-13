@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>AndreGoepel.Marten.Identity</PackageId>
+    <Version>1.0.0</Version>
+    <Description>ASP.NET Core Identity stores backed by Marten (PostgreSQL). Provides user, role, and user-role stores, middleware, and DI extensions.</Description>
+    <PackageTags>aspnetcore;identity;marten;postgresql</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Marten.AspNetCore" Version="8.34.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AndreGoepel.Marten.Identity.Tests" />
+  </ItemGroup>
+</Project>

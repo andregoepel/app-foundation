@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build ./AndreGoepel.MembersArea --file ./AndreGoepel.MembersArea/AndreGoepel.MembersArea/Dockerfile --tag membersarea:$(date +%s)
+      run: docker build ./AndreGoepel.AppFoundation --file ./AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/Dockerfile --tag appfoundation:$(date +%s)

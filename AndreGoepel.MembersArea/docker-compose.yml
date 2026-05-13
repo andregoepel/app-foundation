@@ -1,6 +1,0 @@
-services:
-  andregoepel.membersarea:
-    image: ${DOCKER_REGISTRY-}andregoepelmembersarea
-    build:
-      context: .
-      dockerfile: AndreGoepel.MembersArea/Dockerfile

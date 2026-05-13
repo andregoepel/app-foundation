@@ -1,0 +1,221 @@
+@page "/Setup"
+@layout LoginLayout
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity.Users
+@using AndreGoepel.AppFoundation
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Radzen
+@using Radzen.Blazor
+@using global::Marten
+
+@inject IQuerySession QuerySession
+@inject UserManager<User> UserManager
+@inject RoleManager<Role> RoleManager
+@inject IUserStore<User> UserStore
+@inject SignInManager<User> SignInManager
+@inject IEmailSender<User> EmailSender
+@inject ILogger<Setup> Logger
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Initial Setup – nerdventures.blog</PageTitle>
+
+<SectionContent SectionName="login-tagline">Set up your administrator account.</SectionContent>
+
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Initial Setup</RadzenText>
+
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
+    <RadzenStack Gap="1.25rem">
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Email" Component="Email" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenTextBox @bind-Value=@Input.Email
+                               Name="Email"
+                               Placeholder="admin@nerdventures.blog"
+                               Style="width:100%" />
+                <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                <RadzenEmailValidator Component="Email" Text="Invalid email address" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Password" Component="Password" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenPassword @bind-Value=@Input.Password
+                                Name="Password"
+                                Style="width:100%" />
+                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+                <RadzenLengthValidator Component="Password" Min="6" Text="At least 6 characters" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Confirm password" Component="ConfirmPassword" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenPassword @bind-Value=@Input.ConfirmPassword
+                                Name="ConfirmPassword"
+                                Style="width:100%" />
+                <RadzenRequiredValidator Component="ConfirmPassword" Text="Confirmation is required" />
+                <RadzenCompareValidator Component="ConfirmPassword"
+                                       Value=@Input.Password
+                                       Text="Passwords do not match" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <div class="login-action-row">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="Create admin & complete setup"
+                          ButtonStyle="ButtonStyle.Primary"
+                          IsBusy=@isProcessing
+                          BusyText="Creating..." />
+        </div>
+
+    </RadzenStack>
+</RadzenTemplateForm>
+
+<RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+    This step is only shown once.
+</RadzenText>
+
+@code {
+    private InputModel Input { get; set; } = new();
+    private bool isProcessing;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rolesExist = await QuerySession.Query<Role>().AnyAsync();
+        if (rolesExist)
+        {
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+    }
+
+    private async Task OnValidSubmit(InputModel model)
+    {
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            var user = new User
+            {
+                Email = Input.Email,
+                EmailConfirmed = true,
+                RootUser = true,
+                Deletable = false
+            };
+
+            await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+
+            var createResult = await UserManager.CreateAsync(user, Input.Password);
+            if (!createResult.Succeeded)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    NotificationService.Notify(
+                        NotificationSeverity.Error,
+                        summary: "Error creating admin account",
+                        detail: error.Description
+                    );
+                }
+                return;
+            }
+
+            Logger.LogInformation("Root admin {Email} created successfully", Input.Email);
+
+            // Create default roles if they don't exist
+            var defaultRoles = new[]
+            {
+                (Roles.Administrator, false),
+                (Roles.Member, false),
+                (Roles.User, false)
+            };
+
+            foreach (var (name, deletable) in defaultRoles)
+            {
+                if (!await RoleManager.RoleExistsAsync(name))
+                {
+                    var role = new Role
+                    {
+                        Name = name,
+                        Deletable = deletable,
+                        CreatedBy = user.UserId,
+                        ChangedBy = user.UserId
+                    };
+                    var roleResult = await RoleManager.CreateAsync(role);
+                    if (!roleResult.Succeeded)
+                    {
+                        NotificationService.Notify(
+                            NotificationSeverity.Error,
+                            summary: $"Error creating role {name}"
+                        );
+                        return;
+                    }
+                }
+            }
+
+            await UserManager.AddToRoleAsync(user, Roles.Administrator);
+
+            var signingResult = await SignInManager.CheckPasswordSignInAsync(user, model.Password, true);
+
+            if (signingResult == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                NotificationService.Notify(
+                    NotificationSeverity.Success,
+                    "Success",
+                    "Administrator account created. You are now signed in."
+                );
+                NavigationManager.NavigateTo($"/login?key={key}", true);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+            }
+
+            NavigationManager.NavigateTo(ReturnUrl ?? "/");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Critical error during setup");
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Critical error",
+                "Setup could not be completed. Please try again."
+            );
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Password confirmation is required")]
+        [Compare(nameof(Password), ErrorMessage = "The password and confirmation password do not match.")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

@@ -1,0 +1,17 @@
+<Solution>
+  <Project Path="AndreGoepel.Marten.Identity.Tests/AndreGoepel.Marten.Identity.Tests.csproj" />
+  <Project
+    Path="AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj"
+    Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe"
+  />
+  <Project Path="AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
+  <Project Path="AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
+  <Project Path="AndreGoepel.Marten.Identity.Blazor/AndreGoepel.Marten.Identity.Blazor.csproj" />
+  <Project Path="AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
+  <Project Path="AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+</Solution>

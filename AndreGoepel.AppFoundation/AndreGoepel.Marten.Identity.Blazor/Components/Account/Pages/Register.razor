@@ -1,0 +1,161 @@
+@page "/Account/Register"
+@layout LoginLayout
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Radzen
+@using Radzen.Blazor
+
+@inject UserManager<User> UserManager
+@inject IUserStore<User> UserStore
+@inject IEmailSender<User> EmailSender
+@inject ILogger<Register> Logger
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Register – nerdventures.blog</PageTitle>
+
+<SectionContent SectionName="login-tagline">Create your account to get started.</SectionContent>
+
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Register</RadzenText>
+
+<RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@RegisterUser>
+    <RadzenStack Gap="1.25rem">
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Email" Component="Email" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenTextBox @bind-Value=@Input.Email
+                               Name="Email"
+                               AutoCompleteType="AutoCompleteType.Email"
+                               Placeholder="name@example.com"
+                               Style="width:100%" />
+                <RadzenRequiredValidator Component="Email" Text="Email is required" />
+                <RadzenEmailValidator Component="Email" Text="Please enter a valid email address" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Password" Component="NewPassword" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenPassword @bind-Value="Input.Password" Name="NewPassword" Style="width:100%" />
+                <RadzenRequiredValidator Component="NewPassword" Text="Password is required" />
+                <RadzenLengthValidator Component="NewPassword" Min="6" Max="100"
+                                       Text="Password must be between 6 and 100 characters" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenLabel Text="Confirm password" Component="ConfirmPassword" Style="width: 10rem; flex-shrink: 0;" />
+            <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                <RadzenPassword @bind-Value="Input.ConfirmPassword" Name="ConfirmPassword" Style="width:100%" />
+                <RadzenRequiredValidator Component="ConfirmPassword" Text="Please confirm your password" />
+                <RadzenCompareValidator Component="ConfirmPassword"
+                                       Value=@Input.Password
+                                       Text="The passwords do not match"
+                                       Operator="CompareOperator.Equal" />
+            </RadzenStack>
+        </RadzenStack>
+
+        <div class="login-action-row">
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="Register"
+                          ButtonStyle="ButtonStyle.Primary" />
+        </div>
+
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    private async Task RegisterUser(InputModel model)
+    {
+        var user = CreateUser();
+
+        await UserStore.SetUserNameAsync(user, model.Email, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, model.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, model.Password);
+
+        if (!result.Succeeded)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error on creating a new account: {string.Join('\r', result.Errors)}");
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password.");
+
+        var userId = await UserManager.GetUserIdAsync(user);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+
+        await EmailSender.SendConfirmationLinkAsync(user, model.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+        if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        {
+            var confirmUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/RegisterConfirmation").AbsoluteUri,
+                new Dictionary<string, object?> { ["email"] = model.Email, ["returnUrl"] = ReturnUrl });
+            NavigationManager.NavigateTo(confirmUrl);
+        }
+        else
+        {
+            // SignInAsync writes cookies — must go through middleware
+            Guid key = Guid.NewGuid();
+            CookieLoginMiddleware.Logins[key] = new LoginInfo
+            {
+                Email = model.Email,
+                Password = model.Password,
+                RememberMe = false,
+            };
+            NavigationManager.NavigateTo($"/login?key={key}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
+        }
+    }
+
+    private User CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<User>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
+                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<User> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<User>)UserStore;
+    }
+
+    private sealed class InputModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

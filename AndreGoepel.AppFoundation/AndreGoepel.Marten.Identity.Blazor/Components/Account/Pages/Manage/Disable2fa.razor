@@ -1,0 +1,112 @@
+﻿@page "/Account/Manage/Disable2fa"
+@rendermode InteractiveServer
+
+@using AndreGoepel.Marten.Identity.Users
+@using Microsoft.AspNetCore.Identity
+@using Radzen
+@using Radzen.Blazor
+
+@inject UserManager<User> UserManager
+@inject NavigationManager NavigationManager
+@inject ILogger<Disable2fa> Logger
+@inject NotificationService NotificationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Disable two-factor authentication (2FA) – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+
+            <div class="text-center">
+                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
+                    Disable two-factor authentication (2FA)
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
+                    Turn off 2FA for your account
+                </RadzenText>
+            </div>
+
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" Icon="warning">
+                <strong>This action only disables 2FA.</strong><br />
+                Disabling 2FA does <strong>not</strong> change the keys used in your authenticator apps.<br />
+                If you want to change the authenticator key, please <a href="/Account/Manage/ResetAuthenticator">reset your authenticator keys</a> instead.
+            </RadzenAlert>
+
+            <RadzenStack Gap="1rem" AlignItems="AlignItems.Center">
+                <RadzenButton Text="Disable 2FA"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Size="ButtonSize.Large"
+                              IsBusy="@isProcessing"
+                              BusyText="Disabling..."
+                              Style="width: 100%; max-width: 360px;"
+                              Click=@OnSubmitAsync />
+            </RadzenStack>
+
+            <RadzenText TextStyle="TextStyle.Caption" class="text-center rz-color-muted">
+                You can re-enable 2FA at any time from your security settings.
+            </RadzenText>
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    private User? user;
+    private bool isProcessing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = await UserManager.GetUserAsync(authState.User);
+
+        if (user is null)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "Could not load user profile.");
+            return;
+        }
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if(user == null)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", "Invalid user.");
+                return;
+            }
+
+            var result = await UserManager.SetTwoFactorEnabledAsync(user, enabled: false);
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException("Failed to disable 2FA: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            var userId = await UserManager.GetUserIdAsync(user);
+            Logger.LogInformation("User {UserId} disabled 2FA", userId);
+
+            NotificationService.Notify(NotificationSeverity.Info, "2FA has been disabled",
+                "Two-factor authentication is now turned off. You can re-enable it anytime by setting up an authenticator app.");
+            NavigationManager.NavigateTo("/Account/Manage/TwoFactorAuthentication");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to disable 2FA for user {UserEmail}", user?.Email);
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                summary: "Error",
+                detail: "Could not disable 2FA. Please try again or contact support."
+            );
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}
