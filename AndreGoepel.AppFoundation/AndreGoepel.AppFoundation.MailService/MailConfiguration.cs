@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AndreGoepel.MembersArea.MailService;
+namespace AndreGoepel.AppFoundation.MailService;
 
 internal record MailConfiguration
 {

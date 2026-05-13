@@ -1,4 +1,4 @@
-﻿namespace AndreGoepel.MembersArea.MailService;
+﻿namespace AndreGoepel.AppFoundation.MailService;
 
 public interface IEmailSender
 {

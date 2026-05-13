@@ -1,6 +1,6 @@
 ﻿using Wolverine.Attributes;
 
-namespace AndreGoepel.MembersArea.MailService;
+namespace AndreGoepel.AppFoundation.MailService;
 
 [WolverineHandler]
 public class SendEmailMessageHandler(IEmailSender EmailSender)

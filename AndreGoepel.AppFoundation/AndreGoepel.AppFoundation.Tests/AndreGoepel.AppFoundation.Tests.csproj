@@ -26,6 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.MembersArea\AndreGoepel.MembersArea.csproj" />
+    <ProjectReference Include="..\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
   </ItemGroup>
 </Project>

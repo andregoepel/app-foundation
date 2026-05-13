@@ -21,6 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.MembersArea.MailService\AndreGoepel.MembersArea.MailService.csproj" />
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
   </ItemGroup>
 </Project>

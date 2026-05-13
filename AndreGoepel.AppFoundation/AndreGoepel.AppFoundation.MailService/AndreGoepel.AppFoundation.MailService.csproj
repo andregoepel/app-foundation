@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="AndreGoepel.MembersArea.MailService.Tests" />
+    <InternalsVisibleTo Include="AndreGoepel.AppFoundation.MailService.Tests" />
   </ItemGroup>
 
   <ItemGroup>

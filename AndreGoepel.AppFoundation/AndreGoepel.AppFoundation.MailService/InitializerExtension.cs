@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AndreGoepel.MembersArea.MailService;
+namespace AndreGoepel.AppFoundation.MailService;
 
 public static class InitializerExtension
 {

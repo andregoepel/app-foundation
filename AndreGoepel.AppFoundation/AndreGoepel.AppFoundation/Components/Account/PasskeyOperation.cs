@@ -1,4 +1,4 @@
-namespace AndreGoepel.MembersArea.Components.Account;
+namespace AndreGoepel.AppFoundation.Components.Account;
 
 public enum PasskeyOperation
 {

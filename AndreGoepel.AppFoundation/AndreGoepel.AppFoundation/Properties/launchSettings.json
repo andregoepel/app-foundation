@@ -7,7 +7,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://andregoepel_membersarea.dev.localhost:5228"
+      "applicationUrl": "http://andregoepel_appfoundation.dev.localhost:5228"
     },
     "https": {
       "commandName": "Project",
@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://andregoepel_membersarea.dev.localhost:7254;http://andregoepel_membersarea.dev.localhost:5228"
+      "applicationUrl": "https://andregoepel_appfoundation.dev.localhost:7254;http://andregoepel_appfoundation.dev.localhost:5228"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AndreGoepel.MembersArea.Components.Account;
+namespace AndreGoepel.AppFoundation.Components.Account;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {

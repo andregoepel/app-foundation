@@ -1,9 +1,9 @@
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.MailService;
+using AndreGoepel.AppFoundation.MailService;
 using Microsoft.AspNetCore.Identity;
 using Wolverine;
 
-namespace AndreGoepel.MembersArea.Components.Account;
+namespace AndreGoepel.AppFoundation.Components.Account;
 
 internal sealed class IdentityEmailSender(IMessageBus MessageBus) : IEmailSender<User>
 {

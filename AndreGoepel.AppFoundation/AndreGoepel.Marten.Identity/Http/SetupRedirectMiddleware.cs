@@ -1,7 +1,8 @@
 using AndreGoepel.Marten.Identity.Users;
 using Marten;
+using Microsoft.AspNetCore.Http;
 
-namespace AndreGoepel.MembersArea.Components.Account;
+namespace AndreGoepel.Marten.Identity.Http;
 
 public class SetupRedirectMiddleware(RequestDelegate next)
 {

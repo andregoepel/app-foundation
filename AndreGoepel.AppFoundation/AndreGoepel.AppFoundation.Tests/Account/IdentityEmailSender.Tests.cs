@@ -1,10 +1,10 @@
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components.Account;
-using AndreGoepel.MembersArea.MailService;
+using AndreGoepel.AppFoundation.Components.Account;
+using AndreGoepel.AppFoundation.MailService;
 using NSubstitute;
 using Wolverine;
 
-namespace AndreGoepel.MembersArea.Tests.Account;
+namespace AndreGoepel.AppFoundation.Tests.Account;
 
 public class IdentityEmailSenderTests
 {

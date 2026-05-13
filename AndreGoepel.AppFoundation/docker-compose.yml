@@ -1,6 +1,6 @@
 services:
-  andregoepel.membersarea:
-    image: ${DOCKER_REGISTRY-}andregoepelmembersarea
+  andregoepel.appfoundation:
+    image: ${DOCKER_REGISTRY-}andregoepelappfoundation
     build:
       context: .
-      dockerfile: AndreGoepel.MembersArea/Dockerfile
+      dockerfile: AndreGoepel.AppFoundation/Dockerfile

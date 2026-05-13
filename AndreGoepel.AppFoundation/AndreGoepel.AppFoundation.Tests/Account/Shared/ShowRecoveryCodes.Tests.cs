@@ -1,7 +1,7 @@
-using AndreGoepel.MembersArea.Components.Account.Shared;
+using AndreGoepel.AppFoundation.Components.Account.Shared;
 using Bunit;
 
-namespace AndreGoepel.MembersArea.Tests.Account.Shared;
+namespace AndreGoepel.AppFoundation.Tests.Account.Shared;
 
 public class ShowRecoveryCodesTests : BunitContext
 {

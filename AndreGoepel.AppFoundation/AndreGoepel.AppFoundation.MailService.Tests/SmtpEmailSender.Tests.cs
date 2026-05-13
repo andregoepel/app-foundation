@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace AndreGoepel.MembersArea.MailService.Tests;
+namespace AndreGoepel.AppFoundation.MailService.Tests;
 
 public class SmtpEmailSenderTests
 {

@@ -1,7 +1,7 @@
-using AndreGoepel.MembersArea.MailService;
+using AndreGoepel.AppFoundation.MailService;
 using NSubstitute;
 
-namespace AndreGoepel.MembersArea.MailService.Tests;
+namespace AndreGoepel.AppFoundation.MailService.Tests;
 
 public class SendEmailMessageHandlerTests
 {

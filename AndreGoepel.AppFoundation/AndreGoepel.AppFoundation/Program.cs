@@ -1,9 +1,8 @@
 using AndreGoepel.Marten.Identity;
-using AndreGoepel.Marten.Identity.Roles;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components;
-using AndreGoepel.MembersArea.Components.Account;
-using AndreGoepel.MembersArea.MailService;
+using AndreGoepel.AppFoundation.Components;
+using AndreGoepel.AppFoundation.Components.Account;
+using AndreGoepel.AppFoundation.MailService;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -16,7 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Add services to the container.
 builder
     .Services.AddRazorComponents()
     .AddInteractiveServerComponents()
@@ -28,35 +26,11 @@ builder.Services.AddScoped<
     IdentityRevalidatingAuthenticationStateProvider
 >();
 
-builder
-    .Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();
-builder.Services.AddAuthorization();
+builder.Services.AddMartenIdentity();
 
 var connectionString =
-    builder.Configuration.GetConnectionString("members-area-database")
-    ?? throw new InvalidOperationException("Connection string 'identity-database' not found.");
-
-builder
-    .Services.AddIdentityCore<User>(options =>
-    {
-        options.SignIn.RequireConfirmedAccount = true;
-        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-    })
-    .AddRoles<Role>()
-    .AddUserManager<UserManager<User>>()
-    .AddUserStore<UserStore<User>>()
-    .AddRoleManager<RoleManager<Role>>()
-    .AddRoleStore<RoleStore<Role>>()
-    .AddDefaultTokenProviders()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddScoped<NotificationService>();
+    builder.Configuration.GetConnectionString("appfoundation-database")
+    ?? throw new InvalidOperationException("Connection string 'appfoundation-database' not found.");
 
 builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
@@ -70,11 +44,11 @@ builder
     })
     .IntegrateWithWolverine();
 
-builder.Services.InitializeIdentityServices();
+builder.Services.AddScoped<NotificationService>();
 
 builder.Host.UseWolverine(options =>
 {
-    options.ServiceName = "MembersArea";
+    options.ServiceName = "AppFoundation";
 
     options.Policies.UseDurableInboxOnAllListeners();
     options.Policies.UseDurableOutboxOnAllSendingEndpoints();
@@ -94,11 +68,9 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 app.UseHttpsRedirection();
@@ -108,13 +80,11 @@ app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMartenIdentityMiddleware();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.UseMiddleware<SetupRedirectMiddleware>();
-app.UseMiddleware<CookieLoginMiddleware>();
-
-// Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();

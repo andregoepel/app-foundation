@@ -1,6 +1,6 @@
 using System.Text;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components.Account.Pages;
+using AndreGoepel.AppFoundation.Components.Account.Pages;
 using Bunit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-namespace AndreGoepel.MembersArea.Tests.Account.Pages;
+namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
 
 public class ConfirmEmailChangeTests : BunitContext
 {

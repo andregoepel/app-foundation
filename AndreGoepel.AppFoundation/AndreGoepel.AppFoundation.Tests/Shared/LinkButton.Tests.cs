@@ -1,9 +1,9 @@
-using AndreGoepel.MembersArea.Components.Shared;
+using AndreGoepel.AppFoundation.Components.Shared;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AndreGoepel.MembersArea.Tests.Shared;
+namespace AndreGoepel.AppFoundation.Tests.Shared;
 
 public class LinkButtonTests : BunitContext
 {

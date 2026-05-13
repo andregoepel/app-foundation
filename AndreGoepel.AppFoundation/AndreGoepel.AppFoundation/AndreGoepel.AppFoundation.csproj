@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-AndreGoepel_MembersArea-c3d2e608-d33f-4412-ba33-2d59d0b1835b</UserSecretsId>
+    <UserSecretsId>aspnet-AndreGoepel_AppFoundation-c3d2e608-d33f-4412-ba33-2d59d0b1835b</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="AndreGoepel.MembersArea.Tests" />
+    <InternalsVisibleTo Include="AndreGoepel.AppFoundation.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,8 +28,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.Marten.Identity\AndreGoepel.Marten.Identity.csproj" />
-    <ProjectReference Include="..\AndreGoepel.MembersArea.MailService\AndreGoepel.MembersArea.MailService.csproj" />
-    <ProjectReference Include="..\AndreGoepel.MembersArea.ServiceDefaults\AndreGoepel.MembersArea.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.ServiceDefaults\AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,18 +13,18 @@ var postgresServer = builder
     .WithLifetime(ContainerLifetime.Persistent)
     .WithHostPort(5432)
     .WithDataVolume();
-var membersAreaDb = postgresServer.AddDatabase("members-area-database");
+var appFoundationDb = postgresServer.AddDatabase("appfoundation-database");
 
 builder
-    .AddProject<Projects.AndreGoepel_MembersArea>("andregoepel-membersarea")
-    .WithReference(membersAreaDb)
-    .WithEnvironment("EmailSender__SenderName", "André Göpel - Member Area")
+    .AddProject<Projects.AndreGoepel_AppFoundation>("andregoepel-appfoundation")
+    .WithReference(appFoundationDb)
+    .WithEnvironment("EmailSender__SenderName", "André Göpel - App Foundation")
     .WithEnvironment("EmailSender__SenderEmail", "no-reply@localhost.dev")
     .WithEnvironment("EmailSender__Username", "test-mail")
     .WithEnvironment("EmailSender__Password", "12345678")
     .WithEnvironment("EmailSender__Port", () => mailhog.GetEndpoint("smtp").Port.ToString())
     .WithEnvironment("EmailSender__Server", () => mailhog.GetEndpoint("smtp").Host)
-    .WaitFor(membersAreaDb) // TODO: remove if startup don't need db
+    .WaitFor(appFoundationDb) // TODO: remove if startup don't need db
     .PublishAsDockerFile();
 
 builder.Build().Run();

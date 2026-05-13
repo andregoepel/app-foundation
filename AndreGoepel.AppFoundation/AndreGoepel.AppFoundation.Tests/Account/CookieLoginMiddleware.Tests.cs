@@ -1,5 +1,5 @@
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.MembersArea.Components.Account;
+using AndreGoepel.Marten.Identity.Http;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-namespace AndreGoepel.MembersArea.Tests.Account;
+namespace AndreGoepel.AppFoundation.Tests.Account;
 
 public class CookieLoginMiddlewareTests
 {

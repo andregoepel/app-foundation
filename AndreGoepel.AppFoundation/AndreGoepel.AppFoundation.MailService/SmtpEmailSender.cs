@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace AndreGoepel.MembersArea.MailService;
+namespace AndreGoepel.AppFoundation.MailService;
 
 internal class SmtpEmailSender(IOptions<MailConfiguration> configuration) : IEmailSender
 {

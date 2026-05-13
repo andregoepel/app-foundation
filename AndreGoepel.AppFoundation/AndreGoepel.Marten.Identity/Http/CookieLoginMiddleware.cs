@@ -1,8 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using AndreGoepel.Marten.Identity.Users;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-namespace AndreGoepel.MembersArea.Components.Account;
+namespace AndreGoepel.Marten.Identity.Http;
 
 public class LoginInfo
 {
