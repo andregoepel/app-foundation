@@ -1,6 +1,6 @@
 using System.Text;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.AppFoundation.Components.Account.Pages;
+using AndreGoepel.Marten.Identity.Blazor.Components.Account.Pages;
 using Bunit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;

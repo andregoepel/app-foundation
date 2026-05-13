@@ -22,12 +22,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="10.0.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-    <PackageReference Include="Radzen.Blazor" Version="10.3.2" />
     <PackageReference Include="WolverineFx.Marten" Version="5.36.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.Marten.Identity\AndreGoepel.Marten.Identity.csproj" />
+    <ProjectReference Include="..\AndreGoepel.Marten.Identity.Blazor\AndreGoepel.Marten.Identity.Blazor.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.ServiceDefaults\AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </ItemGroup>

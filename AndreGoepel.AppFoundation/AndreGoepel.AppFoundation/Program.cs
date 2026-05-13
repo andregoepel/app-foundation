@@ -1,11 +1,12 @@
 using AndreGoepel.Marten.Identity;
+using AndreGoepel.Marten.Identity.Blazor;
+using AndreGoepel.Marten.Identity.Blazor.Components.Account;
 using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.AppFoundation.Components;
 using AndreGoepel.AppFoundation.Components.Account;
 using AndreGoepel.AppFoundation.MailService;
 using JasperFx;
 using Marten;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Radzen;
 using Wolverine;
@@ -20,13 +21,8 @@ builder
     .AddInteractiveServerComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<
-    AuthenticationStateProvider,
-    IdentityRevalidatingAuthenticationStateProvider
->();
-
 builder.Services.AddMartenIdentity();
+builder.Services.AddMartenIdentityBlazor();
 
 var connectionString =
     builder.Configuration.GetConnectionString("appfoundation-database")

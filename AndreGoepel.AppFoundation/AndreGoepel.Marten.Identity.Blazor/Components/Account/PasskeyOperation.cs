@@ -1,4 +1,4 @@
-namespace AndreGoepel.AppFoundation.Components.Account;
+namespace AndreGoepel.Marten.Identity.Blazor.Components.Account;
 
 public enum PasskeyOperation
 {

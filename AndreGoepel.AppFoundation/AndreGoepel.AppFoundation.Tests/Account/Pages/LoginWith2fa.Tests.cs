@@ -1,4 +1,4 @@
-using AndreGoepel.AppFoundation.Components.Account.Pages;
+using AndreGoepel.Marten.Identity.Blazor.Components.Account.Pages;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;

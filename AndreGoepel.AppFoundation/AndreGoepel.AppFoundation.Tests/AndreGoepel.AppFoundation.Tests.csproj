@@ -27,5 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
+    <ProjectReference Include="..\AndreGoepel.Marten.Identity.Blazor\AndreGoepel.Marten.Identity.Blazor.csproj" />
   </ItemGroup>
 </Project>

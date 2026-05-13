@@ -1,4 +1,4 @@
-using AndreGoepel.AppFoundation.Components.Account.Shared;
+using AndreGoepel.Marten.Identity.Blazor.Components.Account.Shared;
 using Bunit;
 
 namespace AndreGoepel.AppFoundation.Tests.Account.Shared;
