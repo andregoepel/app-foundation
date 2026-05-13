@@ -1,10 +1,10 @@
+using AndreGoepel.AppFoundation.Components;
+using AndreGoepel.AppFoundation.Components.Account;
+using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
 using AndreGoepel.Marten.Identity.Blazor.Components.Account;
 using AndreGoepel.Marten.Identity.Users;
-using AndreGoepel.AppFoundation.Components;
-using AndreGoepel.AppFoundation.Components.Account;
-using AndreGoepel.AppFoundation.MailService;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Identity;
@@ -16,10 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder
-    .Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddMartenIdentity();
 builder.Services.AddMartenIdentityBlazor();
