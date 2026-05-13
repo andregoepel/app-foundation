@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var identityDbUser = builder.AddParameter("database-user", "db-user");
-var identityDbPassword = builder.AddParameter("database-password", "Password1+", true);
+var identityDbPassword = builder.AddParameter("database-password", secret: true);
 
 var mailhog = builder
     .AddContainer("mailhog", "mailhog/mailhog")
