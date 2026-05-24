@@ -1,0 +1,85 @@
+@inherits LayoutComponentBase
+
+@inject SiteStateService State
+@inject ContentService ContentService
+@inject IJSRuntime JS
+
+@implements IAsyncDisposable
+
+<HeadContent>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="_content/AndreGoepel.Website/css/app.css" />
+</HeadContent>
+
+<SiteHeader Navigation="@_contentCurrentLanguage?.Navigation" />
+
+<main>
+    <HeroSection Hero="@_contentCurrentLanguage?.Hero" />
+    <ProblemsSection Problems="@_contentCurrentLanguage?.Problem" />
+    <ServicesSection Services="@_contentCurrentLanguage?.Services" />
+    <AboutSection About="@_contentCurrentLanguage?.About" />
+    <CasesSection Cases="@_contentCurrentLanguage?.Cases" />
+    <ContactSection Contact="@_contentCurrentLanguage?.Contact" />
+    @Body
+</main>
+
+<FooterSection Footer="@_contentCurrentLanguage?.Footer" />
+
+@code {
+    private HomeContent _contentEn = default!;
+    private HomeContent _contentDe = default!;
+    private HomeContent _contentCurrentLanguage = HomeContent.Create();
+
+    private bool _isInitialized;
+
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        (_contentEn, _contentDe) = (await ContentService.GetAsync("en"), await ContentService.GetAsync("de"));
+        _contentCurrentLanguage = ResolveCurrentLanguage();
+    }
+
+    private void OnStateChanged()
+    {
+        _contentCurrentLanguage = ResolveCurrentLanguage();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private HomeContent ResolveCurrentLanguage() => State.Lang == "de" ? _contentDe : _contentEn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var state = await JS.InvokeAsync<InitialState>("site.getInitialState");
+            State.SetLang(state.Lang);
+            State.SetTheme(state.Theme, state.ResolvedTheme);
+            _contentCurrentLanguage = ResolveCurrentLanguage();
+
+            await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("site.initAll");
+            _isInitialized = true;
+        }
+        else if (_isInitialized)
+        {
+            await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
+            await JS.InvokeVoidAsync("site.refreshReveal");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        State.OnChange -= OnStateChanged;
+        await Task.CompletedTask;
+    }
+
+    private record InitialState(string Lang, string Theme, string ResolvedTheme);
+}

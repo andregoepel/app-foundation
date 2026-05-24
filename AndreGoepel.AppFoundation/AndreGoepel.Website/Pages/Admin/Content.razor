@@ -1,0 +1,96 @@
+@page "/admin/content"
+@attribute [Authorize(Roles = "Administrator")]
+@inject ContentService ContentService
+@inject NotificationService NotificationSvc
+
+<PageTitle>Content Admin</PageTitle>
+
+@if (!_loaded)
+{
+    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+else
+{
+    <RadzenStack Gap="1.5rem">
+        <RadzenTabs>
+            <Tabs>
+                <RadzenTabsItem Text="English">
+                    <RadzenStack Gap="1rem">
+                        <LanguageEditor Content="@_en" />
+                        <div>
+                            <RadzenButton
+                                Text="Save English"
+                                Icon="save"
+                                ButtonStyle="ButtonStyle.Primary"
+                                IsBusy="@_savingEn"
+                                Click="@SaveEnAsync" />
+                        </div>
+                    </RadzenStack>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Deutsch">
+                    <RadzenStack Gap="1rem">
+                        <LanguageEditor Content="@_de" />
+                        <div>
+                            <RadzenButton
+                                Text="Deutsch speichern"
+                                Icon="save"
+                                ButtonStyle="ButtonStyle.Primary"
+                                IsBusy="@_savingDe"
+                                Click="@SaveDeAsync" />
+                        </div>
+                    </RadzenStack>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenStack>
+}
+
+@code {
+    private HomeContent _en = default!;
+    private HomeContent _de = default!;
+    private bool _loaded;
+    private bool _savingEn;
+    private bool _savingDe;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (_en, _de) = (await ContentService.GetAsync("en"), await ContentService.GetAsync("de"));
+        _loaded = true;
+    }
+
+    private async Task SaveEnAsync()
+    {
+        _savingEn = true;
+        try
+        {
+            await ContentService.SaveAsync("en", _en);
+            NotificationSvc.Notify(NotificationSeverity.Success, "Saved", "English content saved.");
+        }
+        catch
+        {
+            NotificationSvc.Notify(NotificationSeverity.Error, "Error", "Failed to save English content.");
+        }
+        finally
+        {
+            _savingEn = false;
+        }
+    }
+
+    private async Task SaveDeAsync()
+    {
+        _savingDe = true;
+        try
+        {
+            await ContentService.SaveAsync("de", _de);
+            NotificationSvc.Notify(NotificationSeverity.Success, "Gespeichert", "Deutschen Inhalt gespeichert.");
+        }
+        catch
+        {
+            NotificationSvc.Notify(NotificationSeverity.Error, "Fehler", "Fehler beim Speichern.");
+        }
+        finally
+        {
+            _savingDe = false;
+        }
+    }
+}

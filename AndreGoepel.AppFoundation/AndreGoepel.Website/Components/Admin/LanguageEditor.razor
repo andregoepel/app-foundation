@@ -1,0 +1,385 @@
+@* Edits one language's HomePageContent in-place. All mutations are on the
+   passed-in reference — the parent page owns save / cancel. *@
+
+<RadzenTabs>
+    <Tabs>
+
+        @* ── Nav ─────────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Nav">
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Links" />
+                @foreach (var key in Content.Navigation.Links.Keys.ToList())
+                {
+                    <RadzenFormField Text="@key">
+                        <RadzenTextBox
+                            Value="@Content.Navigation.Links[key]"
+                            Change="@(v => Content.Navigation.Links[key] = v)"
+                            Style="width:100%" />
+                    </RadzenFormField>
+                }
+                <RadzenFormField Text="CTA">
+                    <RadzenTextBox @bind-Value="Content.Navigation.Cta" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Lang label">
+                    <RadzenTextBox @bind-Value="Content.Navigation.LangLabel" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Theme label">
+                    <RadzenTextBox @bind-Value="Content.Navigation.ThemeLabel" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Theme options" />
+                @foreach (var key in Content.Navigation.ThemeOptions.Keys.ToList())
+                {
+                    <RadzenFormField Text="@key">
+                        <RadzenTextBox
+                            Value="@Content.Navigation.ThemeOptions[key]"
+                            Change="@(v => Content.Navigation.ThemeOptions[key] = v)"
+                            Style="width:100%" />
+                    </RadzenFormField>
+                }
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Hero ────────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Hero">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Eyebrow">
+                    <RadzenTextBox @bind-Value="Content.Hero.Eyebrow" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title line 1">
+                    <RadzenTextBox
+                        Value="@(Content.Hero.Title.ElementAtOrDefault(0) ?? "")"
+                        Change="@(v => SetAt(Content.Hero.Title, 0, v))"
+                        Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title line 2">
+                    <RadzenTextBox
+                        Value="@(Content.Hero.Title.ElementAtOrDefault(1) ?? "")"
+                        Change="@(v => SetAt(Content.Hero.Title, 1, v))"
+                        Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Body">
+                    <RadzenTextArea @bind-Value="Content.Hero.Body" Rows="3" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Meta">
+                    <RadzenTextBox @bind-Value="Content.Hero.Meta" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="CTA">
+                    <RadzenTextBox @bind-Value="Content.Hero.Cta" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Services label">
+                    <RadzenTextBox @bind-Value="Content.Hero.ServicesLabel" Style="width:100%" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Problem ──────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Problem">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kicker">
+                    <RadzenTextBox @bind-Value="Content.Problem.Kicker" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title">
+                    <RadzenTextBox @bind-Value="Content.Problem.Title" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Items (one per line)">
+                    <RadzenTextArea
+                        Rows="8"
+                        Value="@string.Join("\n", Content.Problem.Items)"
+                        Change="@(v => Content.Problem.Items = SplitLines(v))"
+                        Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Footer">
+                    <RadzenTextBox @bind-Value="Content.Problem.Footer" Style="width:100%" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Services ──────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Services">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kicker">
+                    <RadzenTextBox @bind-Value="Content.Services.Kicker" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title">
+                    <RadzenTextBox @bind-Value="Content.Services.Title" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Service items" />
+                <RadzenDataGrid
+                    @ref="_servicesGrid"
+                    TItem="ServiceItem"
+                    Data="@Content.Services.Items"
+                    EditMode="DataGridEditMode.Single"
+                    AllowColumnResize="true">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="ServiceItem" Property="Tag" Title="Tag" Width="160px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Tag" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ServiceItem" Property="Name" Title="Name" Width="200px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Name" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ServiceItem" Property="Meta" Title="Meta" Width="190px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Meta" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ServiceItem" Property="Body" Title="Body">
+                            <EditTemplate Context="item">
+                                <RadzenTextArea @bind-Value="item.Body" Rows="3" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ServiceItem" Title="Bullets" Width="200px">
+                            <Template Context="item">@string.Join(", ", item.Bullets)</Template>
+                            <EditTemplate Context="item">
+                                <RadzenTextBox
+                                    Value="@string.Join(", ", item.Bullets)"
+                                    Change="@(v => item.Bullets = SplitComma(v))"
+                                    Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ServiceItem" Title="" Width="100px" Filterable="false" Sortable="false">
+                            <Template Context="item">
+                                <RadzenButton
+                                    Icon="edit"
+                                    ButtonStyle="ButtonStyle.Light"
+                                    Size="ButtonSize.Small"
+                                    Click="@(() => _servicesGrid!.EditRow(item))" />
+                                <RadzenButton
+                                    Icon="delete"
+                                    ButtonStyle="ButtonStyle.Danger"
+                                    Size="ButtonSize.Small"
+                                    Click="@(() => { Content.Services.Items.Remove(item); _servicesGrid!.Reload(); })" />
+                            </Template>
+                            <EditTemplate Context="item">
+                                <RadzenButton
+                                    Icon="check"
+                                    ButtonStyle="ButtonStyle.Success"
+                                    Size="ButtonSize.Small"
+                                    Click="@(() => _servicesGrid!.UpdateRow(item))" />
+                                <RadzenButton
+                                    Icon="close"
+                                    ButtonStyle="ButtonStyle.Light"
+                                    Size="ButtonSize.Small"
+                                    Click="@(() => _servicesGrid!.CancelEditRow(item))" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+                <div>
+                    <RadzenButton
+                        Icon="add"
+                        Text="Add service"
+                        ButtonStyle="ButtonStyle.Secondary"
+                        Size="ButtonSize.Small"
+                        Click="@(async () => { Content.Services.Items.Add(new()); await _servicesGrid!.Reload(); await _servicesGrid.EditRow(Content.Services.Items.Last()); })" />
+                </div>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── About ───────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="About">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kicker">
+                    <RadzenTextBox @bind-Value="Content.About.Kicker" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title">
+                    <RadzenTextBox @bind-Value="Content.About.Title" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Body paragraphs (one per line)">
+                    <RadzenTextArea
+                        Rows="8"
+                        Value="@string.Join("\n", Content.About.Body)"
+                        Change="@(v => Content.About.Body = SplitLines(v))"
+                        Style="width:100%" />
+                </RadzenFormField>
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Facts" />
+                <RadzenDataGrid
+                    @ref="_factsGrid"
+                    TItem="FactItem"
+                    Data="@Content.About.Facts"
+                    EditMode="DataGridEditMode.Single">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="FactItem" Property="Key" Title="Key" Width="160px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Key" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="FactItem" Property="Value" Title="Value">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Value" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="FactItem" Title="" Width="100px" Filterable="false" Sortable="false">
+                            <Template Context="item">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => _factsGrid!.EditRow(item))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => { Content.About.Facts.Remove(item); _factsGrid!.Reload(); })" />
+                            </Template>
+                            <EditTemplate Context="item">
+                                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => _factsGrid!.UpdateRow(item))" />
+                                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => _factsGrid!.CancelEditRow(item))" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+                <div>
+                    <RadzenButton
+                        Icon="add"
+                        Text="Add fact"
+                        ButtonStyle="ButtonStyle.Secondary"
+                        Size="ButtonSize.Small"
+                        Click="@(async () => { Content.About.Facts.Add(new()); await _factsGrid!.Reload(); await _factsGrid.EditRow(Content.About.Facts.Last()); })" />
+                </div>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Cases ───────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Cases">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kicker">
+                    <RadzenTextBox @bind-Value="Content.Cases.Kicker" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title">
+                    <RadzenTextBox @bind-Value="Content.Cases.Title" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Note">
+                    <RadzenTextBox @bind-Value="Content.Cases.Note" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Demo label">
+                    <RadzenTextBox @bind-Value="Content.Cases.Demo" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenText TextStyle="TextStyle.Subtitle1" Text="Case items" />
+                <RadzenDataGrid
+                    @ref="_casesGrid"
+                    TItem="CaseItem"
+                    Data="@Content.Cases.Items"
+                    EditMode="DataGridEditMode.Single"
+                    AllowColumnResize="true">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="CaseItem" Property="Sector" Title="Sector" Width="220px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Sector" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CaseItem" Property="Title" Title="Title" Width="220px">
+                            <EditTemplate Context="item">
+                                <RadzenTextBox @bind-Value="item.Title" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CaseItem" Property="Body" Title="Body">
+                            <EditTemplate Context="item">
+                                <RadzenTextArea @bind-Value="item.Body" Rows="3" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CaseItem" Property="Result" Title="Result" Width="220px">
+                            <EditTemplate Context="item">
+                                <RadzenTextArea @bind-Value="item.Result" Rows="3" Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CaseItem" Title="Stack" Width="180px">
+                            <Template Context="item">@string.Join(", ", item.Stack)</Template>
+                            <EditTemplate Context="item">
+                                <RadzenTextBox
+                                    Value="@string.Join(", ", item.Stack)"
+                                    Change="@(v => item.Stack = SplitComma(v))"
+                                    Style="width:100%" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CaseItem" Title="" Width="100px" Filterable="false" Sortable="false">
+                            <Template Context="item">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => _casesGrid!.EditRow(item))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => { Content.Cases.Items.Remove(item); _casesGrid!.Reload(); })" />
+                            </Template>
+                            <EditTemplate Context="item">
+                                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => _casesGrid!.UpdateRow(item))" />
+                                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => _casesGrid!.CancelEditRow(item))" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+                <div>
+                    <RadzenButton
+                        Icon="add"
+                        Text="Add case"
+                        ButtonStyle="ButtonStyle.Secondary"
+                        Size="ButtonSize.Small"
+                        Click="@(async () => { Content.Cases.Items.Add(new()); await _casesGrid!.Reload(); await _casesGrid.EditRow(Content.Cases.Items.Last()); })" />
+                </div>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Contact ──────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Contact">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kicker">
+                    <RadzenTextBox @bind-Value="Content.Contact.Kicker" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Title">
+                    <RadzenTextBox @bind-Value="Content.Contact.Title" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Body">
+                    <RadzenTextArea @bind-Value="Content.Contact.Body" Rows="3" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="CTA">
+                    <RadzenTextBox @bind-Value="Content.Contact.Cta" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Or">
+                    <RadzenTextBox @bind-Value="Content.Contact.Or" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="LinkedIn label">
+                    <RadzenTextBox @bind-Value="Content.Contact.LinkedIn" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="LinkedIn URL">
+                    <RadzenTextBox @bind-Value="Content.Contact.LinkedInUrl" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="GitHub label">
+                    <RadzenTextBox @bind-Value="Content.Contact.GitHub" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="GitHub URL">
+                    <RadzenTextBox @bind-Value="Content.Contact.GitHubUrl" Style="width:100%" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+        @* ── Footer ───────────────────────────────────────────────── *@
+        <RadzenTabsItem Text="Footer">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Note">
+                    <RadzenTextBox @bind-Value="Content.Footer.Note" Style="width:100%" />
+                </RadzenFormField>
+                <RadzenFormField Text="Built">
+                    <RadzenTextBox @bind-Value="Content.Footer.Built" Style="width:100%" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenTabsItem>
+
+    </Tabs>
+</RadzenTabs>
+
+@code {
+    [Parameter, EditorRequired]
+    public required HomeContent Content { get; set; }
+
+    private RadzenDataGrid<ServiceItem>? _servicesGrid;
+    private RadzenDataGrid<FactItem>? _factsGrid;
+    private RadzenDataGrid<CaseItem>? _casesGrid;
+
+    private static void SetAt(List<string> list, int index, string value)
+    {
+        while (list.Count <= index)
+            list.Add("");
+        list[index] = value;
+    }
+
+    private static List<string> SplitLines(string? text) =>
+        (text ?? "")
+            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+
+    private static List<string> SplitComma(string? text) =>
+        (text ?? "")
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+}

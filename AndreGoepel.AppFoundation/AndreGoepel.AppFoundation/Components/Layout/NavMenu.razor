@@ -10,7 +10,7 @@
 @if (SetupComplete)
 {
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/dashboard" />
 
         <AuthorizeView>
             <Authorized>
@@ -27,6 +27,10 @@
 
         <AuthorizeView Roles="Administrator">
             <Authorized>
+                <RadzenPanelMenuItem Text="andregoepel.dev" Icon="language">
+                    <RadzenPanelMenuItem Text="Texte" Icon="edit_note" Path="admin/content" />
+                </RadzenPanelMenuItem>
+
                 <RadzenPanelMenuItem Text="Administration" Icon="settings">
                     <RadzenPanelMenuItem Text="User Cleanup" Path="Administration/UserCleanup" />
                     <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />

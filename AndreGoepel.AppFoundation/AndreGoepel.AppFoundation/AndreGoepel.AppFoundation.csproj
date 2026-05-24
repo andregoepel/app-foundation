@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.Marten.Identity.Blazor\AndreGoepel.Marten.Identity.Blazor.csproj" />
+    <ProjectReference Include="..\AndreGoepel.Website\AndreGoepel.Website.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.ServiceDefaults\AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </ItemGroup>
