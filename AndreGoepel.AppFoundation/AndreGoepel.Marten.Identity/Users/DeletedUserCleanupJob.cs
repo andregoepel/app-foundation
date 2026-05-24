@@ -1,6 +1,5 @@
 using Marten;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Quartz;
 
 namespace AndreGoepel.Marten.Identity.Users;
@@ -8,7 +7,7 @@ namespace AndreGoepel.Marten.Identity.Users;
 [DisallowConcurrentExecution]
 internal sealed class DeletedUserCleanupJob(
     IDocumentStore documentStore,
-    IOptions<DeletedUserCleanupOptions> options,
+    CleanupSettingsService settingsService,
     ILogger<DeletedUserCleanupJob> logger
 ) : IJob
 {
@@ -16,7 +15,8 @@ internal sealed class DeletedUserCleanupJob(
     {
         try
         {
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-options.Value.RetentionDays);
+            var settings = await settingsService.GetAsync(context.CancellationToken);
+            var cutoff = DateTimeOffset.UtcNow.AddDays(-settings.RetentionDays);
 
             using var querySession = documentStore.QuerySession();
             var usersToClean = await querySession

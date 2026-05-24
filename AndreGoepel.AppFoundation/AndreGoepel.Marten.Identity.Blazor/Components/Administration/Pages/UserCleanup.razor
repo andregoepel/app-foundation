@@ -1,0 +1,121 @@
+@page "/Administration/UserCleanup"
+@rendermode InteractiveServer
+
+@using AndreGoepel.Marten.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Radzen
+@using Radzen.Blazor
+
+@inject CleanupSettingsService CleanupSettingsService
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>User Cleanup – nerdventures.blog</PageTitle>
+
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem" Style="max-width: 560px;">
+
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">User Cleanup</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
+                Configure automatic permanent deletion of soft-deleted users.
+            </RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Gap="1.25rem">
+
+                <RadzenFormField Text="Retention period (days)" Style="width: 100%;">
+                    <RadzenNumeric @bind-Value="@_input.RetentionDays" Min="1" Max="3650" Style="width: 100%;" />
+                </RadzenFormField>
+
+                <RadzenFormField Text="Cron schedule" Style="width: 100%;">
+                    <RadzenTextBox @bind-Value="@_input.CronSchedule" Style="width: 100%;" />
+                </RadzenFormField>
+                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color); margin-top: -0.75rem;">
+                    Quartz cron format: seconds minutes hours day-of-month month day-of-week.
+                    Example: <code>0 0 3 * * ?</code> runs daily at 03:00 UTC.
+                    Changes take effect immediately.
+                </RadzenText>
+
+                @if (_nextFireTime.HasValue)
+                {
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Next scheduled run: <strong>@_nextFireTime.Value.ToString("f") UTC</strong>
+                    </RadzenText>
+                }
+
+                @if (_errorMessage is not null)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Variant="Variant.Flat">
+                        @_errorMessage
+                    </RadzenAlert>
+                }
+
+                @if (_saved)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true" Variant="Variant.Flat">
+                        Settings saved.
+                    </RadzenAlert>
+                }
+
+                <RadzenButton Text="Save"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@SaveAsync"
+                              IsBusy="@_saving" />
+
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
+</div>
+
+@code {
+    private InputModel _input = new();
+    private DateTimeOffset? _nextFireTime;
+    private bool _saving;
+    private bool _saved;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settings = await CleanupSettingsService.GetAsync();
+        _input.RetentionDays = settings.RetentionDays;
+        _input.CronSchedule = settings.CronSchedule;
+        _nextFireTime = await CleanupSettingsService.GetNextFireTimeAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saved = false;
+        _errorMessage = null;
+        _saving = true;
+
+        try
+        {
+            var settings = new CleanupSettings
+            {
+                RetentionDays = _input.RetentionDays,
+                CronSchedule = _input.CronSchedule,
+            };
+
+            await CleanupSettingsService.SaveAsync(settings);
+            _nextFireTime = await CleanupSettingsService.GetNextFireTimeAsync();
+            _saved = true;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        public int RetentionDays { get; set; } = 30;
+        public string CronSchedule { get; set; } = "0 0 0 * * ?";
+    }
+}

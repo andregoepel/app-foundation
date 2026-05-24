@@ -82,6 +82,8 @@ public static class Initialization
             );
         });
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+        services.AddScoped<CleanupSettingsService>();
+        services.AddHostedService<CleanupScheduleStartupService>();
 
         return services;
     }
@@ -91,5 +93,6 @@ public static class Initialization
         options.InitializeUsersStore();
         options.InitializeRolesStore();
         options.InitializeUserRolesStore();
+        options.Schema.For<CleanupSettings>();
     }
 }
