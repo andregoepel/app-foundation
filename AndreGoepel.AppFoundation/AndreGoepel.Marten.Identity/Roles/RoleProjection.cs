@@ -48,4 +48,16 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
         role.DeletedBy = @event.DeletedBy;
         role.DeletedAt = @event.DeletedAt;
     }
+
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
+    public void Apply(RoleRestored @event, Role role)
+    {
+        role.Deleted = false;
+        role.DeletedBy = null;
+        role.DeletedAt = null;
+    }
 }

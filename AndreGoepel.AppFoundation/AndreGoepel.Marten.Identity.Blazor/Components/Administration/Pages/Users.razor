@@ -10,6 +10,7 @@
 @using Radzen.Blazor
 
 @inject UserManager<User> UserManager
+@inject UserStore<User> UserStore
 @inject DialogService DialogService
 
 @attribute [Authorize(Roles = "Administrator")]
@@ -67,6 +68,10 @@
                                 {
                                     <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => DeleteUser(data))" />
                                 }
+                                @if (data.Deleted)
+                                {
+                                    <RadzenButton Text="Restore" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => RestoreUser(data))" />
+                                }
                             </RadzenStack>
                         </Template>
                     </RadzenDataGridColumn>
@@ -106,6 +111,22 @@
             else
             {
                 await DialogService.Alert("User could not be deleted", "Error");
+            }
+        }
+    }
+
+    private async Task RestoreUser(User user)
+    {
+        if (await DialogService.Confirm("Are you sure you want to restore this user?", "Restore User") == true)
+        {
+            var result = await UserStore.RestoreAsync(user);
+            if (result.Succeeded)
+            {
+                LoadUsers();
+            }
+            else
+            {
+                await DialogService.Alert("User could not be restored", "Error");
             }
         }
     }

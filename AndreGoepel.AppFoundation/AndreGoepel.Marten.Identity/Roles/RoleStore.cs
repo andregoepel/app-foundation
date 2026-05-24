@@ -1,5 +1,6 @@
 ﻿using AndreGoepel.Marten.Identity.Roles.Events;
 using AndreGoepel.Marten.Identity.Services;
+using AndreGoepel.Marten.Identity.Users;
 using Marten;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -108,6 +109,35 @@ public class RoleStore<TRole>(
             logger.LogError(ex, "Failed to delete the role in Marten.");
             return IdentityResult.Failed(
                 new IdentityError() { Description = "Something went wrong deleting the role." }
+            );
+        }
+    }
+
+    public async Task<IdentityResult> RestoreAsync(
+        TRole role,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            role.Deleted = false;
+            role.DeletedBy = null;
+            role.DeletedAt = null;
+
+            session.Events.Append(
+                role.RoleId,
+                new RoleRestored(role.RoleId, await currentUserService.GetCurrentUserIdAsync())
+            );
+            session.Store(role);
+            await session.SaveChangesAsync(cancellationToken);
+
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to restore the role in Marten.");
+            return IdentityResult.Failed(
+                new IdentityError() { Description = "Something went wrong restoring the role." }
             );
         }
     }

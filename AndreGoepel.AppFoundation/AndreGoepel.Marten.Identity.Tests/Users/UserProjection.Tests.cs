@@ -98,7 +98,9 @@ public class UserProjectionTests
         var user = new User
         {
             UserName = "alice",
+            NormalizedUserName = "ALICE",
             Email = "alice@example.com",
+            NormalizedEmail = "ALICE@EXAMPLE.COM",
             PasswordHash = "hash",
         };
         var @event = new UserDeleted(userId);
@@ -108,7 +110,9 @@ public class UserProjectionTests
 
         // Assert
         Assert.Null(user.UserName);
+        Assert.Null(user.NormalizedUserName);
         Assert.Null(user.Email);
+        Assert.Null(user.NormalizedEmail);
         Assert.Null(user.PasswordHash);
         Assert.True(user.Deleted);
     }
@@ -129,6 +133,94 @@ public class UserProjectionTests
         // Assert
         Assert.Equal(deletedBy, user.DeletedBy);
         Assert.Equal(deletedAt, user.DeletedAt);
+    }
+
+    #endregion
+
+    #region UserRestored
+
+    [Fact]
+    public void Apply_UserRestored_ClearsDeletedFlag()
+    {
+        // Arrange
+        var userId = UserId.New();
+        var user = new User { Deleted = true };
+        var @event = new UserRestored(userId, UserId.New());
+
+        // Act
+        _projection.Apply(@event, user);
+
+        // Assert
+        Assert.False(user.Deleted);
+    }
+
+    [Fact]
+    public void Apply_UserRestored_ClearsDeletedByAndAt()
+    {
+        // Arrange
+        var userId = UserId.New();
+        var deletedBy = UserId.New();
+        var user = new User
+        {
+            Deleted = true,
+            DeletedBy = deletedBy,
+            DeletedAt = DateTimeOffset.UtcNow,
+        };
+        var @event = new UserRestored(userId, UserId.New());
+
+        // Act
+        _projection.Apply(@event, user);
+
+        // Assert
+        Assert.Null(user.DeletedBy);
+        Assert.Null(user.DeletedAt);
+    }
+
+    [Fact]
+    public void Apply_UserRestored_RestoresPiiFromEvent()
+    {
+        // Arrange
+        var userId = UserId.New();
+        var user = new User { Deleted = true };
+        var @event = new UserRestored(userId, UserId.New())
+        {
+            UserName = "alice",
+            Email = "alice@example.com",
+            PasswordHash = "hash123",
+        };
+
+        // Act
+        _projection.Apply(@event, user);
+
+        // Assert
+        Assert.Equal("alice", user.UserName);
+        Assert.Equal("ALICE", user.NormalizedUserName);
+        Assert.Equal("alice@example.com", user.Email);
+        Assert.Equal("ALICE@EXAMPLE.COM", user.NormalizedEmail);
+        Assert.Equal("hash123", user.PasswordHash);
+    }
+
+    [Fact]
+    public void Apply_UserRestored_NullPii_DoesNotOverwrite()
+    {
+        // Arrange
+        var userId = UserId.New();
+        var user = new User
+        {
+            Deleted = true,
+            UserName = "existing",
+            Email = "existing@example.com",
+            PasswordHash = "existingHash",
+        };
+        var @event = new UserRestored(userId, UserId.New());
+
+        // Act
+        _projection.Apply(@event, user);
+
+        // Assert
+        Assert.Equal("existing", user.UserName);
+        Assert.Equal("existing@example.com", user.Email);
+        Assert.Equal("existingHash", user.PasswordHash);
     }
 
     #endregion
