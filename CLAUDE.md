@@ -48,6 +48,42 @@ Blazor InteractiveServer application foundation with a custom event-sourced ASP.
 - `Result<T>` for error handling — no exceptions for flow control
 - File-scoped namespaces
 
+## Blazor
+
+### Folder Structure
+- `Components/Pages/` — routed page components
+- `Components/Layout/` — layout components
+- `Components/Shared/` — reusable components without a route
+- `Components/[Feature]/Pages/` — feature-scoped pages
+- `Components/[Feature]/Dialogs/` — Radzen dialog components
+
+### UI Components
+- Use Radzen components for all UI by default (`RadzenStack`, `RadzenButton`, `RadzenTextBox`, `RadzenDataGrid`, etc.)
+- Use plain HTML / CSS for pages that are highly designed: homepages, landing pages, content pages. Radzen components are not needed there and get in the way of custom styling.
+
+### Component Rules
+- Prefer `@rendermode InteractiveServer` on page-level components; only set it on child components when you need a different render mode for a specific interactive island
+- Shared `@using` directives belong in `_Imports.razor`; use per-file `@using` only for non-global namespaces
+- Every routed page must have `<PageTitle>`
+- Use `@attribute [Authorize(Roles = "...")]` on pages, not conditionals in code
+- Form models: private `sealed class InputModel` inside `@code` (not a record — needs mutable properties for `@bind-Value`)
+
+### Lifecycle & Events
+- Implement `IDisposable` / `IAsyncDisposable` on any component that subscribes to events or services; unsubscribe in `Dispose()`
+- Use `EventCallback<T>` for component output events — not `Action` or `Func`
+- Avoid calling `StateHasChanged()` explicitly; let the framework re-render naturally. Only use it when triggering a render from an external thread or non-Blazor event
+
+### `@code` Block Order
+1. `[Parameter]` / `[SupplyParameterFromQuery]` properties
+2. Private state fields
+3. Lifecycle methods (`OnInitializedAsync`, `OnParametersSetAsync`)
+4. Event handlers
+5. Private helper methods
+6. Nested types (e.g. `InputModel`)
+
+### Code-Behind
+Extract to a `.razor.cs` partial class when logic is independently testable or the file becomes hard to navigate. Keep UI-bound state fields in the `.razor` file.
+
 ## Testing
 - Scope: domain logic and handlers
 - Naming: `[Method]_[Scenario]_[ExpectedResult]`
