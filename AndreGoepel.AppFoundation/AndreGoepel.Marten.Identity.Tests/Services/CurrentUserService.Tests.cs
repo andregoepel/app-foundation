@@ -171,7 +171,10 @@ public class CurrentUserServiceTests
         List<User> users
     ) : CurrentUserService(authProvider, session)
     {
-        protected override Task<UserId> QueryUserIdByNameAsync(string? userName) =>
+        protected override Task<UserId> QueryUserIdByNameAsync(
+            string? userName,
+            CancellationToken cancellationToken = default
+        ) =>
             Task.FromResult(
                 users.Where(u => u.UserName == userName).Select(u => u.UserId).SingleOrDefault()
             );

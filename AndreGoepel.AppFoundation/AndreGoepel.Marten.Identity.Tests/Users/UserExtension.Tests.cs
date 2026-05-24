@@ -24,8 +24,11 @@ public class UserExtensionTests
         var a = BaseUser();
         var b = BaseUser();
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.True(a.AreEqual(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -34,8 +37,11 @@ public class UserExtensionTests
         // Arrange
         var user = BaseUser();
 
+        // Act
+        var result = user.AreEqual(user);
+
         // Assert
-        Assert.True(user.AreEqual(user));
+        Assert.True(result);
     }
 
     [Fact]
@@ -46,8 +52,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.Email = "bob@example.com";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -58,8 +67,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.UserName = "bob";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -70,8 +82,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.PasswordHash = "differentHash";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -82,8 +97,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.EmailConfirmed = false;
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -94,8 +112,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.PhoneNumber = "9999999999";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -106,8 +127,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.AuthenticatorKey = "differentKey";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -118,8 +142,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.RecoveryCodes = "newcode";
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -130,8 +157,11 @@ public class UserExtensionTests
         var b = BaseUser();
         b.TwoFactorEnabled = true;
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -143,8 +173,11 @@ public class UserExtensionTests
         a.Email = null;
         b.Email = null;
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.True(a.AreEqual(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -155,7 +188,10 @@ public class UserExtensionTests
         var b = BaseUser();
         a.Email = null;
 
+        // Act
+        var result = a.AreEqual(b);
+
         // Assert
-        Assert.False(a.AreEqual(b));
+        Assert.False(result);
     }
 }

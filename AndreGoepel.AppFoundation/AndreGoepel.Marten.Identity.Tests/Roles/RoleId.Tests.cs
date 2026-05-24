@@ -65,8 +65,11 @@ public class RoleIdTests
         var guid = Guid.NewGuid();
         var id = RoleId.Parse(guid);
 
+        // Act
+        var result = id.ToString();
+
         // Assert
-        Assert.Equal(guid.ToString(), id.ToString());
+        Assert.Equal(guid.ToString(), result);
     }
 
     [Fact]
@@ -104,8 +107,11 @@ public class RoleIdTests
         var id1 = RoleId.Parse(guid);
         var id2 = RoleId.Parse(guid);
 
+        // Act
+        var areEqual = id1.Equals(id2);
+
         // Assert
-        Assert.Equal(id1, id2);
+        Assert.True(areEqual);
     }
 
     [Fact]

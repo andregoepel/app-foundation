@@ -129,7 +129,10 @@ public class SmtpEmailSenderTests
         public MimeMessage? CapturedMessage { get; private set; }
         public int SendMailCallCount { get; private set; }
 
-        protected override Task SendMailAsync(MimeMessage message)
+        protected override Task SendMailAsync(
+            MimeMessage message,
+            CancellationToken cancellationToken = default
+        )
         {
             CapturedMessage = message;
             SendMailCallCount++;

@@ -1,5 +1,5 @@
-using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.AppFoundation.MailService;
+using AndreGoepel.Marten.Identity.Users;
 using Microsoft.AspNetCore.Identity;
 using Wolverine;
 

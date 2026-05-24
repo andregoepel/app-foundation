@@ -1,5 +1,5 @@
-using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.Marten.Identity.Http;
+using AndreGoepel.Marten.Identity.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -203,7 +203,7 @@ public class CookieLoginMiddlewareTests
     }
 
     [Fact]
-    public async Task Login_RemovesKeyFromDictionaryAfterProcessing()
+    public async Task Login_AfterProcessing_RemovesKeyFromDictionary()
     {
         // Arrange
         var key = Guid.NewGuid();
@@ -318,7 +318,7 @@ public class CookieLoginMiddlewareTests
     }
 
     [Fact]
-    public async Task Login2fa_StripsSpacesAndDashesFromCode()
+    public async Task Login2fa_CodeWithSpacesAndDashes_StripsThemBeforeVerification()
     {
         // Arrange
         var key = Guid.NewGuid();
@@ -432,7 +432,7 @@ public class CookieLoginMiddlewareTests
     }
 
     [Fact]
-    public async Task LoginRecovery_StripsSpacesFromCode()
+    public async Task LoginRecovery_CodeWithSpaces_StripsThemBeforeVerification()
     {
         // Arrange
         var key = Guid.NewGuid();

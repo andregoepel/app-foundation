@@ -29,8 +29,11 @@ public class UserPasskeyTests
         var bytes = new byte[] { 1, 2, 3, 4 };
         var passkey = MakePasskey(bytes);
 
+        // Act
+        var result = passkey.CredentialId;
+
         // Assert
-        Assert.Equal(Convert.ToBase64String(bytes), passkey.CredentialId);
+        Assert.Equal(Convert.ToBase64String(bytes), result);
     }
 
     [Fact]
@@ -41,8 +44,11 @@ public class UserPasskeyTests
         var a = MakePasskey(bytes);
         var b = MakePasskey(bytes);
 
+        // Act
+        var result = a.Equals(b);
+
         // Assert
-        Assert.True(a.Equals(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -52,8 +58,11 @@ public class UserPasskeyTests
         var a = MakePasskey([1, 2, 3, 4]);
         var b = MakePasskey([5, 6, 7, 8]);
 
+        // Act
+        var result = a.Equals(b);
+
         // Assert
-        Assert.False(a.Equals(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -62,8 +71,11 @@ public class UserPasskeyTests
         // Arrange
         var passkey = MakePasskey([1, 2, 3]);
 
+        // Act
+        var result = passkey.Equals(null);
+
         // Assert
-        Assert.False(passkey.Equals(null));
+        Assert.False(result);
     }
 
     [Fact]
@@ -74,8 +86,11 @@ public class UserPasskeyTests
         var a = MakePasskey(bytes);
         object b = MakePasskey(bytes);
 
+        // Act
+        var result = a.Equals(b);
+
         // Assert
-        Assert.True(a.Equals(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -84,8 +99,11 @@ public class UserPasskeyTests
         // Arrange
         var passkey = MakePasskey([1, 2, 3]);
 
+        // Act
+        var result = passkey.Equals("notapasskey");
+
         // Assert
-        Assert.False(passkey.Equals("notapasskey"));
+        Assert.False(result);
     }
 
     [Fact]
@@ -96,8 +114,12 @@ public class UserPasskeyTests
         var a = MakePasskey(bytes);
         var b = MakePasskey(bytes);
 
+        // Act
+        var hashA = a.GetHashCode();
+        var hashB = b.GetHashCode();
+
         // Assert
-        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+        Assert.Equal(hashA, hashB);
     }
 
     [Fact]
@@ -107,8 +129,12 @@ public class UserPasskeyTests
         var a = MakePasskey([1, 2, 3]);
         var b = MakePasskey([4, 5, 6]);
 
+        // Act
+        var hashA = a.GetHashCode();
+        var hashB = b.GetHashCode();
+
         // Assert
-        Assert.NotEqual(a.GetHashCode(), b.GetHashCode());
+        Assert.NotEqual(hashA, hashB);
     }
 
     [Fact]
@@ -118,8 +144,12 @@ public class UserPasskeyTests
         var bytes = new byte[] { 1, 2, 3 };
         var set = new HashSet<UserPasskey> { MakePasskey(bytes) };
 
+        // Act
+        var containsMatch = set.Contains(MakePasskey(bytes));
+        var containsDifferent = set.Contains(MakePasskey([9, 9, 9]));
+
         // Assert
-        Assert.Contains(MakePasskey(bytes), set);
-        Assert.DoesNotContain(MakePasskey([9, 9, 9]), set);
+        Assert.True(containsMatch);
+        Assert.False(containsDifferent);
     }
 }

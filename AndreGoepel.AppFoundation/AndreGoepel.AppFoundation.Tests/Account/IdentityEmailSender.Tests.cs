@@ -1,6 +1,6 @@
-using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.AppFoundation.Components.Account;
 using AndreGoepel.AppFoundation.MailService;
+using AndreGoepel.Marten.Identity.Users;
 using NSubstitute;
 using Wolverine;
 
