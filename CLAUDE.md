@@ -15,6 +15,7 @@ Blazor InteractiveServer application foundation with a custom event-sourced ASP.
 ## Tech Stack
 - .NET 10, Blazor InteractiveServer, .NET Aspire
 - Marten + PostgreSQL, Wolverine (durable messaging)
+- Quartz.NET (scheduled jobs)
 - Radzen (UI components)
 - xUnit, bUnit
 
