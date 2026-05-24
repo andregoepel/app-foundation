@@ -168,6 +168,67 @@ public class UserStore<TUser>(
         }
     }
 
+    public async Task<IdentityResult> RestoreAsync(
+        TUser user,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var userId = UserId.Parse(user.Id);
+
+            var stream = await querySession.Events.FetchStreamAsync(
+                userId.Value,
+                token: cancellationToken
+            );
+
+            var deletionVersion =
+                stream.LastOrDefault(e => e.Data is UserDeleted)?.Version ?? stream.Count;
+            var snapshot = new User();
+            var projection = new UserProjection();
+
+            foreach (var e in stream.Where(e => e.Version < deletionVersion))
+            {
+                switch (e.Data)
+                {
+                    case UserCreated created:
+                        projection.Apply(created, snapshot);
+                        break;
+                    case UserUpdated updated:
+                        projection.Apply(updated, snapshot);
+                        break;
+                    case UserRestored restored:
+                        projection.Apply(restored, snapshot);
+                        break;
+                }
+            }
+
+            using var session = documentStore.LightweightSession();
+
+            session.Events.Append(
+                userId.Value,
+                new UserRestored(userId, await currentUserService.GetCurrentUserIdAsync())
+                {
+                    UserName = snapshot.UserName,
+                    Email = snapshot.Email,
+                    PasswordHash = snapshot.PasswordHash,
+                }
+            );
+            await session.SaveChangesAsync(cancellationToken);
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            if (logger.IsEnabled(LogLevel.Error))
+            {
+                logger.LogError(ex, "Failed to restore the user in Marten.");
+            }
+            return IdentityResult.Failed(
+                new IdentityError() { Description = "Something went wrong restoring the user." }
+            );
+        }
+    }
+
     public async Task<TUser?> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
         await querySession
             .Query<TUser>()

@@ -35,11 +35,40 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     public void Apply(UserDeleted @event, User user)
     {
         user.UserName = null;
+        user.NormalizedUserName = null;
         user.Email = null;
+        user.NormalizedEmail = null;
         user.PasswordHash = null;
         user.Deleted = true;
         user.DeletedBy = @event.DeletedBy;
         user.DeletedAt = @event.DeletedAt;
+    }
+
+    [SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Called by Marten via reflection"
+    )]
+    public void Apply(UserRestored @event, User user)
+    {
+        user.Deleted = false;
+        user.DeletedBy = null;
+        user.DeletedAt = null;
+
+        if (@event.UserName is not null)
+        {
+            user.UserName = @event.UserName;
+            user.NormalizedUserName = @event.UserName.ToUpperInvariant();
+        }
+
+        if (@event.Email is not null)
+        {
+            user.Email = @event.Email;
+            user.NormalizedEmail = @event.Email.ToUpperInvariant();
+        }
+
+        if (@event.PasswordHash is not null)
+            user.PasswordHash = @event.PasswordHash;
     }
 
     [SuppressMessage(

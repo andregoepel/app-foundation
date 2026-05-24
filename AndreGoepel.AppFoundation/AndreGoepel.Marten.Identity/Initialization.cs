@@ -7,6 +7,7 @@ using Marten;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 
 namespace AndreGoepel.Marten.Identity;
 
@@ -44,6 +45,8 @@ public static class Initialization
             .AddDefaultTokenProviders();
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<UserStore<User>>();
+        services.AddScoped<RoleStore<Role>>();
 
         return services;
     }
@@ -53,6 +56,34 @@ public static class Initialization
         app.UseMiddleware<SetupRedirectMiddleware>();
         app.UseMiddleware<CookieLoginMiddleware>();
         return app;
+    }
+
+    public static IServiceCollection AddMartenIdentityCleanup(
+        this IServiceCollection services,
+        Action<DeletedUserCleanupOptions>? configure = null
+    )
+    {
+        var opts = new DeletedUserCleanupOptions();
+        configure?.Invoke(opts);
+        services.Configure<DeletedUserCleanupOptions>(o =>
+        {
+            o.RetentionDays = opts.RetentionDays;
+            o.CronSchedule = opts.CronSchedule;
+        });
+
+        var jobKey = new JobKey("DeletedUserCleanup", "MartenIdentity");
+        services.AddQuartz(q =>
+        {
+            q.AddJob<DeletedUserCleanupJob>(j => j.WithIdentity(jobKey));
+            q.AddTrigger(t =>
+                t.ForJob(jobKey)
+                    .WithIdentity("DeletedUserCleanupTrigger", "MartenIdentity")
+                    .WithCronSchedule(opts.CronSchedule)
+            );
+        });
+        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+        return services;
     }
 
     public static void InitializeIdentity(this global::Marten.StoreOptions options)

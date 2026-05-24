@@ -11,6 +11,7 @@
 
 @inject RoleManager<Role> RoleManager
 @inject UserManager<User> UserManager
+@inject RoleStore<Role> RoleStore
 @inject DialogService DialogService
 
 @attribute [Authorize(Roles = "Administrator")]
@@ -80,6 +81,13 @@
                                                   Size="ButtonSize.Small"
                                                   Click="@(() => DeleteRole(data))" />
                                 }
+                                @if (data.Deleted)
+                                {
+                                    <RadzenButton Text="Restore"
+                                                  ButtonStyle="ButtonStyle.Success"
+                                                  Size="ButtonSize.Small"
+                                                  Click="@(() => RestoreRole(data))" />
+                                }
                             </RadzenStack>
                         </Template>
                     </RadzenDataGridColumn>
@@ -139,6 +147,29 @@
             await DialogService.Alert(
                 string.Join("\n", result.Errors.Select(e => e.Description)),
                 "Deletion failed");
+        }
+    }
+
+    private async Task RestoreRole(Role role)
+    {
+        if (await DialogService.Confirm(
+            $"Are you sure you want to restore the role **{role.Name}**?",
+            "Restore Role") != true)
+        {
+            return;
+        }
+
+        var result = await RoleStore.RestoreAsync(role);
+
+        if (result.Succeeded)
+        {
+            LoadRoles();
+        }
+        else
+        {
+            await DialogService.Alert(
+                string.Join("\n", result.Errors.Select(e => e.Description)),
+                "Restore failed");
         }
     }
 

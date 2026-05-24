@@ -181,4 +181,57 @@ public class RoleProjectionTests
     }
 
     #endregion
+
+    #region RoleRestored
+
+    [Fact]
+    public void Apply_RoleRestored_ClearsDeletedFlag()
+    {
+        // Arrange
+        var @event = new RoleRestored(RoleId.New(), UserId.New());
+        var role = new Role { Deleted = true };
+
+        // Act
+        _projection.Apply(@event, role);
+
+        // Assert
+        Assert.False(role.Deleted);
+    }
+
+    [Fact]
+    public void Apply_RoleRestored_ClearsDeletedByAndAt()
+    {
+        // Arrange
+        var deletedBy = UserId.New();
+        var @event = new RoleRestored(RoleId.New(), UserId.New());
+        var role = new Role
+        {
+            Deleted = true,
+            DeletedBy = deletedBy,
+            DeletedAt = DateTimeOffset.UtcNow,
+        };
+
+        // Act
+        _projection.Apply(@event, role);
+
+        // Assert
+        Assert.Null(role.DeletedBy);
+        Assert.Null(role.DeletedAt);
+    }
+
+    [Fact]
+    public void Apply_RoleRestored_PreservesName()
+    {
+        // Arrange
+        var @event = new RoleRestored(RoleId.New(), UserId.New());
+        var role = new Role { Deleted = true, Name = "Admin" };
+
+        // Act
+        _projection.Apply(@event, role);
+
+        // Assert
+        Assert.Equal("Admin", role.Name);
+    }
+
+    #endregion
 }
