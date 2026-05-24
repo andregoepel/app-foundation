@@ -1,77 +1,58 @@
 # Project Instructions
 
-## Formatting
+## Project Overview
 
-Use **CSharpier** for all C# code formatting. It is installed globally.
+Blazor InteractiveServer application foundation with a custom event-sourced ASP.NET Core Identity library (`AndreGoepel.Marten.Identity`) backed by Marten/PostgreSQL. Orchestrated via .NET Aspire.
 
-```bash
-csharpier format .
-```
+**Solution projects:**
+- `AndreGoepel.AppFoundation` — main Blazor app
+- `AndreGoepel.AppFoundation.AppHost` — .NET Aspire host
+- `AndreGoepel.AppFoundation.MailService` — email sending
+- `AndreGoepel.AppFoundation.ServiceDefaults` — shared ASP.NET Core defaults
+- `AndreGoepel.Marten.Identity` — packable NuGet: Identity stores (event-sourced)
+- `AndreGoepel.Marten.Identity.Blazor` — Blazor UI components for identity flows
 
-Run from `AndreGoepel.MembersArea/`. Do not use `dotnet format`.
+## Tech Stack
+- .NET 10, Blazor InteractiveServer, .NET Aspire
+- Marten + PostgreSQL, Wolverine (durable messaging)
+- Radzen (UI components)
+- xUnit, bUnit
 
-## Test file naming
+## Commands
+- Build: `dotnet build`
+- Test: `dotnet test`
+- Format: `csharpier format .` (run after every change)
 
-Name test files `Subject.Tests.cs` (dot-separated), not `SubjectTests.cs`.
-Class names inside the file stay as generated (e.g. `UserIdTests`).
+## Git Workflow
+- Branches: `feature/`, `bugfix/`, `hotfix/`
+- Commits: `type: description` (feat, fix, refactor, test, docs)
+- Always branch before changes; run tests before committing
 
-```
-UserId.Tests.cs         ✓
-UserProjection.Tests.cs ✓
-UserIdTests.cs          ✗
-```
+## Code Conventions
 
-## InternalsVisibleTo in .csproj
+### Naming
+- Commands: `Create[Entity]Command`, `Update[Entity]Command`
+- Queries: `Get[Entity]Query`, `List[Entities]Query`
+- Handlers: `[Command/Query]Handler`
+- DTOs: `[Entity]Dto`, `Create[Entity]Request`
 
-Use the MSBuild shorthand:
+### Quality
+- Use async/await for all I/O; always pass `CancellationToken`
+- Classes are `sealed internal` by default
+- Use bare `default` instead of `default(T)` when type is inferrable
+- Use `#region` / `#endregion` to group sections, not decorative dash comments
 
-```xml
-<ItemGroup>
-  <InternalsVisibleTo Include="AssemblyName" />
-</ItemGroup>
-```
+### Patterns
+- Primary constructors for DI
+- Records for DTOs and commands
+- `Result<T>` for error handling — no exceptions for flow control
+- File-scoped namespaces
 
-Not the verbose `AssemblyAttribute` form.
-
-## Code structure
-
-Use `#region` / `#endregion` to group sections within a class, not decorative dash comments.
-
-```csharp
-#region Helpers
-
-private static Foo Build() => ...
-
-#endregion
-```
-
-## Test structure (Arrange / Act / Assert)
-
-Every test method must have `// Arrange`, `// Act`, and `// Assert` section comments.
-
-- Combined as `// Arrange / Act` when setup and execution are inseparable (e.g. a single `Render<>()` call)
-- Skip `// Arrange` entirely when there is no meaningful setup
-
-```csharp
-[Fact]
-public void Something_DoesX()
-{
-    // Arrange
-    var sut = new Foo();
-
-    // Act
-    var result = sut.Bar();
-
-    // Assert
-    Assert.Equal(42, result);
-}
-```
-
-## Default expressions (IDE0034)
-
-Use bare `default` instead of `default(T)` when the type is inferrable from context.
-
-```csharp
-Assert.Equal(default, result);   // ✓
-Assert.Equal(default(UserId), result);  // ✗
-```
+## Testing
+- Scope: domain logic and handlers
+- Naming: `[Method]_[Scenario]_[ExpectedResult]`
+- Files: `[Subject].Tests.cs`; class name inside stays `[Subject]Tests`
+- `InternalsVisibleTo`: use `<InternalsVisibleTo Include="AssemblyName" />` shorthand in csproj
+- Every test needs `// Arrange`, `// Act`, `// Assert` comments
+  - Combine as `// Arrange / Act` when inseparable (e.g. a single `Render<>()`)
+  - Omit `// Arrange` when there is no setup
