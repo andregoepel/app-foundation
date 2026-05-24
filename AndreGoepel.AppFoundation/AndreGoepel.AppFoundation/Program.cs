@@ -20,6 +20,7 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddMartenIdentity();
 builder.Services.AddMartenIdentityBlazor();
+builder.Services.AddMartenIdentityCleanup();
 
 var connectionString =
     builder.Configuration.GetConnectionString("appfoundation-database")
