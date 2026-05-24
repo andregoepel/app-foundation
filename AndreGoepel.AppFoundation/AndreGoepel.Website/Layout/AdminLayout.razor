@@ -1,0 +1,32 @@
+@inherits LayoutComponentBase
+
+<RadzenComponents @rendermode="InteractiveServer" />
+<RadzenNotification />
+
+<header class="adm-header">
+    <a href="/" class="adm-back">← Back to site</a>
+    <span class="adm-title">Content Admin</span>
+</header>
+
+<main class="adm-main">
+    @Body
+</main>
+
+<style>
+    .adm-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid var(--rz-base-300);
+        background: var(--rz-base-background-color);
+    }
+    .adm-back {
+        font-size: 0.875rem;
+        color: var(--rz-text-secondary-color);
+        text-decoration: none;
+    }
+    .adm-back:hover { color: var(--rz-primary); }
+    .adm-title { font-weight: 600; }
+    .adm-main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+</style>

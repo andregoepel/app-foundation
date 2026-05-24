@@ -1,0 +1,12 @@
+<footer class="ftr">
+    <div class="ftr-inner">
+        <div>@Footer.Note</div>
+        <div>@Footer.Built</div>
+    </div>
+</footer>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public required Footer Footer { get; set; }
+}

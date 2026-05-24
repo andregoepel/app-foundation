@@ -5,6 +5,7 @@ using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
 using AndreGoepel.Marten.Identity.Blazor.Components.Account;
 using AndreGoepel.Marten.Identity.Users;
+using AndreGoepel.Website;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +38,8 @@ builder
         options.AutoCreateSchemaObjects = AutoCreate.All;
     })
     .IntegrateWithWolverine();
+
+builder.Services.AddWebsite();
 
 builder.Services.AddScoped<NotificationService>();
 
@@ -79,7 +82,10 @@ app.UseMartenIdentityMiddleware();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
-    .AddAdditionalAssemblies(typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly);
+    .AddAdditionalAssemblies(
+        typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly,
+        typeof(AndreGoepel.Website.Initialization).Assembly
+    );
 
 app.MapAdditionalIdentityEndpoints();
 
