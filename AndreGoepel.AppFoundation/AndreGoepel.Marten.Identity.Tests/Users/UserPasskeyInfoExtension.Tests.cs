@@ -52,8 +52,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make();
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.True(a.OnlyCountChanged(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -63,9 +66,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make(signCount: 5);
         var b = Make(signCount: 99);
 
-        // All fields except SignCount are the same → returns true
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.True(a.OnlyCountChanged(b));
+        Assert.True(result);
     }
 
     [Fact]
@@ -75,8 +80,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(credentialId: [9, 9, 9, 9]);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -86,8 +94,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(publicKey: [99]);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -97,8 +108,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(createdAt: DateTimeOffset.UtcNow.AddDays(1));
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -108,8 +122,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(transports: ["nfc"]);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -119,8 +136,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make(isUserVerified: true);
         var b = Make(isUserVerified: false);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -130,8 +150,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make(isBackupEligible: false);
         var b = Make(isBackupEligible: true);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -141,8 +164,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make(isBackedUp: false);
         var b = Make(isBackedUp: true);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -152,8 +178,11 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(attestationObject: [99, 98]);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 
     [Fact]
@@ -163,7 +192,10 @@ public class UserPasskeyInfoExtensionTests
         var a = Make();
         var b = Make(clientDataJson: [88, 87]);
 
+        // Act
+        var result = a.OnlyCountChanged(b);
+
         // Assert
-        Assert.False(a.OnlyCountChanged(b));
+        Assert.False(result);
     }
 }

@@ -42,7 +42,17 @@ public class SetupRedirectMiddleware(RequestDelegate next)
     private static bool HasStaticExtension(string path)
     {
         var ext = Path.GetExtension(path);
-        return ext is ".css" or ".js" or ".png" or ".ico" or ".svg"
-            or ".woff" or ".woff2" or ".ttf" or ".eot" or ".map" or ".webp";
+        return ext
+            is ".css"
+                or ".js"
+                or ".png"
+                or ".ico"
+                or ".svg"
+                or ".woff"
+                or ".woff2"
+                or ".ttf"
+                or ".eot"
+                or ".map"
+                or ".webp";
     }
 }

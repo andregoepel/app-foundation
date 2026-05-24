@@ -48,9 +48,7 @@ public static class Initialization
         return services;
     }
 
-    public static IApplicationBuilder UseMartenIdentityMiddleware(
-        this IApplicationBuilder app
-    )
+    public static IApplicationBuilder UseMartenIdentityMiddleware(this IApplicationBuilder app)
     {
         app.UseMiddleware<SetupRedirectMiddleware>();
         app.UseMiddleware<CookieLoginMiddleware>();

@@ -7,7 +7,7 @@ namespace AndreGoepel.Marten.Identity.Services;
 
 public interface ICurrentUserService
 {
-    Task<UserId> GetCurrentUserIdAsync();
+    Task<UserId> GetCurrentUserIdAsync(CancellationToken cancellationToken = default);
 }
 
 public class CurrentUserService(
@@ -15,17 +15,20 @@ public class CurrentUserService(
     IQuerySession querySession
 ) : ICurrentUserService
 {
-    public async Task<UserId> GetCurrentUserIdAsync()
+    public async Task<UserId> GetCurrentUserIdAsync(CancellationToken cancellationToken = default)
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var currentUserName = authState.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return await QueryUserIdByNameAsync(currentUserName);
+        return await QueryUserIdByNameAsync(currentUserName, cancellationToken);
     }
 
-    protected virtual Task<UserId> QueryUserIdByNameAsync(string? userName) =>
+    protected virtual Task<UserId> QueryUserIdByNameAsync(
+        string? userName,
+        CancellationToken cancellationToken = default
+    ) =>
         querySession
             .Query<User>()
             .Where(u => u.UserName == userName)
             .Select(u => u.UserId)
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cancellationToken);
 }
