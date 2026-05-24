@@ -12,19 +12,16 @@
 
 <PageTitle>Rename Passkey – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-            <!-- Header -->
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
-                    @(passkey?.Name?.Length > 0 ? "Rename Passkey" : "Name Your New Passkey")
-                </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Choose a recognizable name for this security key
-                </RadzenText>
-            </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">@(passkey?.Name?.Length > 0 ? "Rename Passkey" : "Name Your New Passkey")</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Choose a recognizable name for this security key</RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
             @if (isLoading)
             {
@@ -48,17 +45,18 @@
                                     Submit=@OnValidSubmit>
                     <RadzenStack Gap="2rem">
 
-                        <div>
-                            <RadzenLabel Text="Passkey name *" Component="NameField" />
-                            <RadzenTextBox @bind-Value="model.Name"
-                                           Name="NameField"
-                                           Placeholder="e.g. My iPhone 15, Work Laptop Key, Blue YubiKey"
-                                           Style="width: 100%;" />
-                            <RadzenRequiredValidator Component="NameField" Text="Name is required" />
-                            <RadzenLengthValidator Component="NameField"
-                                                   Min="3" Max="100"
-                                                   Text="Name must be 3–100 characters long" />
-                        </div>
+                        <RadzenFormField Text="Passkey name *" Style="width: 100%;">
+                            <ChildContent>
+                                <RadzenTextBox @bind-Value="model.Name"
+                                               Name="NameField"
+                                               Placeholder="e.g. My iPhone 15, Work Laptop Key, Blue YubiKey"
+                                               Style="width: 100%;" />
+                            </ChildContent>
+                            <Helper>
+                                <RadzenRequiredValidator Component="NameField" Text="Name is required" />
+                                <RadzenLengthValidator Component="NameField" Min="3" Max="100" Text="Name must be 3–100 characters long" />
+                            </Helper>
+                        </RadzenFormField>
 
                         <RadzenStack Orientation="Orientation.Horizontal"
                                      Gap="1rem"
@@ -82,8 +80,10 @@
                 </RadzenTemplateForm>
             }
 
-        </RadzenStack>
-    </RadzenCard>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
 </div>
 
 @code {

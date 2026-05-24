@@ -16,29 +16,32 @@
 
 @if (recoveryCodes is not null)
 {
-    <div class="rz-p-4 rz-p-md-8">
-        <RadzenCard>
-            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
-                <div class="text-center">
-                    <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Authenticator verified</RadzenText>
-                </div>
+    <div class="rz-p-4 rz-p-md-6">
+        <RadzenStack Gap="1.5rem">
+
+            <div>
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Authenticator verified</RadzenText>
+            </div>
+
+            <RadzenCard>
                 <ShowRecoveryCodes RecoveryCodes="recoveryCodes.ToArray()" />
-            </RadzenStack>
-        </RadzenCard>
+            </RadzenCard>
+
+        </RadzenStack>
     </div>
 }
 else
 {
-    <div class="rz-p-4 rz-p-md-8">
-        <RadzenCard>
-            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+    <div class="rz-p-4 rz-p-md-6">
+        <RadzenStack Gap="1.5rem">
 
-                <div class="text-center">
-                    <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Configure authenticator app</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                        Set up two-factor authentication using an authenticator app.
-                    </RadzenText>
-                </div>
+            <div>
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Configure authenticator app</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Set up two-factor authentication using an authenticator app.</RadzenText>
+            </div>
+
+            <RadzenCard>
+                <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
                 <RadzenStack Gap="1.5rem">
                     <RadzenText TextStyle="TextStyle.Subtitle1">Step 1 — Download an authenticator app</RadzenText>
@@ -66,11 +69,14 @@ else
                 <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@Submit>
                     <RadzenStack Gap="1.5rem">
 
-                        <div>
-                            <RadzenLabel Text="Verification code *" Component="VerificationCode" />
-                            <RadzenTextBox @bind-Value="Input.Code" Name="VerificationCode" Style="width:100%" />
-                            <RadzenRequiredValidator Component="VerificationCode" Text="Verification code is required" />
-                        </div>
+                        <RadzenFormField Text="Verification code *" Style="width: 100%;">
+                            <ChildContent>
+                                <RadzenTextBox @bind-Value="Input.Code" Name="VerificationCode" Style="width:100%" />
+                            </ChildContent>
+                            <Helper>
+                                <RadzenRequiredValidator Component="VerificationCode" Text="Verification code is required" />
+                            </Helper>
+                        </RadzenFormField>
 
                         <RadzenStack Orientation="Orientation.Horizontal"
                                      Gap="1rem"
@@ -86,8 +92,10 @@ else
                     </RadzenStack>
                 </RadzenTemplateForm>
 
-            </RadzenStack>
-        </RadzenCard>
+                </RadzenStack>
+            </RadzenCard>
+
+        </RadzenStack>
     </div>
 }
 

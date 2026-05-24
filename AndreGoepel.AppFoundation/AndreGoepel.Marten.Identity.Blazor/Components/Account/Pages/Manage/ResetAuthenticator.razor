@@ -8,19 +8,16 @@
 
 <PageTitle>Reset Authenticator Key – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-            <!-- Header (same style as Setup.razor) -->
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
-                    Reset Authenticator Key
-                </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Remove current authenticator app and start setup again
-                </RadzenText>
-            </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Reset Authenticator Key</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Remove current authenticator app and start setup again</RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
             <!-- Warning (prominent, danger style) -->
             <RadzenAlert AlertStyle="AlertStyle.Danger" Icon="warning" AllowClose="false">
@@ -52,7 +49,9 @@
                               Click="@(() => NavigationManager.NavigateTo("/Account/Manage/TwoFactorAuthentication"))" />
             </RadzenStack>
 
-        </RadzenStack>
-    </RadzenCard>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
 </div>
 

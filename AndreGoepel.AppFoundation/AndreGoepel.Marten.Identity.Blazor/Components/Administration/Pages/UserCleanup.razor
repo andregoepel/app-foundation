@@ -7,13 +7,14 @@
 @using Radzen.Blazor
 
 @inject CleanupSettingsService CleanupSettingsService
+@inject NotificationService NotificationService
 
 @attribute [Authorize(Roles = "Administrator")]
 
 <PageTitle>User Cleanup – nerdventures.blog</PageTitle>
 
 <div class="rz-p-4 rz-p-md-6">
-    <RadzenStack Gap="1.5rem" Style="max-width: 560px;">
+    <RadzenStack Gap="1.5rem">
 
         <div>
             <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">User Cleanup</RadzenText>
@@ -45,20 +46,6 @@
                     </RadzenText>
                 }
 
-                @if (_errorMessage is not null)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Variant="Variant.Flat">
-                        @_errorMessage
-                    </RadzenAlert>
-                }
-
-                @if (_saved)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true" Variant="Variant.Flat">
-                        Settings saved.
-                    </RadzenAlert>
-                }
-
                 <RadzenButton Text="Save"
                               ButtonStyle="ButtonStyle.Primary"
                               Click="@SaveAsync"
@@ -74,8 +61,6 @@
     private InputModel _input = new();
     private DateTimeOffset? _nextFireTime;
     private bool _saving;
-    private bool _saved;
-    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,8 +72,6 @@
 
     private async Task SaveAsync()
     {
-        _saved = false;
-        _errorMessage = null;
         _saving = true;
 
         try
@@ -101,11 +84,11 @@
 
             await CleanupSettingsService.SaveAsync(settings);
             _nextFireTime = await CleanupSettingsService.GetNextFireTimeAsync();
-            _saved = true;
+            NotificationService.Notify(NotificationSeverity.Success, "Saved", "Settings saved.");
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
         }
         finally
         {
