@@ -5,45 +5,56 @@
 
 <PageTitle>Content Admin</PageTitle>
 
-@if (!_loaded)
-{
-    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-}
-else
-{
-    <RadzenStack Gap="1.5rem">
-        <RadzenTabs>
-            <Tabs>
-                <RadzenTabsItem Text="English">
-                    <RadzenStack Gap="1rem">
-                        <LanguageEditor Content="@_en" />
-                        <div>
-                            <RadzenButton
-                                Text="Save English"
-                                Icon="save"
-                                ButtonStyle="ButtonStyle.Primary"
-                                IsBusy="@_savingEn"
-                                Click="@SaveEnAsync" />
-                        </div>
-                    </RadzenStack>
-                </RadzenTabsItem>
-                <RadzenTabsItem Text="Deutsch">
-                    <RadzenStack Gap="1rem">
-                        <LanguageEditor Content="@_de" />
-                        <div>
-                            <RadzenButton
-                                Text="Deutsch speichern"
-                                Icon="save"
-                                ButtonStyle="ButtonStyle.Primary"
-                                IsBusy="@_savingDe"
-                                Click="@SaveDeAsync" />
-                        </div>
-                    </RadzenStack>
-                </RadzenTabsItem>
-            </Tabs>
-        </RadzenTabs>
-    </RadzenStack>
-}
+<div class="rz-p-4 rz-p-md-6">
+    @if (!_loaded)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        <RadzenStack Gap="1.5rem">
+
+            <div>
+                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Texte</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Inhalte der Website andregoepel.dev verwalten</RadzenText>
+            </div>
+
+            <RadzenCard Style="padding: 0; overflow: hidden;">
+                <RadzenTabs>
+                    <Tabs>
+                        <RadzenTabsItem Text="English">
+                            <RadzenStack Gap="1rem">
+                                <LanguageEditor Content="@_en" />
+                                <div>
+                                    <RadzenButton
+                                        Text="Save English"
+                                        Icon="save"
+                                        ButtonStyle="ButtonStyle.Primary"
+                                        IsBusy="@_savingEn"
+                                        Click="@SaveEnAsync" />
+                                </div>
+                            </RadzenStack>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Deutsch">
+                            <RadzenStack Gap="1rem">
+                                <LanguageEditor Content="@_de" />
+                                <div>
+                                    <RadzenButton
+                                        Text="Deutsch speichern"
+                                        Icon="save"
+                                        ButtonStyle="ButtonStyle.Primary"
+                                        IsBusy="@_savingDe"
+                                        Click="@SaveDeAsync" />
+                                </div>
+                            </RadzenStack>
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+            </RadzenCard>
+
+        </RadzenStack>
+    }
+</div>
 
 @code {
     private HomeContent _en = default!;

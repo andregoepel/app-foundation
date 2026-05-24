@@ -13,17 +13,16 @@
 
 <PageTitle>Two-Factor Authentication – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">
-                    Two-Factor Authentication (2FA)
-                </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Add an extra layer of security to your account
-                </RadzenText>
-            </div>
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
+
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Two-Factor Authentication (2FA)</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Add an extra layer of security to your account</RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
             @if (is2faEnabled)
             {
@@ -106,8 +105,10 @@
                 </RadzenStack>
             </RadzenFieldset>
 
-        </RadzenStack>
-    </RadzenCard>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
 </div>
 
 @code {

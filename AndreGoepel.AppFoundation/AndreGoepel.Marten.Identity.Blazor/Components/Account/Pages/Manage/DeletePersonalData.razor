@@ -13,19 +13,16 @@
 
 <PageTitle>Delete Account – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-            <!-- Header -->
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-color-danger">
-                    Delete Account
-                </RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Permanently remove your personal data and account
-                </RadzenText>
-            </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Delete Account</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Permanently remove your personal data and account</RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
             <!-- Starke Warnung -->
             <RadzenAlert AlertStyle="AlertStyle.Danger"
@@ -43,17 +40,17 @@
                     <RadzenFieldset Text="Confirmation">
                         <RadzenStack Gap="1.5rem">
 
-                            <div>
-                                <RadzenLabel Text="To confirm deletion, enter your current password"
-                                             Component="Password"
-                                             class="rz-color-danger" />
-                                <RadzenPassword @bind-Value=@Model.Password
-                                                Name="Password"
-                                                Placeholder="Enter your password to confirm"
-                                                Style="width:100%" />
-                                <RadzenRequiredValidator Component="Password"
-                                                         Text="Password is required to confirm deletion" />
-                            </div>
+                            <RadzenFormField Text="Enter your current password to confirm deletion" Style="width: 100%;">
+                                <ChildContent>
+                                    <RadzenPassword @bind-Value=@Model.Password
+                                                    Name="Password"
+                                                    Placeholder="Enter your password to confirm"
+                                                    Style="width:100%" />
+                                </ChildContent>
+                                <Helper>
+                                    <RadzenRequiredValidator Component="Password" Text="Password is required to confirm deletion" />
+                                </Helper>
+                            </RadzenFormField>
 
                             <RadzenText TextStyle="TextStyle.Body2" class="rz-color-danger">
                                 After successful verification your account will be immediately and permanently deleted.
@@ -84,8 +81,10 @@
                 </RadzenStack>
             </RadzenTemplateForm>
 
-        </RadzenStack>
-    </RadzenCard>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
 </div>
 
 @code {

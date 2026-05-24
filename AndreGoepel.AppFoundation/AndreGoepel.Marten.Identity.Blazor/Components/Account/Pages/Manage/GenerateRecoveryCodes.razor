@@ -13,16 +13,16 @@
 
 <PageTitle>Generate two-factor authentication (2FA) recovery codes – nerdventures.blog</PageTitle>
 
-<div class="rz-p-4 rz-p-md-8">
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-            <div class="text-center">
-                <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">Generate Recovery Codes</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-muted mt-2">
-                    Two-factor authentication recovery codes
-                </RadzenText>
-            </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Generate Recovery Codes</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Two-factor authentication recovery codes</RadzenText>
+        </div>
+
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Stretch">
 
             @if (recoveryCodes is not null)
             {
@@ -49,8 +49,10 @@
                 </RadzenStack>
             }
 
-        </RadzenStack>
-    </RadzenCard>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
 </div>
 
 @code {
