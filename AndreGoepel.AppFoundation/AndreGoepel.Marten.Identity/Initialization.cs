@@ -40,7 +40,6 @@ public static class Initialization
             .AddUserStore<UserStore<User>>()
             .AddRoleManager<RoleManager<Role>>()
             .AddRoleStore<RoleStore<Role>>()
-            .AddDefaultTokenProviders()
             .AddSignInManager()
             .AddDefaultTokenProviders();
 
