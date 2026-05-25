@@ -1,5 +1,6 @@
 using AndreGoepel.Marten.Identity.IntegrationTests.Infrastructure;
 using AndreGoepel.Marten.Identity.Roles;
+using AndreGoepel.Marten.Identity.Roles.Events;
 using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.Marten.Identity.Users.Events;
 using Marten;
@@ -289,10 +290,7 @@ public class UserStoreTests(MartenFixture fixture) : IAsyncLifetime
     {
         await using var session = fixture.Store.LightweightSession();
         var roleId = RoleId.New();
-        session.Events.Append(
-            roleId.Value,
-            new Roles.Events.RoleCreated(roleId, name, UserId.New())
-        );
+        session.Events.Append(roleId.Value, new RoleCreated(roleId, name, UserId.New()));
         await session.SaveChangesAsync(Ct);
     }
 
