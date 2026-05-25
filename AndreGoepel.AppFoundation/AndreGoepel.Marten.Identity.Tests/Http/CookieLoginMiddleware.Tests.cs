@@ -455,6 +455,52 @@ public class CookieLoginMiddlewareTests
 
     #endregion
 
+    #region Unknown / forged keys
+
+    [Fact]
+    public async Task Login_UnknownKey_RedirectsToLoginWithoutThrowing()
+    {
+        // Arrange — key is a valid Guid but not present in the dictionary
+        var key = Guid.NewGuid();
+        var context = BuildContext("/login", key.ToString());
+
+        // Act
+        await BuildMiddleware().Invoke(context, BuildSignInManager());
+
+        // Assert
+        Assert.Equal("/Account/Login", RedirectLocation(context));
+    }
+
+    [Fact]
+    public async Task Login2fa_UnknownKey_RedirectsToLoginWithoutThrowing()
+    {
+        // Arrange
+        var key = Guid.NewGuid();
+        var context = BuildContext("/login2fa", key.ToString());
+
+        // Act
+        await BuildMiddleware().Invoke(context, BuildSignInManager());
+
+        // Assert
+        Assert.Equal("/Account/Login", RedirectLocation(context));
+    }
+
+    [Fact]
+    public async Task LoginRecovery_UnknownKey_RedirectsToLoginWithoutThrowing()
+    {
+        // Arrange
+        var key = Guid.NewGuid();
+        var context = BuildContext("/loginrecovery", key.ToString());
+
+        // Act
+        await BuildMiddleware().Invoke(context, BuildSignInManager());
+
+        // Assert
+        Assert.Equal("/Account/Login", RedirectLocation(context));
+    }
+
+    #endregion
+
     #region Other paths
 
     [Fact]

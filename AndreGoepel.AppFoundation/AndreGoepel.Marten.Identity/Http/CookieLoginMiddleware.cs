@@ -44,9 +44,11 @@ public class CookieLoginMiddleware(RequestDelegate next)
     {
         if (context.Request.Path == "/loginrecovery" && context.Request.Query.ContainsKey("key"))
         {
-            var key = Guid.Parse(context.Request.Query["key"]!);
-            var info = RecoveryCodeLogins[key];
-            RecoveryCodeLogins.Remove(key);
+            if (!TryConsumeKey(context, RecoveryCodeLogins, out var info))
+            {
+                context.Response.Redirect("/Account/Login");
+                return;
+            }
 
             var code = info.Code.Replace(" ", string.Empty);
             var result = await signinManager.TwoFactorRecoveryCodeSignInAsync(code);
@@ -67,9 +69,11 @@ public class CookieLoginMiddleware(RequestDelegate next)
         }
         else if (context.Request.Path == "/login2fa" && context.Request.Query.ContainsKey("key"))
         {
-            var key = Guid.Parse(context.Request.Query["key"]!);
-            var info = TwoFactorLogins[key];
-            TwoFactorLogins.Remove(key);
+            if (!TryConsumeKey(context, TwoFactorLogins, out var info))
+            {
+                context.Response.Redirect("/Account/Login");
+                return;
+            }
 
             var code = info.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
             var result = await signinManager.TwoFactorAuthenticatorSignInAsync(
@@ -94,8 +98,11 @@ public class CookieLoginMiddleware(RequestDelegate next)
         }
         else if (context.Request.Path == "/login" && context.Request.Query.ContainsKey("key"))
         {
-            var key = Guid.Parse(context.Request.Query["key"]!);
-            var info = Logins[key];
+            if (!TryConsumeKey(context, Logins, out var info))
+            {
+                context.Response.Redirect("/Account/Login");
+                return;
+            }
 
             var result = await signinManager.PasswordSignInAsync(
                 info.Email,
@@ -103,7 +110,6 @@ public class CookieLoginMiddleware(RequestDelegate next)
                 info.RememberMe,
                 lockoutOnFailure: true
             );
-            Logins.Remove(key);
             if (result.Succeeded)
             {
                 context.Response.Redirect("/");
@@ -132,5 +138,25 @@ public class CookieLoginMiddleware(RequestDelegate next)
         {
             await next.Invoke(context);
         }
+    }
+
+    private static bool TryConsumeKey<T>(
+        HttpContext context,
+        IDictionary<Guid, T> store,
+        out T info
+    )
+    {
+        if (
+            !Guid.TryParse(context.Request.Query["key"], out var key)
+            || !store.TryGetValue(key, out var existing)
+        )
+        {
+            info = default!;
+            return false;
+        }
+
+        store.Remove(key);
+        info = existing;
+        return true;
     }
 }
