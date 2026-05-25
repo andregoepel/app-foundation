@@ -4,12 +4,12 @@ using Marten.Events.Aggregation;
 
 namespace AndreGoepel.Marten.Identity.Users;
 
-internal class UserProjection : SingleStreamProjection<User, Guid>
+internal partial class UserProjection : SingleStreamProjection<User, Guid>
 {
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(UserCreated @event, User user)
     {
@@ -30,7 +30,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(UserDeleted @event, User user)
     {
@@ -47,7 +47,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(UserRestored @event, User user)
     {
@@ -74,7 +74,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(UserUpdated @event, User user)
     {
@@ -122,7 +122,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(PasskeyCreated @event, User user)
     {
@@ -133,7 +133,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(PasskeyUpdated @event, User user)
     {
@@ -144,7 +144,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(PasskeyDeleted @event, User user)
     {
@@ -154,7 +154,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleAssigned @event, User user)
     {
@@ -166,7 +166,7 @@ internal class UserProjection : SingleStreamProjection<User, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleUnassigned @event, User user)
     {
