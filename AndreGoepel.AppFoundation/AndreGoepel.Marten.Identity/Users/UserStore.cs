@@ -653,9 +653,12 @@ public class UserStore<TUser>(
             throw new ArgumentException("Role name cannot be null or empty.", nameof(roleName));
 
         var role =
-            querySession
+            await querySession
                 .Query<Role>()
-                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
+                .FirstOrDefaultAsync(
+                    role => role.NormalizedName == roleName.ToUpperInvariant(),
+                    cancellationToken
+                )
             ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
 
         using var session = documentStore.LightweightSession();
@@ -664,7 +667,7 @@ public class UserStore<TUser>(
             new RoleAssigned(
                 user.UserId,
                 role.RoleId,
-                await currentUserService.GetCurrentUserIdAsync()
+                await currentUserService.GetCurrentUserIdAsync(cancellationToken)
             )
         );
         await session.SaveChangesAsync(cancellationToken);
@@ -682,9 +685,12 @@ public class UserStore<TUser>(
             throw new ArgumentException("Role name cannot be null or empty.", nameof(roleName));
 
         var role =
-            querySession
+            await querySession
                 .Query<Role>()
-                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
+                .FirstOrDefaultAsync(
+                    role => role.NormalizedName == roleName.ToUpperInvariant(),
+                    cancellationToken
+                )
             ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
 
         using var session = documentStore.LightweightSession();
@@ -693,7 +699,7 @@ public class UserStore<TUser>(
             new RoleUnassigned(
                 user.UserId,
                 role.RoleId,
-                await currentUserService.GetCurrentUserIdAsync()
+                await currentUserService.GetCurrentUserIdAsync(cancellationToken)
             )
         );
         await session.SaveChangesAsync(cancellationToken);
@@ -701,19 +707,17 @@ public class UserStore<TUser>(
 
     public async Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
     {
-        var result = new List<string>();
+        if (user.Roles.Count == 0)
+            return [];
 
-        foreach (var userRole in user.Roles)
-        {
-            var role = await querySession
-                .Query<Role>()
-                .FirstOrDefaultAsync(r => r.StreamId == userRole.Value);
+        var streamIds = user.Roles.Select(r => r.Value).ToArray();
+        var names = await querySession
+            .Query<Role>()
+            .Where(r => streamIds.Contains(r.StreamId))
+            .Select(r => r.Name)
+            .ToListAsync(cancellationToken);
 
-            if (role?.Name != null)
-                result.Add(role.Name);
-        }
-
-        return result;
+        return [.. names.OfType<string>()];
     }
 
     public async Task<bool> IsInRoleAsync(
