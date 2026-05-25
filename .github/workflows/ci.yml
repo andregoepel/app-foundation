@@ -21,6 +21,12 @@ jobs:
       - name: Restore
         run: dotnet restore AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx
 
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Format check
+        run: dotnet csharpier check .
+
       - name: Build
         run: dotnet build AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-restore -c Release
 
