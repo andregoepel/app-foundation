@@ -212,7 +212,7 @@ After sign-in, the entry is removed and the user is redirected to `ReturnUrl` or
 | `UserCreated` | New user registered |
 | `UserUpdated` | Profile, password, 2FA, lockout fields change |
 | `UserDeleted` | Account soft-deleted |
-| `UserLogin` | Successful sign-in |
+| `UserRestored` | Soft-deleted account brought back |
 | `PasskeyCreated` | New WebAuthn credential registered |
 | `PasskeyUpdated` | Passkey renamed |
 | `PasskeyDeleted` | Passkey removed |

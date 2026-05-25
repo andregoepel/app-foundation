@@ -23,9 +23,7 @@
 
     private async Task SaveRole()
     {
-        var newRole = Activator.CreateInstance<Role>();
-
-        newRole.Name = Rolename;
+        var newRole = new Role { Name = Rolename };
 
         var result = await RoleManager.CreateAsync(newRole);
 
