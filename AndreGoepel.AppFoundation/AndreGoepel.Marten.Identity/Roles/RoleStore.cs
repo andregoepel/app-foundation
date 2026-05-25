@@ -69,6 +69,9 @@ public class RoleStore<TRole>(
                     role.Name,
                     await currentUserService.GetCurrentUserIdAsync()
                 )
+                {
+                    Deletable = role.Deletable,
+                }
             );
 
             await session.SaveChangesAsync(cancellationToken);
