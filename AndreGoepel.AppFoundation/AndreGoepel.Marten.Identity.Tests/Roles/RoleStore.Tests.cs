@@ -132,4 +132,67 @@ public class RoleStoreTests
     }
 
     #endregion
+
+    #region DeleteAsync
+
+    [Fact]
+    public async Task DeleteAsync_AppendsRoleDeleted_WithoutHardDeletingDocument()
+    {
+        // Arrange
+        var harness = Build();
+        var role = new Role { Name = "Admin", Deletable = true };
+
+        // Act
+        var result = await harness.Store.DeleteAsync(role, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Succeeded);
+        Assert.IsType<RoleDeleted>(Assert.Single(harness.Events_));
+        harness.Session.Received(0).Delete(Arg.Any<Role>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RoleNotDeletable_ReturnsFailureWithoutAppending()
+    {
+        // Arrange
+        var harness = Build();
+        var role = new Role { Name = "Administrator", Deletable = false };
+
+        // Act
+        var result = await harness.Store.DeleteAsync(role, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Succeeded);
+        Assert.Empty(harness.Appended);
+        harness.Session.Received(0).Delete(Arg.Any<Role>());
+    }
+
+    #endregion
+
+    #region RestoreAsync
+
+    [Fact]
+    public async Task RestoreAsync_AppendsRoleRestored_WithoutStoringDocumentDirectly()
+    {
+        // Arrange
+        var harness = Build();
+        var role = new Role
+        {
+            Name = "Admin",
+            Deletable = true,
+            Deleted = true,
+            DeletedAt = DateTimeOffset.UtcNow,
+            DeletedBy = UserId.New(),
+        };
+
+        // Act
+        var result = await harness.Store.RestoreAsync(role, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Succeeded);
+        Assert.IsType<RoleRestored>(Assert.Single(harness.Events_));
+        harness.Session.Received(0).Store(Arg.Any<Role>());
+    }
+
+    #endregion
 }
