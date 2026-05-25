@@ -13,13 +13,18 @@ public class RoleStoreTests
 {
     #region Helpers
 
+    private readonly record struct AppendedEvent(Guid StreamId, object Event);
+
     private sealed record Harness(
         RoleStore<Role> Store,
         IDocumentSession Session,
         IEventStoreOperations Events,
-        List<object> Appended,
+        List<AppendedEvent> Appended,
         UserId ActorId
-    );
+    )
+    {
+        public IEnumerable<object> Events_ => Appended.Select(a => a.Event);
+    }
 
     private static Harness Build()
     {
@@ -27,13 +32,15 @@ public class RoleStoreTests
         var session = Substitute.For<IDocumentSession>();
         session.Events.Returns(events);
 
-        var appended = new List<object>();
+        var appended = new List<AppendedEvent>();
         events
             .When(e => e.Append(Arg.Any<Guid>(), Arg.Any<object[]>()))
             .Do(call =>
             {
+                var streamId = (Guid)call.Args()[0]!;
                 var args = (object[])call.Args()[1]!;
-                appended.AddRange(args);
+                foreach (var ev in args)
+                    appended.Add(new AppendedEvent(streamId, ev));
             });
 
         var actor = UserId.New();
@@ -53,6 +60,44 @@ public class RoleStoreTests
 
     #endregion
 
+    #region CreateAsync
+
+    [Fact]
+    public async Task CreateAsync_AppendsToStreamMatchingExistingRoleId()
+    {
+        // Arrange
+        var harness = Build();
+        var role = new Role { Name = "Admin" };
+        var expectedStream = role.RoleId.Value;
+
+        // Act
+        var result = await harness.Store.CreateAsync(role, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Succeeded);
+        var appended = Assert.Single(harness.Appended);
+        Assert.Equal(expectedStream, appended.StreamId);
+        var created = Assert.IsType<RoleCreated>(appended.Event);
+        Assert.Equal(role.RoleId, created.RoleId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_NullName_FailsWithoutAppending()
+    {
+        // Arrange
+        var harness = Build();
+        var role = new Role { Name = null };
+
+        // Act
+        var result = await harness.Store.CreateAsync(role, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Succeeded);
+        Assert.Empty(harness.Appended);
+    }
+
+    #endregion
+
     #region UpdateAsync
 
     [Fact]
@@ -67,7 +112,7 @@ public class RoleStoreTests
 
         // Assert
         Assert.True(result.Succeeded);
-        var changed = Assert.IsType<RoleChanged>(Assert.Single(harness.Appended));
+        var changed = Assert.IsType<RoleChanged>(Assert.Single(harness.Events_));
         Assert.False(changed.Deletable);
     }
 
@@ -82,7 +127,7 @@ public class RoleStoreTests
         await harness.Store.UpdateAsync(role, CancellationToken.None);
 
         // Assert
-        var changed = Assert.IsType<RoleChanged>(Assert.Single(harness.Appended));
+        var changed = Assert.IsType<RoleChanged>(Assert.Single(harness.Events_));
         Assert.True(changed.Deletable);
     }
 

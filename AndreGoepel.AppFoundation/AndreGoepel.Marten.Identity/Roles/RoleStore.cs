@@ -30,10 +30,13 @@ public class RoleStore<TRole>(
                     new IdentityError() { Description = "Role name cannot be null." }
                 );
 
-            var roleId = RoleId.New();
             session.Events.Append(
-                roleId.Value,
-                new RoleCreated(roleId, role.Name, await currentUserService.GetCurrentUserIdAsync())
+                role.StreamId,
+                new RoleCreated(
+                    role.RoleId,
+                    role.Name,
+                    await currentUserService.GetCurrentUserIdAsync()
+                )
                 {
                     Deletable = role.Deletable,
                 }
