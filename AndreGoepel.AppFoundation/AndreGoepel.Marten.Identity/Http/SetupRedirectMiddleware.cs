@@ -1,4 +1,3 @@
-using AndreGoepel.Marten.Identity.Users;
 using Marten;
 using Microsoft.AspNetCore.Http;
 
@@ -10,13 +9,9 @@ public class SetupRedirectMiddleware(RequestDelegate next)
 
     public async Task Invoke(HttpContext context, IQuerySession querySession)
     {
-        if (!_isConfigured)
+        if (!_isConfigured && await SetupCompletion.IsCompleteAsync(querySession))
         {
-            var hasUsers = await querySession.Query<User>().AnyAsync();
-            if (hasUsers)
-            {
-                _isConfigured = true;
-            }
+            _isConfigured = true;
         }
 
         var path = context.Request.Path.Value ?? "";

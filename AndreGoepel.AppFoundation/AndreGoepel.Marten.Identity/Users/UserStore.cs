@@ -587,13 +587,12 @@ public class UserStore<TUser>(
             return [];
 
         var streamIds = user.Roles.Select(r => r.Value).ToArray();
-        var names = await querySession
+        var roles = await querySession
             .Query<Role>()
             .Where(r => streamIds.Contains(r.StreamId))
-            .Select(r => r.Name)
             .ToListAsync(cancellationToken);
 
-        return [.. names.OfType<string>()];
+        return [.. roles.Select(r => r.Name).OfType<string>()];
     }
 
     public async Task<bool> IsInRoleAsync(

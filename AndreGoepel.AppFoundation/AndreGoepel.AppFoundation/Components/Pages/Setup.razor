@@ -2,6 +2,7 @@
 @layout LoginLayout
 @rendermode InteractiveServer
 
+@using AndreGoepel.Marten.Identity
 @using AndreGoepel.Marten.Identity.Roles
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.AppFoundation
@@ -83,13 +84,9 @@
     private InputModel Input { get; set; } = new();
     private bool isProcessing;
 
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-        var rolesExist = await QuerySession.Query<Role>().AnyAsync();
-        if (rolesExist)
+        if (await SetupCompletion.IsCompleteAsync(QuerySession))
         {
             NavigationManager.NavigateTo("/", forceLoad: true);
         }
@@ -172,14 +169,12 @@
                     "Success",
                     "Administrator account created. You are now signed in."
                 );
-                NavigationManager.NavigateTo($"/login?key={key}", true);
+                NavigationManager.NavigateTo($"/login?key={key}", forceLoad: true);
             }
             else
             {
                 NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
             }
-
-            NavigationManager.NavigateTo(ReturnUrl ?? "/");
         }
         catch (Exception ex)
         {

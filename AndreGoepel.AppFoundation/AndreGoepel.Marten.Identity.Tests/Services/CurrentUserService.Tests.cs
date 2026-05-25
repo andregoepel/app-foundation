@@ -91,7 +91,8 @@ public class CurrentUserServiceTests
 
     #region Test doubles
 
-    private sealed class FakeAuthStateProvider(AuthenticationState state) : AuthenticationStateProvider
+    private sealed class FakeAuthStateProvider(AuthenticationState state)
+        : AuthenticationStateProvider
     {
         public override Task<AuthenticationState> GetAuthenticationStateAsync() =>
             Task.FromResult(state);
