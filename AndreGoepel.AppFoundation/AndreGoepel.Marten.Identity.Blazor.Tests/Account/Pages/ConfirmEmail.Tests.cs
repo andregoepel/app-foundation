@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Pages;
 
 public class ConfirmEmailTests : BunitContext
 {

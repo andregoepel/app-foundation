@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Radzen;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Pages;
 
 public class LoginWith2faTests : BunitContext
 {

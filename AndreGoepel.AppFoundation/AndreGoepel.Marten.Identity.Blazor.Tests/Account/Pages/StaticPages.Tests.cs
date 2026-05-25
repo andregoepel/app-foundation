@@ -3,7 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Pages;
 
 public class StaticPagesTests : BunitContext
 {

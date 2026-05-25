@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-namespace AndreGoepel.AppFoundation.Tests.Account;
+namespace AndreGoepel.Marten.Identity.Tests.Http;
 
 public class CookieLoginMiddlewareTests
 {

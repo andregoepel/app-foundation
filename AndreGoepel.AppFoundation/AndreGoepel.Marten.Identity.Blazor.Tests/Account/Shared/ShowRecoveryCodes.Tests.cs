@@ -1,7 +1,7 @@
 using AndreGoepel.Marten.Identity.Blazor.Components.Account.Shared;
 using Bunit;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Shared;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Shared;
 
 public class ShowRecoveryCodesTests : BunitContext
 {

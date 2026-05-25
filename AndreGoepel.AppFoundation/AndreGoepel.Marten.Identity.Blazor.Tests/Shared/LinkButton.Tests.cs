@@ -3,7 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AndreGoepel.AppFoundation.Tests.Shared;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Shared;
 
 public class LinkButtonTests : BunitContext
 {

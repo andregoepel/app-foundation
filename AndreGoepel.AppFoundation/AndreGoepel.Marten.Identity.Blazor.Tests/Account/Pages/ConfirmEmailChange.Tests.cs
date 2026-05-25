@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Pages;
 
 public class ConfirmEmailChangeTests : BunitContext
 {

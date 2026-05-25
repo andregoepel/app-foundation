@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Radzen;
 
-namespace AndreGoepel.AppFoundation.Tests.Account.Pages;
+namespace AndreGoepel.Marten.Identity.Blazor.Tests.Account.Pages;
 
 public class ResetPasswordTests : BunitContext
 {
