@@ -63,6 +63,7 @@
 
 /* ─── Reset & base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
+:focus:not(:focus-visible) { outline: none; }
 html, body { margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -304,6 +305,7 @@ html[lang="de"] .sec-about .sec-title { white-space: normal; }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 
+.hero-title:focus { outline: none; }
 .hero-title {
   font-family: var(--font-display);
   font-weight: var(--display-weight);
