@@ -1,5 +1,4 @@
-﻿@page "/Administration/Users/{UserId}/Roles"
-@using AndreGoepel.Marten.Identity.Roles
+﻿@using AndreGoepel.Marten.Identity.Roles
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
 @using Radzen
@@ -24,12 +23,12 @@
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@(() => SaveRoles())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
-        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+        <RadzenButton Click="@(() => DialogService.Close(false))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
     </RadzenStack>
 </RadzenStack>
 
 @code {
-    [Parameter] public required string UserID { get; set; }
+    [Parameter] public required string UserId { get; set; }
 
     private List<Role> roles = default!;
     private User user = default!;
@@ -67,7 +66,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserManager.FindByIdAsync(UserID) ?? throw new InvalidOperationException("User not found");
+        user = await UserManager.FindByIdAsync(UserId) ?? throw new InvalidOperationException("User not found");
         roles = RoleManager.Roles.Where(role => !role.Deleted).ToList();
 
         Values = [.. user.Roles.Select(roleId => roleId)];
