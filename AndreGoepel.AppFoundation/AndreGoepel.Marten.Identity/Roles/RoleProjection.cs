@@ -4,12 +4,12 @@ using Marten.Events.Aggregation;
 
 namespace AndreGoepel.Marten.Identity.Roles;
 
-internal class RoleProjection : SingleStreamProjection<Role, Guid>
+internal partial class RoleProjection : SingleStreamProjection<Role, Guid>
 {
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleCreated @event, Role role)
     {
@@ -26,7 +26,7 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleChanged @event, Role role)
     {
@@ -40,7 +40,7 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleDeleted @event, Role role)
     {
@@ -52,7 +52,7 @@ internal class RoleProjection : SingleStreamProjection<Role, Guid>
     [SuppressMessage(
         "Performance",
         "CA1822:Mark members as static",
-        Justification = "Called by Marten via reflection"
+        Justification = "Called by Marten source-generated dispatcher"
     )]
     public void Apply(RoleRestored @event, Role role)
     {
