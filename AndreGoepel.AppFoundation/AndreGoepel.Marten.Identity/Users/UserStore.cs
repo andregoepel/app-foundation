@@ -666,12 +666,15 @@ public class UserStore<TUser>(
         CancellationToken cancellationToken
     )
     {
-        var roleId =
-            querySession
+        var role =
+            await querySession
                 .Query<Role>()
-                .FirstOrDefault(role => role.NormalizedName == roleName.ToUpperInvariant())
-                ?.RoleId
+                .FirstOrDefaultAsync(
+                    role => role.NormalizedName == roleName.ToUpperInvariant(),
+                    cancellationToken
+                )
             ?? throw new InvalidOperationException($"Role '{roleName}' does not exist.");
+        var roleId = role.RoleId;
 
         var userIds = (
             await querySession
