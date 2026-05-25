@@ -29,5 +29,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AndreGoepel.Marten.Identity.Tests" />
+    <InternalsVisibleTo Include="AndreGoepel.Marten.Identity.IntegrationTests" />
   </ItemGroup>
 </Project>
