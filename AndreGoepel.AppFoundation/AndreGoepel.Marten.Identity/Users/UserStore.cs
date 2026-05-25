@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using AndreGoepel.Marten.Identity.Roles;
+﻿using AndreGoepel.Marten.Identity.Roles;
 using AndreGoepel.Marten.Identity.Services;
 using AndreGoepel.Marten.Identity.UserRoles;
 using AndreGoepel.Marten.Identity.Users.Events;
@@ -25,7 +24,6 @@ public class UserStore<TUser>(
         IUserAuthenticatorKeyStore<TUser>,
         IUserTwoFactorRecoveryCodeStore<TUser>,
         IQueryableUserStore<TUser>,
-        IUserClaimStore<TUser>,
         IUserPasskeyStore<TUser>,
         IUserRoleStore<TUser>,
         IUserLockoutStore<TUser>
@@ -430,128 +428,6 @@ public class UserStore<TUser>(
             : recoveryCodes.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
         return Task.FromResult(count);
     }
-
-    // IUserClaimStore<TUser>
-
-    public async Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken)
-    {
-        var resolvedUser = await querySession
-            .Query<TUser>()
-            .FirstOrDefaultAsync(x => x.NormalizedEmail == user.NormalizedEmail, cancellationToken);
-
-        var claimsList = new List<Claim>();
-        //if (resolvedUser.RoleClaims != null)
-        //{
-        //    foreach (string roleClaim in resolvedUser.RoleClaims)
-        //    {
-        //        claimsList.Add(new Claim(ClaimTypes.Role, roleClaim));
-        //    }
-        //}
-
-        return claimsList;
-    }
-
-    public async Task AddClaimsAsync(
-        TUser user,
-        IEnumerable<Claim> claims,
-        CancellationToken cancellationToken
-    )
-    {
-        try
-        {
-            using var session = documentStore.LightweightSession();
-
-            var userRoleClaims = new List<string>();
-            foreach (Claim claimItem in claims)
-            {
-                if (claimItem.Type == ClaimTypes.Role)
-                {
-                    userRoleClaims.Add(claimItem.Value);
-                }
-            }
-
-            //user.RoleClaims = userRoleClaims;
-
-            session.Store(user);
-            await session.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            if (logger.IsEnabled(LogLevel.Error))
-            {
-                logger.LogError(
-                    ex,
-                    "Failed to add claims to the user {Email} in Marten.",
-                    user.Email
-                );
-            }
-        }
-    }
-
-    public async Task ReplaceClaimAsync(
-        TUser user,
-        Claim claim,
-        Claim newClaim,
-        CancellationToken cancellationToken
-    )
-    {
-        if (claim.Type != ClaimTypes.Role || newClaim.Type != ClaimTypes.Role)
-        {
-            return;
-        }
-
-        var existingClaims = await GetClaimsAsync(user, cancellationToken);
-        if (existingClaims != null)
-        {
-            List<Claim> claimsList = [.. existingClaims];
-            int index = claimsList.FindIndex(x => x.Value == claim.Value);
-            claimsList.RemoveAt(index);
-            claimsList.Add(newClaim);
-
-            await AddClaimsAsync(user, claimsList, cancellationToken);
-        }
-    }
-
-    public async Task RemoveClaimsAsync(
-        TUser user,
-        IEnumerable<Claim> claims,
-        CancellationToken cancellationToken
-    )
-    {
-        try
-        {
-            var existingClaims = await GetClaimsAsync(user, cancellationToken);
-            if (existingClaims != null)
-            {
-                var newClaims = existingClaims.ToList();
-                foreach (Claim claimToRemove in claims)
-                {
-                    int index = newClaims.FindIndex(x =>
-                        x.Type == claimToRemove.Type && x.Value == claimToRemove.Value
-                    );
-                    newClaims.RemoveAt(index);
-                }
-
-                await AddClaimsAsync(user, newClaims, cancellationToken);
-            }
-        }
-        catch (Exception ex)
-        {
-            if (logger.IsEnabled(LogLevel.Error))
-            {
-                logger.LogError(
-                    ex,
-                    "Failed to add claims to the user {Email} in Marten.",
-                    user.Email
-                );
-            }
-        }
-    }
-
-    public async Task<IList<TUser>> GetUsersForClaimAsync(
-        Claim claim,
-        CancellationToken cancellationToken
-    ) => [.. await querySession.Query<TUser>().ToListAsync(cancellationToken)];
 
     public async Task AddOrUpdatePasskeyAsync(
         TUser user,

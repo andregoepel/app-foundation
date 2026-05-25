@@ -128,7 +128,6 @@ builder.Services
 | `IUserRoleStore<TUser>` | Role assignment |
 | `IUserLockoutStore<TUser>` | Account lockout tracking |
 | `IQueryableUserStore<TUser>` | LINQ over Marten projections |
-| `IUserClaimStore<TUser>` | Claims (stub) |
 
 Sensitive values (authenticator key, recovery codes) are encrypted at rest with **ASP.NET Core Data Protection**.
 
