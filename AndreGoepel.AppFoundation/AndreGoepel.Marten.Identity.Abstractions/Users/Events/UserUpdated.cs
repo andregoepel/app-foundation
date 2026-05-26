@@ -10,8 +10,8 @@ public record UserUpdated(UserId UserId)
     public bool EmailConfirmed { get; init; }
     public UserId UpdatedBy { get; init; } = UserId;
     public DateTimeOffset UpdatedAt { get; init; } = DateTimeOffset.UtcNow;
-    public bool TwoFactorEnabled { get; internal set; }
-    public string? RecoveryCodes { get; internal set; }
+    public bool TwoFactorEnabled { get; init; }
+    public string? RecoveryCodes { get; init; }
     public bool Deletable { get; init; } = true;
     public bool LockoutEnabled { get; init; }
     public DateTimeOffset? LockoutEnd { get; init; }
