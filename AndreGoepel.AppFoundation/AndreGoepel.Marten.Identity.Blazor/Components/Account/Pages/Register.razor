@@ -12,6 +12,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <PageTitle>Register – nerdventures.blog</PageTitle>
 
@@ -114,14 +115,8 @@
         else
         {
             // SignInAsync writes cookies — must go through middleware
-            Guid key = Guid.NewGuid();
-            CookieLoginMiddleware.Logins[key] = new LoginInfo
-            {
-                Email = model.Email,
-                Password = model.Password,
-                RememberMe = false,
-            };
-            NavigationManager.NavigateTo($"/login?key={key}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
+            var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, RememberMe: false));
+            NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
         }
     }
 

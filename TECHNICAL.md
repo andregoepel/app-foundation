@@ -138,20 +138,20 @@ Sensitive values (authenticator key, recovery codes) are encrypted at rest with 
 Blazor's interactive render mode cannot directly write HTTP cookies. The following pattern bridges this:
 
 1. `LoginForm.razor` (Interactive Server) validates credentials via `UserManager`.
-2. On success, a `LoginInfo` entry is stored in `CookieLoginMiddleware.Logins` under a new GUID key.
-3. The component navigates to `/login?key={guid}` with `forceLoad: true`.
-4. `CookieLoginMiddleware` intercepts the request, retrieves the entry, calls `SignInManager.PasswordSignInAsync`, and redirects to the return URL.
+2. On success, the credentials are serialised and protected with `LoginTokenProtector` (an `ITimeLimitedDataProtector` wrapper with a 2-minute TTL).
+3. The component navigates to `/login?token={protected}` with `forceLoad: true`.
+4. `CookieLoginMiddleware` intercepts the request, unprotects the token, calls `SignInManager.PasswordSignInAsync`, and redirects to the return URL. Expired or tampered tokens redirect back to `/Account/Login`.
 
 #### Two-Factor Authentication (TOTP)
 
 1. After password success, `SignInResult.RequiresTwoFactor` redirects to `/Account/LoginWith2fa`.
 2. The user enters the 6-digit code from their authenticator app.
-3. `TwoFactorLoginInfo` is stored in `CookieLoginMiddleware.TwoFactorLogins`, then the page navigates to `/login2fa?key={guid}`.
+3. A `TwoFactorLoginInfo` is protected via `LoginTokenProtector`, then the page navigates to `/login2fa?token={protected}`.
 4. Middleware calls `SignInManager.TwoFactorAuthenticatorSignInAsync`.
 
 #### Recovery Code Login
 
-Same pattern as 2FA, using `CookieLoginMiddleware.RecoveryCodeLogins` and the `/loginrecovery` path.
+Same pattern as 2FA, using a protected `RecoveryCodeLoginInfo` token and the `/loginrecovery` path.
 
 #### Passkey (WebAuthn)
 

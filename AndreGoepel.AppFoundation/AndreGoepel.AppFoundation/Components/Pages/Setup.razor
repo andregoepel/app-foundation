@@ -19,6 +19,7 @@
 @inject ILogger<Setup> Logger
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <PageTitle>Initial Setup – nerdventures.blog</PageTitle>
 
@@ -162,14 +163,13 @@
 
             if (signingResult == SignInResult.Success)
             {
-                Guid key = Guid.NewGuid();
-                CookieLoginMiddleware.Logins[key] = new LoginInfo { Email = model.Email, Password = model.Password };
+                var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, RememberMe: false));
                 NotificationService.Notify(
                     NotificationSeverity.Success,
                     "Success",
                     "Administrator account created. You are now signed in."
                 );
-                NavigationManager.NavigateTo($"/login?key={key}", forceLoad: true);
+                NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}", forceLoad: true);
             }
             else
             {

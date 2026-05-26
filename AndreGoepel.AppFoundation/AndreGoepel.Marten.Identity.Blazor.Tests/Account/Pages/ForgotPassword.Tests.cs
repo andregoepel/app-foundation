@@ -88,13 +88,11 @@ public class ForgotPasswordTests : BunitContext
     {
         // Arrange
         var user = new User { Email = "alice@example.com" };
-        var (cut, um, email) = Render(
-            um =>
-            {
-                um.FindByEmailAsync(Arg.Any<string>()).Returns(user);
-                um.IsEmailConfirmedAsync(user).Returns(false);
-            }
-        );
+        var (cut, um, email) = Render(um =>
+        {
+            um.FindByEmailAsync(Arg.Any<string>()).Returns(user);
+            um.IsEmailConfirmedAsync(user).Returns(false);
+        });
 
         // Act
         await SubmitAsync(cut);
@@ -111,14 +109,12 @@ public class ForgotPasswordTests : BunitContext
     {
         // Arrange
         var user = new User { Email = "alice@example.com" };
-        var (cut, um, email) = Render(
-            um =>
-            {
-                um.FindByEmailAsync(Arg.Any<string>()).Returns(user);
-                um.IsEmailConfirmedAsync(user).Returns(true);
-                um.GeneratePasswordResetTokenAsync(user).Returns("token");
-            }
-        );
+        var (cut, um, email) = Render(um =>
+        {
+            um.FindByEmailAsync(Arg.Any<string>()).Returns(user);
+            um.IsEmailConfirmedAsync(user).Returns(true);
+            um.GeneratePasswordResetTokenAsync(user).Returns("token");
+        });
 
         // Act
         await SubmitAsync(cut);

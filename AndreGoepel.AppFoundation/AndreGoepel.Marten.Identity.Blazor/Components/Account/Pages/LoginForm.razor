@@ -6,6 +6,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@LoginUser id="login-form">
     <RadzenStack Gap="1.25rem">
@@ -75,14 +76,8 @@
         }
 
         // Hand off to middleware for cookie sign-in (handles 2FA, remember-me, etc.)
-        var key = Guid.NewGuid();
-        CookieLoginMiddleware.Logins[key] = new LoginInfo
-        {
-            Email = model.Email,
-            Password = model.Password,
-            RememberMe = model.RememberMe,
-        };
-        NavigationManager.NavigateTo($"/login?key={key}", true);
+        var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, model.RememberMe));
+        NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}", forceLoad: true);
     }
 
     private sealed class InputModel

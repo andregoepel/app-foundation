@@ -86,10 +86,7 @@ public class ChangePasswordTests : BunitContext
         await SubmitAsync(cut);
 
         // Assert
-        Assert.Contains(
-            Notifications.Messages,
-            m => m.Severity == NotificationSeverity.Success
-        );
+        Assert.Contains(Notifications.Messages, m => m.Severity == NotificationSeverity.Success);
     }
 
     [Fact]

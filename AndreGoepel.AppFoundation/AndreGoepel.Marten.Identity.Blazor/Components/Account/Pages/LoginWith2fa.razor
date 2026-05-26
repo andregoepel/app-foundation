@@ -5,6 +5,7 @@
 
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <PageTitle>Two-factor authentication – nerdventures.blog</PageTitle>
 
@@ -75,15 +76,15 @@
 
         try
         {
-            var key = Guid.NewGuid();
-            CookieLoginMiddleware.TwoFactorLogins[key] = new TwoFactorLoginInfo
-            {
-                Code = model.TwoFactorCode!,
-                RememberMe = RememberMe,
-                RememberMachine = model.RememberMachine,
-                ReturnUrl = ReturnUrl,
-            };
-            NavigationManager.NavigateTo($"/login2fa?key={key}", forceLoad: true);
+            var token = LoginTokens.Protect(
+                new TwoFactorLoginInfo(
+                    Code: model.TwoFactorCode!,
+                    RememberMe: RememberMe,
+                    RememberMachine: model.RememberMachine,
+                    ReturnUrl: ReturnUrl
+                )
+            );
+            NavigationManager.NavigateTo($"/login2fa?token={Uri.EscapeDataString(token)}", forceLoad: true);
         }
         finally
         {

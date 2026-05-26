@@ -4,6 +4,7 @@ using AndreGoepel.Marten.Identity.Users;
 using Bunit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,9 +43,11 @@ public class LoginFormTests : BunitContext
             Substitute.For<IUserConfirmation<User>>()
         );
 
-    private (IRenderedComponent<LoginForm> Cut, UserManager<User> Um, SignInManager<User> Sm) Render(
-        Action<UserManager<User>, SignInManager<User>>? configure = null
-    )
+    private (
+        IRenderedComponent<LoginForm> Cut,
+        UserManager<User> Um,
+        SignInManager<User> Sm
+    ) Render(Action<UserManager<User>, SignInManager<User>>? configure = null)
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         var um = BuildUserManager();
@@ -54,6 +57,7 @@ public class LoginFormTests : BunitContext
         Services.AddSingleton(sm);
         Services.AddSingleton(new NotificationService());
         Services.AddSingleton(Substitute.For<ILogger<Login>>());
+        Services.AddSingleton(new LoginTokenProtector(DataProtectionProvider.Create("Tests")));
         var cut = Render<LoginForm>();
         return (cut, um, sm);
     }
@@ -93,8 +97,8 @@ public class LoginFormTests : BunitContext
     {
         // Arrange
         var startUri = "http://localhost/";
-        var (cut, um, _) = Render((um, sm) =>
-            um.FindByEmailAsync(Arg.Any<string>()).Returns((User?)null)
+        var (cut, um, _) = Render(
+            (um, sm) => um.FindByEmailAsync(Arg.Any<string>()).Returns((User?)null)
         );
 
         // Act
@@ -150,7 +154,7 @@ public class LoginFormTests : BunitContext
     }
 
     [Fact]
-    public async Task Submit_ValidCreds_StashesKey_AndNavigatesToLogin()
+    public async Task Submit_ValidCreds_NavigatesToLoginWithToken()
     {
         // Arrange
         var user = new User { Email = "alice@example.com" };
@@ -163,13 +167,11 @@ public class LoginFormTests : BunitContext
                 um.CheckPasswordAsync(user, Arg.Any<string>()).Returns(true);
             }
         );
-        var before = CookieLoginMiddleware.Logins.Count;
 
         // Act
         await SubmitAsync(cut);
 
         // Assert
-        Assert.Contains("/login?key=", Nav.Uri);
-        Assert.Equal(before + 1, CookieLoginMiddleware.Logins.Count);
+        Assert.Contains("/login?token=", Nav.Uri);
     }
 }

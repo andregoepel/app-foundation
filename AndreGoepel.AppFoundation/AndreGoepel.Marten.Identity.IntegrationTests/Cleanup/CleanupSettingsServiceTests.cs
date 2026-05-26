@@ -74,7 +74,11 @@ public class CleanupSettingsServiceTests(MartenFixture fixture) : IAsyncLifetime
 
         await scheduler
             .Received(1)
-            .RescheduleJob(Arg.Any<TriggerKey>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
+            .RescheduleJob(
+                Arg.Any<TriggerKey>(),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     private CleanupSettingsService BuildService(int defaultRetention, string defaultCron) =>

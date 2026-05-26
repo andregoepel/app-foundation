@@ -1,8 +1,10 @@
 using AndreGoepel.Marten.Identity.Blazor.Components.Account.Pages;
+using AndreGoepel.Marten.Identity.Http;
 using AndreGoepel.Marten.Identity.Users;
 using Bunit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,10 +24,7 @@ public class RegisterTests : BunitContext
         UserManager<User> Um,
         IUserStore<User> Store,
         IEmailSender<User> Email
-    ) Render(
-        Action<UserManager<User>>? configure = null,
-        bool requireConfirmedAccount = true
-    )
+    ) Render(Action<UserManager<User>>? configure = null, bool requireConfirmedAccount = true)
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         var store = Substitute.For<IUserStore<User>, IUserEmailStore<User>>();
@@ -63,6 +62,7 @@ public class RegisterTests : BunitContext
         Services.AddSingleton(emailSender);
         Services.AddSingleton(Substitute.For<ILogger<Register>>());
         Services.AddSingleton(new NotificationService());
+        Services.AddSingleton(new LoginTokenProtector(DataProtectionProvider.Create("Tests")));
 
         return (Render<Register>(), um, store, emailSender);
     }
@@ -101,14 +101,12 @@ public class RegisterTests : BunitContext
     public async Task Submit_SuccessfulCreate_WithRequireConfirmed_SendsEmailAndNavigatesToConfirmation()
     {
         // Arrange
-        var (cut, um, _, email) = Render(
-            um =>
-            {
-                um.CreateAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Success);
-                um.GetUserIdAsync(Arg.Any<User>()).Returns("uid");
-                um.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("token");
-            }
-        );
+        var (cut, um, _, email) = Render(um =>
+        {
+            um.CreateAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Success);
+            um.GetUserIdAsync(Arg.Any<User>()).Returns("uid");
+            um.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("token");
+        });
 
         // Act
         await SubmitAsync(cut);
@@ -124,10 +122,9 @@ public class RegisterTests : BunitContext
     public async Task Submit_CreateFails_ShowsErrorNotification()
     {
         // Arrange
-        var (cut, um, _, _) = Render(
-            um =>
-                um.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
-                    .Returns(IdentityResult.Failed(new IdentityError { Description = "duplicate" }))
+        var (cut, um, _, _) = Render(um =>
+            um.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
+                .Returns(IdentityResult.Failed(new IdentityError { Description = "duplicate" }))
         );
 
         // Act

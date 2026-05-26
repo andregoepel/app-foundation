@@ -30,10 +30,9 @@ internal static class AuthenticatedUserContext
         );
     }
 
-    public static (
-        AuthenticationStateProvider Provider,
-        ClaimsPrincipal Principal
-    ) BuildAuthState(User user)
+    public static (AuthenticationStateProvider Provider, ClaimsPrincipal Principal) BuildAuthState(
+        User user
+    )
     {
         var identity = new ClaimsIdentity(
             new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) },

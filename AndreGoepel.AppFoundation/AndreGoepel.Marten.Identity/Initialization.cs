@@ -46,6 +46,7 @@ public static class Initialization
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<UserStore<User>>();
         services.AddScoped<RoleStore<Role>>();
+        services.AddSingleton<Http.LoginTokenProtector>();
 
         return services;
     }

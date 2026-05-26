@@ -1,6 +1,8 @@
 using AndreGoepel.Marten.Identity.Blazor.Components.Account.Pages;
+using AndreGoepel.Marten.Identity.Http;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 using Radzen;
 
@@ -18,6 +20,7 @@ public class LoginWithRecoveryCodeTests : BunitContext
         JSInterop.Mode = JSRuntimeMode.Loose;
         var notificationService = new NotificationService();
         Services.AddSingleton(notificationService);
+        Services.AddSingleton(new LoginTokenProtector(DataProtectionProvider.Create("Tests")));
 
         var nav = Services.GetRequiredService<NavigationManager>();
         var query = new List<string>();
