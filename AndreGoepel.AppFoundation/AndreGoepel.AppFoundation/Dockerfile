@@ -9,7 +9,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AndreGoepel.Website/AndreGoepel.Website.csproj", "AndreGoepel.Website/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "AndreGoepel.AppFoundation/"]
-COPY ["AndreGoepel.AppFoundation.Abstractions/AndreGoepel.AppFoundation.Abstractions.csproj", "AndreGoepel.AppFoundation.Abstractions/"]
+COPY ["AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj", "AndreGoepel.Marten.Identity.Abstractions/"]
 COPY ["AndreGoepel.AppFoundation.Blazor/AndreGoepel.AppFoundation.Blazor.csproj", "AndreGoepel.AppFoundation.Blazor/"]
 COPY ["AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj", "AndreGoepel.Marten.Identity/"]
 COPY ["AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "AndreGoepel.AppFoundation.MailService/"]
