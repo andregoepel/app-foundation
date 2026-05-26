@@ -10,7 +10,7 @@ WORKDIR /src
 COPY ["AndreGoepel.Website/AndreGoepel.Website.csproj", "AndreGoepel.Website/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "AndreGoepel.AppFoundation/"]
 COPY ["AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj", "AndreGoepel.Marten.Identity.Abstractions/"]
-COPY ["AndreGoepel.AppFoundation.Blazor/AndreGoepel.AppFoundation.Blazor.csproj", "AndreGoepel.AppFoundation.Blazor/"]
+COPY ["AndreGoepel..Marten.Identity.Blazor/AndreGoepel..Marten.Identity.Blazor.csproj", "AndreGoepel..Marten.Identity.Blazor/"]
 COPY ["AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj", "AndreGoepel.Marten.Identity/"]
 COPY ["AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "AndreGoepel.AppFoundation.MailService/"]
 COPY ["AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "AndreGoepel.AppFoundation.ServiceDefaults/"]
