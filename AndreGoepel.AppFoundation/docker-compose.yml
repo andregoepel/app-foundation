@@ -2,5 +2,5 @@ services:
   andregoepel.appfoundation:
     image: ${DOCKER_REGISTRY-}andregoepelappfoundation
     build:
-      context: .
-      dockerfile: AndreGoepel.AppFoundation/Dockerfile
+      context: ..
+      dockerfile: AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/Dockerfile
