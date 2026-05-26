@@ -18,31 +18,42 @@
 ## 1. Solution Structure
 
 ```
-AndreGoepel.MembersArea.slnx
+AndreGoepel.AppFoundation.slnx   (at the repo root)
 │
-├── AndreGoepel.MembersArea/               # Blazor Server web application
-├── AndreGoepel.Marten.Identity/           # Custom ASP.NET Core Identity stores (event-sourced)
-├── AndreGoepel.MembersArea.MailService/   # Email service (Wolverine + MailKit)
-├── AndreGoepel.MembersArea.ServiceDefaults/  # Shared Aspire service defaults
-├── AndreGoepel.MembersArea.AppHost/       # .NET Aspire orchestration host
+├── AndreGoepel.AppFoundation/              # Blazor Server web application
+├── AndreGoepel.Marten.Identity.Abstractions/ # Framework-light contracts (events, IDs, ICurrentUserService)
+├── AndreGoepel.Marten.Identity/            # Custom ASP.NET Core Identity stores (event-sourced)
+├── AndreGoepel.Marten.Identity.Blazor/     # Blazor UI components for identity flows (login, 2FA, passkeys, admin)
+├── AndreGoepel.Website/                    # Portfolio site Razor class library
+├── AndreGoepel.AppFoundation.MailService/  # Email service (Wolverine + MailKit)
+├── AndreGoepel.AppFoundation.ServiceDefaults/ # Shared Aspire service defaults
+├── AndreGoepel.AppFoundation.AppHost/      # .NET Aspire orchestration host
 │
-├── AndreGoepel.MembersArea.Tests/         # Blazor component tests (bUnit)
-├── AndreGoepel.Marten.Identity.Tests/     # Identity layer unit tests
-└── AndreGoepel.MembersArea.MailService.Tests/  # Mail service unit tests
+├── AndreGoepel.AppFoundation.Tests/                # Host bUnit + IdentityEmailSender
+├── AndreGoepel.Marten.Identity.Tests/              # Substitute-based unit tests
+├── AndreGoepel.Marten.Identity.Blazor.Tests/       # bUnit tests for identity UI
+├── AndreGoepel.Marten.Identity.IntegrationTests/   # Real-Marten tests via Testcontainers
+├── AndreGoepel.AppFoundation.MailService.Tests/    # Mail handler + DI validation
+└── AndreGoepel.Website.Tests/                      # SiteStateService unit tests
 ```
 
 ### Project Dependencies
 
 ```
 AppHost
-  └── MembersArea (reference + Aspire resource)
+  └── AppFoundation (reference + Aspire resource)
 
-MembersArea
-  ├── Marten.Identity
+AppFoundation
+  ├── Marten.Identity.Blazor
+  ├── Website
   ├── MailService
   └── ServiceDefaults
 
+Marten.Identity.Blazor
+  └── Marten.Identity
+
 Marten.Identity
+  ├── Marten.Identity.Abstractions
   └── Marten.AspNetCore
 
 MailService
@@ -59,12 +70,12 @@ MailService
 | Web framework | ASP.NET Core / Blazor Server |
 | UI components | Radzen Blazor 10.2 (Material3 theme) |
 | Database | PostgreSQL |
-| Document store / event store | Marten 8.28 |
-| Messaging | Wolverine 5.27 (with Marten outbox) |
-| Email | MailKit 4.15 |
+| Document store / event store | Marten 9.0 |
+| Messaging | Wolverine 6.0 (with Marten outbox) |
+| Email | MailKit 4.16 |
 | Observability | OpenTelemetry (traces, metrics, logs) |
-| Dev infrastructure | .NET Aspire 13.2 |
-| Testing | xUnit, bUnit, NSubstitute |
+| Dev infrastructure | .NET Aspire 13.3 |
+| Testing | xUnit v3, bUnit, NSubstitute, Testcontainers (Postgres) |
 
 ---
 
@@ -162,24 +173,17 @@ Same pattern as 2FA, using a protected `RecoveryCodeLoginInfo` token and the `/l
 
 ### 4.3 CookieLoginMiddleware
 
-`Components/Account/CookieLoginMiddleware.cs`
+`AndreGoepel.Marten.Identity/Http/CookieLoginMiddleware.cs`
 
-```csharp
-// In-memory credential stores (keyed by one-time GUID)
-public static ConcurrentDictionary<Guid, LoginInfo>           Logins
-public static ConcurrentDictionary<Guid, TwoFactorLoginInfo>  TwoFactorLogins
-public static ConcurrentDictionary<Guid, RecoveryCodeLoginInfo> RecoveryCodeLogins
-```
+The handoff payload (LoginInfo / TwoFactorLoginInfo / RecoveryCodeLoginInfo) is serialised and protected by `LoginTokenProtector` — a wrapper around `ITimeLimitedDataProtector` with a 2-minute TTL — into a URL-safe token. The token travels as `?token=...` on the next request; the middleware unprotects it and feeds it to `SignInManager`.
 
-The middleware handles three paths:
-
-| Path | Dictionary | SignInManager method |
+| Path | Payload | SignInManager method |
 |---|---|---|
-| `/login` | `Logins` | `PasswordSignInAsync` |
-| `/login2fa` | `TwoFactorLogins` | `TwoFactorAuthenticatorSignInAsync` |
-| `/loginrecovery` | `RecoveryCodeLogins` | `TwoFactorRecoveryCodeSignInAsync` |
+| `/login` | `LoginInfo` | `PasswordSignInAsync` |
+| `/login2fa` | `TwoFactorLoginInfo` | `TwoFactorAuthenticatorSignInAsync` |
+| `/loginrecovery` | `RecoveryCodeLoginInfo` | `TwoFactorRecoveryCodeSignInAsync` |
 
-After sign-in, the entry is removed and the user is redirected to `ReturnUrl` or `/`.
+Expired or tampered tokens fall through to `/Account/Login`. There is no process-wide state: a leaked token stops working in two minutes, and the design is multi-instance safe (the data-protection key ring is shared across instances by ASP.NET Core).
 
 ---
 
@@ -430,24 +434,42 @@ app.MapAdditionalIdentityEndpoints();
 
 | Project | Framework | Scope |
 |---|---|---|
-| `MembersArea.Tests` | xUnit + bUnit + NSubstitute | Blazor component behaviour |
-| `Marten.Identity.Tests` | xUnit | Domain model & projection unit tests |
-| `MailService.Tests` | xUnit + NSubstitute | Mail handler & SMTP sender unit tests |
+| `Marten.Identity.Tests` | xUnit v3 + NSubstitute | Substitute-based unit tests: ID semantics, projections, `UserExtension.AreEqual`, `RoleStore` (event-emitting paths), `CurrentUserService`, `CookieLoginMiddleware` path handling, `LoginTokenProtector` round-trip |
+| `Marten.Identity.IntegrationTests` | xUnit v3 + Testcontainers (Postgres) + NSubstitute | Real-Marten coverage: `UserStore` / `RoleStore` CRUD + projections, `UserRoleAssignmentProjection`, `DeletedUserCleanupJob`, `CleanupSettingsService`, `SetupRedirectMiddleware` |
+| `Marten.Identity.Blazor.Tests` | xUnit v3 + bUnit + NSubstitute | Blazor component behaviour: static account pages, interactive login/register/forgot-password forms, Manage/Profile, Manage/ChangePassword, shared bits |
+| `AppFoundation.Tests` | xUnit v3 + bUnit + NSubstitute | Host wiring: `IdentityEmailSender` (Wolverine handoff) |
+| `AppFoundation.MailService.Tests` | xUnit v3 + NSubstitute | `SmtpEmailSender`, `SendEmailMessageHandler`, `InitializerExtension` (DI + data-annotation validation) |
+| `Website.Tests` | xUnit v3 | `SiteStateService.OnChange` firing rules |
 
-### Marten.Identity Test Coverage
+`MartenFixture` (in `IntegrationTests/Infrastructure/`) spins a `PostgreSqlContainer` once per collection and exposes an `IDocumentStore` configured the same way `Program.cs` does. Tests inherit `IAsyncLifetime` and call `fixture.ResetAsync()` in `InitializeAsync` to wipe documents and event streams between cases.
+
+### Marten.Identity unit-test coverage
 
 **UserId / RoleId** — value semantics, `New()`, `Parse()`, implicit/explicit conversions, equality.
 
-**UserProjection** — applies each domain event in isolation and asserts the resulting `User` document:
-- `UserCreated`: all fields set, email normalised, audit populated
-- `UserUpdated`: each mutable field (email, password hash, 2FA, lockout, …) updated independently
-- `UserDeleted`: sensitive fields cleared, soft-delete flag set, deleted audit populated
-- `PasskeyCreated` / `PasskeyUpdated` / `PasskeyDeleted`: dictionary mutations
-- `RoleAssigned` / `RoleUnassigned`: set mutations, duplicate handling
+**UserProjection / RoleProjection** — each domain event applied in isolation; asserts the resulting document state (fields, audit, soft-delete, passkey dict, role set).
 
-**UserPasskey** — equality comparison, Base64 credential ID encoding.
+**UserExtension.AreEqual** — every persisted field is covered, including the lockout fields and `Deletable` that were missing pre-audit.
 
-**RoleProjection** — mirrors `UserProjection` tests for `Role` documents.
+**CurrentUserService** — `ClaimTypes.NameIdentifier` happy path, unauthenticated principal, wrong-claim, malformed-guid, empty value.
+
+**RoleStore** (substitute-based) — `CreateAsync` id round-trip, `UpdateAsync` preserves `Deletable`, `DeleteAsync` / `RestoreAsync` go through the event stream only.
+
+**CookieLoginMiddleware** — all three paths, success / 2FA-required / locked-out / failed branches, code stripping, unknown-token fallbacks.
+
+### Integration test coverage
+
+**UserStore** — Create / Update (with AreEqual short-circuit), Delete / Restore replay, role assign/unassign, passkey CRUD, recovery codes round-trip, authenticator key data-protection round-trip.
+
+**RoleStore** — CRUD against the real store, Restore clears Deleted/DeletedAt.
+
+**UserRoleAssignmentProjection** — assign / unassign / idempotency.
+
+**DeletedUserCleanupJob** — retention cutoff (purges aged, keeps recent).
+
+**CleanupSettingsService** — defaults fallback, persistence, scheduler reschedule.
+
+**SetupRedirectMiddleware** — unconfigured → /Setup redirect, configured → pass-through, static asset / setup-path bypass.
 
 ### Test File Naming Convention
 

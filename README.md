@@ -155,7 +155,11 @@ dotnet user-secrets set "ConnectionStrings:appfoundation-database" "Host=localho
 ## Status
 
 Active development. Core authentication flows and admin UI are functional.
-Not yet: production hardening, full test coverage, deployment guides.
+Identity stores, projections, middleware, and cleanup are covered by unit
+and Testcontainers-backed integration tests; the interactive auth pages
+have bUnit coverage on the form-submit paths. Not yet: production
+deployment guides, exhaustive Manage/Administration UI tests, formal
+security review of the login handoff.
 
 Feedback and issues welcome.
 
