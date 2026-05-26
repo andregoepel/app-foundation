@@ -1,6 +1,6 @@
 @implements IDisposable
 
-@using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity
 @using Radzen.Blazor
 @using global::Marten
 
@@ -52,12 +52,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        SetupComplete = await CheckSetupCompleted();
+        SetupComplete = await SetupCompletion.IsCompleteAsync(QuerySession);
 
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
 
         if (!SetupComplete && !currentPath.Equals("setup", StringComparison.OrdinalIgnoreCase))
+        {
             NavigationManager.NavigateTo("/Setup");
+            return;
+        }
 
         await base.OnInitializedAsync();
     }
@@ -74,7 +77,4 @@ else
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
-
-    private async Task<bool> CheckSetupCompleted() =>
-        await QuerySession.Query<Role>().AnyAsync();
 }

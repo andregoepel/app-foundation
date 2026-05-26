@@ -5,6 +5,7 @@
 
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <PageTitle>Recovery code verification – nerdventures.blog</PageTitle>
 
@@ -64,13 +65,10 @@
 
         try
         {
-            var key = Guid.NewGuid();
-            CookieLoginMiddleware.RecoveryCodeLogins[key] = new RecoveryCodeLoginInfo
-            {
-                Code = model.RecoveryCode,
-                ReturnUrl = ReturnUrl,
-            };
-            NavigationManager.NavigateTo($"/loginrecovery?key={key}", forceLoad: true);
+            var token = LoginTokens.Protect(
+                new RecoveryCodeLoginInfo(Code: model.RecoveryCode, ReturnUrl: ReturnUrl)
+            );
+            NavigationManager.NavigateTo($"/loginrecovery?token={Uri.EscapeDataString(token)}", forceLoad: true);
         }
         finally
         {

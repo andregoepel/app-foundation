@@ -1,25 +1,29 @@
 @page "/admin/content"
+@rendermode InteractiveServer
+
 @attribute [Authorize(Roles = "Administrator")]
 @inject ContentService ContentService
 @inject NotificationService NotificationSvc
 
-<PageTitle>Content Admin</PageTitle>
+<PageTitle>Content – nerdventures.blog</PageTitle>
 
 <div class="rz-p-4 rz-p-md-6">
-    @if (!_loaded)
-    {
-        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-    }
-    else
-    {
-        <RadzenStack Gap="1.5rem">
+    <RadzenStack Gap="1.5rem">
 
-            <div>
-                <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Texte</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Inhalte der Website andregoepel.dev verwalten</RadzenText>
-            </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Content</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">Manage website content</RadzenText>
+        </div>
 
-            <RadzenCard Style="padding: 0; overflow: hidden;">
+        <RadzenCard Style="padding: 0; overflow: hidden;">
+            @if (!_loaded)
+            {
+                <div class="rz-p-4">
+                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            }
+            else
+            {
                 <RadzenTabs>
                     <Tabs>
                         <RadzenTabsItem Text="English">
@@ -50,10 +54,10 @@
                         </RadzenTabsItem>
                     </Tabs>
                 </RadzenTabs>
-            </RadzenCard>
+            }
+        </RadzenCard>
 
-        </RadzenStack>
-    }
+    </RadzenStack>
 </div>
 
 @code {

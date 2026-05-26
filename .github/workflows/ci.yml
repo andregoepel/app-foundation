@@ -19,13 +19,19 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore
-        run: dotnet restore AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx
+        run: dotnet restore
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Format check
+        run: dotnet csharpier check .
 
       - name: Build
-        run: dotnet build AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-restore -c Release
+        run: dotnet build --no-restore -c Release
 
       - name: Test
-        run: dotnet test AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-build -c Release
+        run: dotnet test --no-build -c Release
 
   pack-and-push:
     needs: build-and-test
@@ -42,6 +48,8 @@ jobs:
       - name: Pack
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj \
+            -c Release -p:Version=$VERSION -o nupkgs
           dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj \
             -c Release -p:Version=$VERSION -o nupkgs
           dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor/AndreGoepel.Marten.Identity.Blazor.csproj \

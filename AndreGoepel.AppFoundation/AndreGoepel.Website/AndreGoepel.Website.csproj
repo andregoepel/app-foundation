@@ -3,13 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PackageId>AndreGoepel.Website</PackageId>
-    <Version>1.0.0</Version>
-    <Description>Portfolio website components and content management — Blazor Razor Class Library for andregoepel.dev.</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
