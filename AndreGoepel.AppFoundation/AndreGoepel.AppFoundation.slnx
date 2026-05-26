@@ -18,6 +18,7 @@
     Path="AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj"
     Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe"
   />
+  <Project Path="AndreGoepel.Website.Tests/AndreGoepel.Website.Tests.csproj" />
   <Project Path="AndreGoepel.Website/AndreGoepel.Website.csproj" />
   <Project Path="docker-compose.dcproj">
     <Build />
