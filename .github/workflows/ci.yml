@@ -48,6 +48,8 @@ jobs:
       - name: Pack
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj \
+            -c Release -p:Version=$VERSION -o nupkgs
           dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj \
             -c Release -p:Version=$VERSION -o nupkgs
           dotnet pack AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor/AndreGoepel.Marten.Identity.Blazor.csproj \
