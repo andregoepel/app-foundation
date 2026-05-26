@@ -7,10 +7,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["AndreGoepel.Website/AndreGoepel.AppFoundation.csproj", "AndreGoepel.Website/"]
+COPY ["AndreGoepel.Website/AndreGoepel.Website.csproj", "AndreGoepel.Website/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "AndreGoepel.AppFoundation/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.Abstractions.csproj", "AndreGoepel.AppFoundation.Abstractions/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.Blazor.csproj", "AndreGoepel.AppFoundation.Blazor/"]
+COPY ["AndreGoepel.AppFoundation.Abstractions/AndreGoepel.AppFoundation.Abstractions.csproj", "AndreGoepel.AppFoundation.Abstractions/"]
+COPY ["AndreGoepel.AppFoundation.Blazor/AndreGoepel.AppFoundation.Blazor.csproj", "AndreGoepel.AppFoundation.Blazor/"]
 COPY ["AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj", "AndreGoepel.Marten.Identity/"]
 COPY ["AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "AndreGoepel.AppFoundation.MailService/"]
 COPY ["AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "AndreGoepel.AppFoundation.ServiceDefaults/"]
