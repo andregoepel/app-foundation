@@ -19,7 +19,7 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore
-        run: dotnet restore AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx
+        run: dotnet restore
 
       - name: Restore tools
         run: dotnet tool restore
@@ -28,10 +28,10 @@ jobs:
         run: dotnet csharpier check .
 
       - name: Build
-        run: dotnet build AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-restore -c Release
+        run: dotnet build --no-restore -c Release
 
       - name: Test
-        run: dotnet test AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-build -c Release
+        run: dotnet test --no-build -c Release
 
   pack-and-push:
     needs: build-and-test
