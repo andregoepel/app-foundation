@@ -4,6 +4,8 @@ namespace AndreGoepel.Marten.Identity.Tests.Users;
 
 public class UserExtensionTests
 {
+    private static readonly DateTimeOffset _lockoutEnd = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+
     private static User BaseUser() =>
         new()
         {
@@ -15,6 +17,10 @@ public class UserExtensionTests
             AuthenticatorKey = "authkey",
             RecoveryCodes = "code1;code2",
             TwoFactorEnabled = false,
+            Deletable = true,
+            LockoutEnabled = true,
+            LockoutEnd = _lockoutEnd,
+            AccessFailedCount = 0,
         };
 
     [Fact]
@@ -156,6 +162,66 @@ public class UserExtensionTests
         var a = BaseUser();
         var b = BaseUser();
         b.TwoFactorEnabled = true;
+
+        // Act
+        var result = a.AreEqual(b);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void AreEqual_DifferentDeletable_ReturnsFalse()
+    {
+        // Arrange
+        var a = BaseUser();
+        var b = BaseUser();
+        b.Deletable = false;
+
+        // Act
+        var result = a.AreEqual(b);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void AreEqual_DifferentLockoutEnabled_ReturnsFalse()
+    {
+        // Arrange
+        var a = BaseUser();
+        var b = BaseUser();
+        b.LockoutEnabled = false;
+
+        // Act
+        var result = a.AreEqual(b);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void AreEqual_DifferentLockoutEnd_ReturnsFalse()
+    {
+        // Arrange
+        var a = BaseUser();
+        var b = BaseUser();
+        b.LockoutEnd = _lockoutEnd.AddHours(1);
+
+        // Act
+        var result = a.AreEqual(b);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void AreEqual_DifferentAccessFailedCount_ReturnsFalse()
+    {
+        // Arrange
+        var a = BaseUser();
+        var b = BaseUser();
+        b.AccessFailedCount = 3;
 
         // Act
         var result = a.AreEqual(b);

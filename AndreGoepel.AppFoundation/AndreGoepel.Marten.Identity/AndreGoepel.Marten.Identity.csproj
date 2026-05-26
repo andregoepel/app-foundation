@@ -28,6 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.Marten.Identity.Abstractions\AndreGoepel.Marten.Identity.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="AndreGoepel.Marten.Identity.Tests" />
+    <InternalsVisibleTo Include="AndreGoepel.Marten.Identity.IntegrationTests" />
   </ItemGroup>
 </Project>

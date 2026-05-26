@@ -12,6 +12,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+@inject LoginTokenProtector LoginTokens
 
 <PageTitle>Register – nerdventures.blog</PageTitle>
 
@@ -80,7 +81,7 @@
 
     private async Task RegisterUser(InputModel model)
     {
-        var user = CreateUser();
+        var user = new User();
 
         await UserStore.SetUserNameAsync(user, model.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
@@ -114,27 +115,8 @@
         else
         {
             // SignInAsync writes cookies — must go through middleware
-            Guid key = Guid.NewGuid();
-            CookieLoginMiddleware.Logins[key] = new LoginInfo
-            {
-                Email = model.Email,
-                Password = model.Password,
-                RememberMe = false,
-            };
-            NavigationManager.NavigateTo($"/login?key={key}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
-        }
-    }
-
-    private User CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<User>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
+            var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, RememberMe: false));
+            NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}", forceLoad: true);
         }
     }
 

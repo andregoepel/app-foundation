@@ -108,10 +108,9 @@
     private async Task NewRoleAsync()
     {
         var result = await DialogService.OpenAsync<NewRole>("Create New Role");
-        if (result != null)
+        if (result is true)
         {
             LoadRoles();
-            // Optional: await rolesGrid?.Reload();
         }
     }
 

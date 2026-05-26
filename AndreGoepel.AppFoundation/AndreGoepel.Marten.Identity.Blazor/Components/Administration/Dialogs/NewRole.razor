@@ -1,5 +1,4 @@
-﻿@page "/Administration/Roles/NewRole"
-@using AndreGoepel.Marten.Identity.Roles
+﻿@using AndreGoepel.Marten.Identity.Roles
 @using Microsoft.AspNetCore.Identity
 @using Radzen
 @using Radzen.Blazor
@@ -14,7 +13,7 @@
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@(() => SaveRole())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
-        <RadzenButton Click="@(() => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+        <RadzenButton Click="@(() => DialogService.Close(false))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
     </RadzenStack>
 </RadzenStack>
 
@@ -23,9 +22,7 @@
 
     private async Task SaveRole()
     {
-        var newRole = Activator.CreateInstance<Role>();
-
-        newRole.Name = Rolename;
+        var newRole = new Role { Name = Rolename };
 
         var result = await RoleManager.CreateAsync(newRole);
 

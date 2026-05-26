@@ -1,6 +1,4 @@
-﻿@page "/Administration/Roles/{RoleId}/Users"
-
-@using AndreGoepel.Marten.Identity.Roles
+﻿@using AndreGoepel.Marten.Identity.Roles
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
 @using Radzen
@@ -41,7 +39,7 @@
 @code {
     [Parameter] public required string RoleId { get; set; }
 
-    private List<User> users = default!;
+    private List<User> users = [];
     private Role Role = default!;
 
     private async Task RemoveUser(User user)

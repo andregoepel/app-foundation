@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor/AndreGoepel.Marten.Identity.Blazor.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor.Tests/AndreGoepel.Marten.Identity.Blazor.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.IntegrationTests/AndreGoepel.Marten.Identity.IntegrationTests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Tests/AndreGoepel.Marten.Identity.Tests.csproj" />
+  <Project
+    Path="AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj"
+    Id="7a1ef732-e167-4703-a4c5-69845d3fc9fe"
+  />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Website.Tests/AndreGoepel.Website.Tests.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Website/AndreGoepel.Website.csproj" />
+  <Project Path="AndreGoepel.AppFoundation/docker-compose.dcproj">
+    <Build />
+  </Project>
+</Solution>
