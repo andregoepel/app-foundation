@@ -76,6 +76,7 @@ public class UserStore<TUser>(
                 {
                     RootUser = user.RootUser,
                     Deletable = user.Deletable,
+                    EmailConfirmed = user.EmailConfirmed,
                 }
             );
             await session.SaveChangesAsync(cancellationToken);

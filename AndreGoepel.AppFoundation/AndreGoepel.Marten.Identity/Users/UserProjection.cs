@@ -21,6 +21,7 @@ internal partial class UserProjection : SingleStreamProjection<User, Guid>
         user.PasswordHash = @event.PasswordHash;
         user.Deletable = @event.Deletable;
         user.RootUser = @event.RootUser;
+        user.EmailConfirmed = @event.EmailConfirmed;
         user.CreatedBy = @event.CreatedBy;
         user.CreatedAt = @event.CreatedAt;
         user.ChangedBy = @event.CreatedBy;

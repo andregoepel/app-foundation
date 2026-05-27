@@ -4,6 +4,7 @@ public record UserCreated(UserId UserId, string? UserName, string? Email, string
 {
     public bool RootUser { get; init; }
     public bool Deletable { get; init; } = true;
+    public bool EmailConfirmed { get; init; }
 
     public UserId CreatedBy { get; init; } = UserId;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
