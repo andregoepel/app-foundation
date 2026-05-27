@@ -8,6 +8,7 @@ using AndreGoepel.Marten.Identity.Users;
 using AndreGoepel.Website;
 using JasperFx;
 using Marten;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Radzen;
 using Wolverine;
@@ -64,6 +65,14 @@ builder.Services.AddHeaderPropagation();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
+forwardedOptions.KnownIPNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 if (!app.Environment.IsDevelopment())
 {
