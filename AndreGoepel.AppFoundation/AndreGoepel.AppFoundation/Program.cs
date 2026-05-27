@@ -1,4 +1,5 @@
 using AndreGoepel.AppFoundation.Components;
+using Microsoft.AspNetCore.HttpOverrides;
 using AndreGoepel.AppFoundation.Components.Account;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Marten.Identity;
@@ -64,6 +65,14 @@ builder.Services.AddHeaderPropagation();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
+forwardedOptions.KnownIPNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 if (!app.Environment.IsDevelopment())
 {
