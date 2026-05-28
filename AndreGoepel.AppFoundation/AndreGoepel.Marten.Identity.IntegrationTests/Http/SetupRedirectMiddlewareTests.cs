@@ -29,7 +29,7 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
     public async Task UnconfiguredStore_NonSetupPath_RedirectsToSetup()
     {
         // Arrange
-        var (middleware, context, called) = Build("/dashboard");
+        var (middleware, context, called) = Build("/dashboard", secFetchDest: "document");
 
         // Act
         await middleware.Invoke(context, fixture.Store.QuerySession());
@@ -43,7 +43,7 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
     public async Task UnconfiguredStore_SetupPath_PassesThrough()
     {
         // Arrange
-        var (middleware, context, called) = Build("/Setup");
+        var (middleware, context, called) = Build("/Setup", secFetchDest: "document");
 
         // Act
         await middleware.Invoke(context, fixture.Store.QuerySession());
@@ -53,10 +53,26 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
     }
 
     [Fact]
-    public async Task UnconfiguredStore_StaticAsset_PassesThrough()
+    public async Task UnconfiguredStore_ScriptAsset_PassesThrough()
     {
         // Arrange
-        var (middleware, context, called) = Build("/css/app.css");
+        var (middleware, context, called) = Build(
+            "/_framework/blazor.web.js",
+            secFetchDest: "script"
+        );
+
+        // Act
+        await middleware.Invoke(context, fixture.Store.QuerySession());
+
+        // Assert
+        Assert.True(called.Value);
+    }
+
+    [Fact]
+    public async Task UnconfiguredStore_StyleAsset_PassesThrough()
+    {
+        // Arrange
+        var (middleware, context, called) = Build("/css/app.css", secFetchDest: "style");
 
         // Act
         await middleware.Invoke(context, fixture.Store.QuerySession());
@@ -70,7 +86,7 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
     {
         // Arrange
         await SeedConfiguredAsync();
-        var (middleware, context, called) = Build("/dashboard");
+        var (middleware, context, called) = Build("/dashboard", secFetchDest: "document");
 
         // Act
         await middleware.Invoke(context, fixture.Store.QuerySession());
@@ -83,7 +99,7 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
         SetupRedirectMiddleware Middleware,
         DefaultHttpContext Context,
         Box<bool> Called
-    ) Build(string path)
+    ) Build(string path, string? secFetchDest = null)
     {
         var called = new Box<bool>();
         var middleware = new SetupRedirectMiddleware(_ =>
@@ -93,6 +109,8 @@ public class SetupRedirectMiddlewareTests(MartenFixture fixture) : IAsyncLifetim
         });
         var context = new DefaultHttpContext();
         context.Request.Path = path;
+        if (secFetchDest is not null)
+            context.Request.Headers["Sec-Fetch-Dest"] = secFetchDest;
         return (middleware, context, called);
     }
 
