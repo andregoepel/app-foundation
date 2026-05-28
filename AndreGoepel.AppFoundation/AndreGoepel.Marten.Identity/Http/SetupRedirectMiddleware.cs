@@ -16,7 +16,7 @@ public class SetupRedirectMiddleware(RequestDelegate next)
 
         var path = context.Request.Path.Value ?? "";
 
-        if (!_isConfigured && !IsSetupPath(path) && IsPageNavigation(context, path))
+        if (!_isConfigured && !IsSetupPath(path) && IsPageNavigation(context))
         {
             context.Response.Redirect("/Setup");
             return;
@@ -34,7 +34,7 @@ public class SetupRedirectMiddleware(RequestDelegate next)
     /// render a full HTML page). Sub-resource fetches for scripts, styles, images,
     /// fonts, and framework files are never redirected to /Setup.
     /// </summary>
-    private static bool IsPageNavigation(HttpContext context, string path)
+    private static bool IsPageNavigation(HttpContext context)
     {
         // Modern browsers send Sec-Fetch-Dest with every request.
         // "document" and "iframe" are the only values that represent a full
@@ -45,30 +45,11 @@ public class SetupRedirectMiddleware(RequestDelegate next)
             return dest is "document" or "iframe" or "embed" or "object";
 
         // Fallback for older clients that don't send Sec-Fetch-Dest:
-        // pass through anything that looks like a framework/static resource.
-        return !IsInternalPath(path);
-    }
-
-    private static bool IsInternalPath(string path) =>
-        path.StartsWith("/_", StringComparison.Ordinal)
-        || path.StartsWith("/_content/", StringComparison.OrdinalIgnoreCase)
-        || path.StartsWith("/favicon", StringComparison.OrdinalIgnoreCase)
-        || HasStaticExtension(path);
-
-    private static bool HasStaticExtension(string path)
-    {
-        var ext = Path.GetExtension(path);
-        return ext
-            is ".css"
-                or ".js"
-                or ".png"
-                or ".ico"
-                or ".svg"
-                or ".woff"
-                or ".woff2"
-                or ".ttf"
-                or ".eot"
-                or ".map"
-                or ".webp";
+        // page navigations always include "text/html" in the Accept header,
+        // whereas script/style/image/fetch requests use "*/*" or a type-specific
+        // value that never literally contains "text/html".
+        return context.Request.Headers.Accept.Any(v =>
+            v?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true
+        );
     }
 }
