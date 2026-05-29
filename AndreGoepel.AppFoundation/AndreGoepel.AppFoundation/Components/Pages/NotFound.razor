@@ -1,5 +1,3 @@
-@page "/{**path}"
-
 @using Radzen.Blazor
 
 <PageTitle>Not found</PageTitle>
@@ -17,7 +15,3 @@
                     TagName="TagName.P" />
     </RadzenColumn>
 </RadzenRow>
-
-@code {
-    [Parameter] public string? path { get; set; }
-}
