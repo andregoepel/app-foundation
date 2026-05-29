@@ -9,5 +9,9 @@
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
-    <NotFound />
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <NotFound />
+        </LayoutView>
+    </NotFound>
 </Router>
