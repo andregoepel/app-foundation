@@ -1,4 +1,4 @@
-﻿@page "/Administration/Users"
+@page "/Administration/Users"
 @rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Users
@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
+@using Marten
 @using Radzen
 @using Radzen.Blazor
 
@@ -27,7 +28,7 @@
             </RadzenColumn>
             <RadzenColumn class="rz-text-align-right">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem" JustifyContent="JustifyContent.End">
-                    <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChanged(value)) />
+                    <RadzenCheckBox Name="ShowDeleted" @bind-Value=@ShowDeleted Change=@((bool value) => ShowDeletedChangedAsync(value)) />
                     <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
                 </RadzenStack>
             </RadzenColumn>
@@ -62,15 +63,15 @@
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                                 @if (!data.Deleted)
                                 {
-                                    <RadzenButton Text="Roles" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(() => SetRoles(data))" />
+                                    <RadzenButton Text="Roles" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(() => SetRolesAsync(data))" />
                                 }
                                 @if (data.Deletable && !data.Deleted)
                                 {
-                                    <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => DeleteUser(data))" />
+                                    <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => DeleteUserAsync(data))" />
                                 }
                                 @if (data.Deleted)
                                 {
-                                    <RadzenButton Text="Restore" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => RestoreUser(data))" />
+                                    <RadzenButton Text="Restore" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => RestoreUserAsync(data))" />
                                 }
                             </RadzenStack>
                         </Template>
@@ -83,11 +84,16 @@
 </div>
 
 @code {
-    private IQueryable<User>? users;
-    private IList<User> selectedUsers = new List<User>();  @* Initialized as List for clarity *@
+    private List<User>? users;
+    private IList<User> selectedUsers = new List<User>();
     private bool ShowDeleted { get; set; }
 
-    private async Task SetRoles(User user)
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task SetRolesAsync(User user)
     {
         var result = await DialogService.OpenAsync<UserRoleDialog>("Edit User Roles",
             new Dictionary<string, object?>() { { "UserId", user.Id } },
@@ -95,18 +101,18 @@
 
         if (result == true)
         {
-            LoadUsers();  @* Reload to reflect changes *@
+            await LoadUsersAsync();
         }
     }
 
-    private async Task DeleteUser(User user)
+    private async Task DeleteUserAsync(User user)
     {
         if (await DialogService.Confirm("Are you sure you want to delete this user?", "Delete User") == true)
         {
             var deleteResult = await UserManager.DeleteAsync(user);
             if (deleteResult.Succeeded)
             {
-                LoadUsers();  @* Reload to reflect deletion *@
+                await LoadUsersAsync();
             }
             else
             {
@@ -115,14 +121,14 @@
         }
     }
 
-    private async Task RestoreUser(User user)
+    private async Task RestoreUserAsync(User user)
     {
         if (await DialogService.Confirm("Are you sure you want to restore this user?", "Restore User") == true)
         {
             var result = await UserStore.RestoreAsync(user);
             if (result.Succeeded)
             {
-                LoadUsers();
+                await LoadUsersAsync();
             }
             else
             {
@@ -131,27 +137,18 @@
         }
     }
 
-    private void ShowDeletedChanged(bool value)
+    private async Task ShowDeletedChangedAsync(bool value)
     {
         ShowDeleted = value;
-        LoadUsers();
+        await LoadUsersAsync();
     }
 
-    private void LoadUsers()
+    private async Task LoadUsersAsync()
     {
-        if (ShowDeleted)
-        {
-            users = UserManager.Users;
-        }
-        else
-        {
-            users = UserManager.Users.Where(user => !user.Deleted);
-        }
-    }
+        var query = ShowDeleted
+            ? UserManager.Users
+            : UserManager.Users.Where(u => !u.Deleted);
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        LoadUsers();
+        users = await query.ToListAsync();
     }
 }

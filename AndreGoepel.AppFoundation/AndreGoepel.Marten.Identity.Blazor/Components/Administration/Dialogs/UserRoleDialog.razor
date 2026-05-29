@@ -1,6 +1,7 @@
 ﻿@using AndreGoepel.Marten.Identity.Roles
 @using AndreGoepel.Marten.Identity.Users
 @using Microsoft.AspNetCore.Identity
+@using Marten
 @using Radzen
 @using Radzen.Blazor
 
@@ -67,7 +68,7 @@
     protected override async Task OnInitializedAsync()
     {
         user = await UserManager.FindByIdAsync(UserId) ?? throw new InvalidOperationException("User not found");
-        roles = RoleManager.Roles.Where(role => !role.Deleted).ToList();
+        roles = await RoleManager.Roles.Where(role => !role.Deleted).ToListAsync();
 
         Values = [.. user.Roles.Select(roleId => roleId)];
 
