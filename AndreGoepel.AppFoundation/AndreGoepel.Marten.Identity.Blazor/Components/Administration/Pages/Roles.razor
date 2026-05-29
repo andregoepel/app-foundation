@@ -1,4 +1,4 @@
-﻿@page "/Administration/Roles"
+@page "/Administration/Roles"
 @rendermode InteractiveServer
 
 @using AndreGoepel.Marten.Identity.Roles
@@ -6,6 +6,7 @@
 @using AndreGoepel.Marten.Identity.Blazor.Components.Administration.Dialogs
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
+@using Marten
 @using Radzen
 @using Radzen.Blazor
 
@@ -30,7 +31,7 @@
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem" JustifyContent="JustifyContent.End">
                     <RadzenCheckBox Name="ShowDeleted"
                                     @bind-Value=@ShowDeleted
-                                    Change=@((bool value) => ShowDeletedChanged(value)) />
+                                    Change=@((bool value) => ShowDeletedChangedAsync(value)) />
                     <RadzenLabel Text="Show deleted" Component="ShowDeleted" />
                     <RadzenButton Text="New role"
                                   Icon="add"
@@ -72,21 +73,21 @@
                                     <RadzenButton Text="Users"
                                                   ButtonStyle="ButtonStyle.Secondary"
                                                   Size="ButtonSize.Small"
-                                                  Click="@(() => ShowUsers(data))" />
+                                                  Click="@(() => ShowUsersAsync(data))" />
                                 }
                                 @if (data.Deletable && !data.Deleted)
                                 {
                                     <RadzenButton Text="Delete"
                                                   ButtonStyle="ButtonStyle.Danger"
                                                   Size="ButtonSize.Small"
-                                                  Click="@(() => DeleteRole(data))" />
+                                                  Click="@(() => DeleteRoleAsync(data))" />
                                 }
                                 @if (data.Deleted)
                                 {
                                     <RadzenButton Text="Restore"
                                                   ButtonStyle="ButtonStyle.Success"
                                                   Size="ButtonSize.Small"
-                                                  Click="@(() => RestoreRole(data))" />
+                                                  Click="@(() => RestoreRoleAsync(data))" />
                                 }
                             </RadzenStack>
                         </Template>
@@ -99,22 +100,27 @@
 </div>
 
 @code {
-    private IQueryable<Role>? roles;
+    private List<Role>? roles;
     private IList<Role> selectedRoles = new List<Role>();
     private RadzenDataGrid<Role>? rolesGrid;
 
     private bool ShowDeleted { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRolesAsync();
+    }
 
     private async Task NewRoleAsync()
     {
         var result = await DialogService.OpenAsync<NewRole>("Create New Role");
         if (result is true)
         {
-            LoadRoles();
+            await LoadRolesAsync();
         }
     }
 
-    private async Task ShowUsers(Role role)
+    private async Task ShowUsersAsync(Role role)
     {
         if (string.IsNullOrWhiteSpace(role?.Name)) return;
 
@@ -125,7 +131,7 @@
         );
     }
 
-    private async Task DeleteRole(Role role)
+    private async Task DeleteRoleAsync(Role role)
     {
         if (await DialogService.Confirm(
             $"Are you sure you want to delete the role **{role.Name}**?",
@@ -138,8 +144,7 @@
 
         if (result.Succeeded)
         {
-            LoadRoles();
-            // Optional: await rolesGrid?.Reload();
+            await LoadRolesAsync();
         }
         else
         {
@@ -149,7 +154,7 @@
         }
     }
 
-    private async Task RestoreRole(Role role)
+    private async Task RestoreRoleAsync(Role role)
     {
         if (await DialogService.Confirm(
             $"Are you sure you want to restore the role **{role.Name}**?",
@@ -162,7 +167,7 @@
 
         if (result.Succeeded)
         {
-            LoadRoles();
+            await LoadRolesAsync();
         }
         else
         {
@@ -172,29 +177,18 @@
         }
     }
 
-    private void ShowDeletedChanged(bool value)
+    private async Task ShowDeletedChangedAsync(bool value)
     {
         ShowDeleted = value;
-        LoadRoles();
+        await LoadRolesAsync();
     }
 
-    private void LoadRoles()
+    private async Task LoadRolesAsync()
     {
-        if (ShowDeleted)
-        {
-            roles = RoleManager.Roles;
-        }
-        else
-        {
-            roles = RoleManager.Roles.Where(r => !r.Deleted);
-        }
+        var query = ShowDeleted
+            ? RoleManager.Roles
+            : RoleManager.Roles.Where(r => !r.Deleted);
 
-        // StateHasChanged(); // meist nicht nötig, weil DataGrid reagiert
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        LoadRoles();
+        roles = await query.ToListAsync();
     }
 }
