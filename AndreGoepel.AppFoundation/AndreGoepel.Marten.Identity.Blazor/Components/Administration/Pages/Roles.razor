@@ -6,7 +6,6 @@
 @using AndreGoepel.Marten.Identity.Blazor.Components.Administration.Dialogs
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
-@using Marten
 @using Radzen
 @using Radzen.Blazor
 
@@ -100,7 +99,7 @@
 </div>
 
 @code {
-    private List<Role>? roles;
+    private IReadOnlyList<Role>? roles;
     private IList<Role> selectedRoles = new List<Role>();
     private RadzenDataGrid<Role>? rolesGrid;
 
@@ -181,14 +180,5 @@
     {
         ShowDeleted = value;
         await LoadRolesAsync();
-    }
-
-    private async Task LoadRolesAsync()
-    {
-        var query = ShowDeleted
-            ? RoleManager.Roles
-            : RoleManager.Roles.Where(r => !r.Deleted);
-
-        roles = await query.ToListAsync();
     }
 }

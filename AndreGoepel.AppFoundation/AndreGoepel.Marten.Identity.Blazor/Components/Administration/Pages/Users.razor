@@ -6,7 +6,6 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
-@using Marten
 @using Radzen
 @using Radzen.Blazor
 
@@ -84,7 +83,7 @@
 </div>
 
 @code {
-    private List<User>? users;
+    private IReadOnlyList<User>? users;
     private IList<User> selectedUsers = new List<User>();
     private bool ShowDeleted { get; set; }
 
@@ -141,14 +140,5 @@
     {
         ShowDeleted = value;
         await LoadUsersAsync();
-    }
-
-    private async Task LoadUsersAsync()
-    {
-        var query = ShowDeleted
-            ? UserManager.Users
-            : UserManager.Users.Where(u => !u.Deleted);
-
-        users = await query.ToListAsync();
     }
 }
