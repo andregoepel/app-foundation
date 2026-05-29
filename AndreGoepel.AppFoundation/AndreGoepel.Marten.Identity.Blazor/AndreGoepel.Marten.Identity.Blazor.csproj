@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Marten" />
     <PackageReference Include="Radzen.Blazor" />
   </ItemGroup>
 
