@@ -29,11 +29,14 @@ RUN dotnet restore "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoe
 
 COPY AndreGoepel.AppFoundation/ AndreGoepel.AppFoundation/
 WORKDIR "/src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation"
-RUN dotnet build "AndreGoepel.AppFoundation.csproj" -c $BUILD_CONFIGURATION -o /app/build --no-restore
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "AndreGoepel.AppFoundation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
+# Do NOT use --no-restore here: Microsoft.AspNetCore.App.Internal.Assets is an
+# implicit SDK package (not listed in .csproj) that provides _framework/blazor.web.js
+# via the static-web-assets manifest. The csproj-only restore layer above won't
+# fetch it; publish must be allowed to restore so the Blazor SDK task can include it.
+RUN dotnet publish "AndreGoepel.AppFoundation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
