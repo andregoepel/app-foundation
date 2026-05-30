@@ -27,7 +27,11 @@ Blazor InteractiveServer application foundation with a custom event-sourced ASP.
 ## Git Workflow
 - Branches: `feature/`, `bugfix/`, `hotfix/`
 - Commits: `type: description` (feat, fix, refactor, test, docs)
-- Always branch before changes; run tests before committing
+- **Always create a branch before making any file edits.** Never edit files on `main`.
+- **Never commit without explicit user confirmation.** Ask before every commit, no exceptions.
+- **Never push to `main` or `master`.** All pushes go to a feature/bugfix/hotfix branch only.
+- **Never add a `Co-Authored-By` trailer to commits.** Commit messages contain only the description.
+- Run tests before committing
 
 ## Code Conventions
 
