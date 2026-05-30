@@ -1,7 +1,6 @@
 window.site = (() => {
-    let _rafHero = 0;
-    let _roHero = null;
-    let _heroCleanup = null;
+    let _heroStop = null;
+    let _errStop = null;
     let _rafCursor = 0;
 
     function getInitialState() {
@@ -32,10 +31,12 @@ window.site = (() => {
         html.lang = lang;
     }
 
-    function initHeroBg() {
-        if (_heroCleanup) { _heroCleanup(); _heroCleanup = null; }
-        const canvas = document.getElementById('hero-canvas');
-        if (!canvas) return;
+    // ── Shared constellation canvas ──────────────────────────────────────────
+    // Returns a stop() function. Caller is responsible for calling stop()
+    // before re-initialising or navigating away.
+    function initCanvasBg(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return () => {};
 
         const ctx = canvas.getContext('2d');
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -49,14 +50,14 @@ window.site = (() => {
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
         resize();
-        _roHero = new ResizeObserver(resize);
-        _roHero.observe(canvas);
+        const ro = new ResizeObserver(resize);
+        ro.observe(canvas);
 
         const nodes = Array.from({ length: 36 }, () => ({
             x: Math.random(), y: Math.random(),
             vx: (Math.random() - 0.5) * 0.00018,
             vy: (Math.random() - 0.5) * 0.00018,
-            r: 0.8 + Math.random() * 1.4
+            r: 0.8 + Math.random() * 1.4,
         }));
 
         let mouse = { x: 0.5, y: 0.5, active: false };
@@ -71,6 +72,7 @@ window.site = (() => {
         window.addEventListener('mouseleave', onLeave);
 
         const t0 = performance.now();
+        let raf = 0;
 
         const draw = () => {
             const t = (performance.now() - t0) / 1000;
@@ -104,7 +106,7 @@ window.site = (() => {
             const px = nodes.map(n => ({
                 x: n.x * w + (mx - 0.5) * 18,
                 y: n.y * h + (my - 0.5) * 18,
-                r: n.r
+                r: n.r,
             }));
 
             ctx.lineWidth = 1;
@@ -130,16 +132,30 @@ window.site = (() => {
                 ctx.fill();
             }
 
-            _rafHero = requestAnimationFrame(draw);
+            raf = requestAnimationFrame(draw);
         };
-        _rafHero = requestAnimationFrame(draw);
+        raf = requestAnimationFrame(draw);
 
-        _heroCleanup = () => {
-            cancelAnimationFrame(_rafHero);
-            if (_roHero) { _roHero.disconnect(); _roHero = null; }
+        return () => {
+            cancelAnimationFrame(raf);
+            ro.disconnect();
             window.removeEventListener('mousemove', onMove);
             window.removeEventListener('mouseleave', onLeave);
         };
+    }
+
+    function initHeroBg() {
+        if (_heroStop) { _heroStop(); _heroStop = null; }
+        _heroStop = initCanvasBg('hero-canvas');
+    }
+
+    function initErrorBg() {
+        if (_errStop) { _errStop(); _errStop = null; }
+        _errStop = initCanvasBg('err-canvas');
+    }
+
+    function stopErrorBg() {
+        if (_errStop) { _errStop(); _errStop = null; }
     }
 
     function initCursor() {
@@ -258,5 +274,5 @@ window.site = (() => {
         initSystemThemeListener();
     }
 
-    return { getInitialState, savePrefs, applyAttrs, initAll, refreshReveal };
+    return { getInitialState, savePrefs, applyAttrs, initAll, refreshReveal, initErrorBg, stopErrorBg };
 })();

@@ -628,6 +628,134 @@ html[lang="de"] .sec-about .sec-title { white-space: normal; }
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
 }
 
+/* ─── Error pages (404 / 403) ──────────────────────────────────────────────── */
+.err {
+  position: relative;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 150px 28px 110px;
+  overflow: hidden;
+  z-index: 1;
+}
+.err-bg { position: absolute; inset: 0; pointer-events: none; }
+.err-bg canvas { width: 100%; height: 100%; display: block; }
+.err-corners { position: absolute; inset: 24px; pointer-events: none; }
+
+.err-inner {
+  position: relative; z-index: 2;
+  max-width: 760px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.err-eyebrow {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 12px; letter-spacing: 0.04em; color: var(--fg-mute);
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg) 70%, transparent);
+  margin-bottom: 36px;
+}
+.err-eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2.4s infinite;
+  flex-shrink: 0;
+}
+
+.err-code {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.055em;
+  font-size: clamp(120px, 23vw, 300px);
+  line-height: 0.86;
+  margin: 0 0 8px;
+  display: flex; align-items: center; justify-content: center; gap: 0.01em;
+}
+.err-code-digit {
+  background: linear-gradient(180deg, var(--fg), color-mix(in oklab, var(--fg) 55%, var(--bg)));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.err-code-mark {
+  position: relative;
+  color: var(--accent);
+  -webkit-text-fill-color: var(--accent);
+  filter: drop-shadow(0 0 28px color-mix(in oklab, var(--accent) 55%, transparent));
+}
+.err-code-mark::after {
+  content: "";
+  position: absolute; left: 50%; top: 50%;
+  width: 0.5em; height: 0.5em; transform: translate(-50%, -50%);
+  border: 1px dashed color-mix(in oklab, var(--accent) 45%, transparent);
+  border-radius: 50%;
+  animation: spin 30s linear infinite;
+  pointer-events: none;
+}
+
+.err-title {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: clamp(26px, 3.4vw, 40px);
+  line-height: 1.1;
+  margin: 18px 0 18px;
+  text-wrap: balance;
+}
+
+.err-body {
+  font-size: clamp(16px, 1.35vw, 19px);
+  color: var(--fg-mute);
+  max-width: 540px;
+  margin: 0 auto 16px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.err-terminal {
+  display: inline-flex; align-items: center; gap: 12px;
+  margin: 14px 0 36px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 13px; color: var(--fg-mute);
+  max-width: 100%;
+}
+[data-theme="dark"] .err-terminal { background: rgba(255,255,255,0.02); }
+.err-terminal-method { color: var(--fg-faint); }
+.err-terminal-path { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.err-terminal-arrow { color: var(--fg-faint); }
+.err-terminal-status { color: var(--accent); font-weight: 600; }
+
+.err-actions {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 40px;
+}
+
+.err-links {
+  display: flex; gap: 10px 28px; flex-wrap: wrap; justify-content: center;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+}
+.err-link {
+  color: var(--fg-mute);
+  display: inline-flex; align-items: center; gap: 7px;
+  border-bottom: 1px solid transparent;
+  transition: color .2s ease, border-color .2s ease;
+}
+.err-link:hover { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 50%, transparent); }
+.err-link-num { color: var(--fg-faint); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  .err { padding: 120px 18px 80px; }
+  .err-eyebrow { margin-bottom: 24px; }
+  .err-terminal { font-size: 12px; gap: 8px; }
+}
+
 /* ─── Blazor shell ──────────────────────────────────────────────────────────── */
 #blazor-error-ui {
   background: #b32121; bottom: 0; box-shadow: 0 -1px 2px rgba(0,0,0,.2);

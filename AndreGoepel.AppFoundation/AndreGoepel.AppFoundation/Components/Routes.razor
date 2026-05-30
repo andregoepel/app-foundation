@@ -2,16 +2,25 @@
         AdditionalAssemblies="new[] { typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly, typeof(AndreGoepel.Website.Initialization).Assembly }">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-            <NotAuthorized>
-                <RedirectToLogin />
+            <NotAuthorized Context="_">
+                <AuthorizeView>
+                    <Authorized Context="__">
+                        <LayoutView Layout="@typeof(ErrorLayout)">
+                            <ErrorPage Code="403" />
+                        </LayoutView>
+                    </Authorized>
+                    <NotAuthorized Context="___">
+                        <RedirectToLogin />
+                    </NotAuthorized>
+                </AuthorizeView>
             </NotAuthorized>
             <Authorizing />
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <NotFound />
+        <LayoutView Layout="@typeof(ErrorLayout)">
+            <AndreGoepel.AppFoundation.Components.Pages.NotFound />
         </LayoutView>
     </NotFound>
 </Router>

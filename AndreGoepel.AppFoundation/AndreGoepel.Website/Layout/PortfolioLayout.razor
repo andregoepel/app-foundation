@@ -38,6 +38,7 @@
     private HomeContent _contentCurrentLanguage = HomeContent.Create();
 
     private bool _isInitialized;
+    private bool _isInteractive;
 
     protected override void OnInitialized()
     {
@@ -60,24 +61,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            var state = await JS.InvokeAsync<InitialState>("site.getInitialState");
-            State.SetLang(state.Lang);
-            State.SetTheme(state.Theme, state.ResolvedTheme);
-            _contentCurrentLanguage = ResolveCurrentLanguage();
+            if (firstRender)
+            {
+                _isInteractive = true;
+                var state = await JS.InvokeAsync<InitialState>("site.getInitialState");
+                State.SetLang(state.Lang);
+                State.SetTheme(state.Theme, state.ResolvedTheme);
+                _contentCurrentLanguage = ResolveCurrentLanguage();
 
-            await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
-            StateHasChanged();
+                await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
+                StateHasChanged();
 
-            await JS.InvokeVoidAsync("site.initAll");
-            _isInitialized = true;
+                await JS.InvokeVoidAsync("site.initAll");
+                _isInitialized = true;
+            }
+            else if (_isInitialized)
+            {
+                await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
+                await JS.InvokeVoidAsync("site.refreshReveal");
+            }
         }
-        else if (_isInitialized)
-        {
-            await JS.InvokeVoidAsync("site.applyAttrs", State.ResolvedTheme, State.Lang);
-            await JS.InvokeVoidAsync("site.refreshReveal");
-        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException) { }
     }
 
     public async ValueTask DisposeAsync()

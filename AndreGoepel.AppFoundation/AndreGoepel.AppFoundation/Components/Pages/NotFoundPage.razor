@@ -1,0 +1,10 @@
+@page "/{*url}"
+@layout ErrorLayout
+@rendermode InteractiveServer
+
+<ErrorPage Code="404" />
+
+@code {
+    [Parameter]
+    public string? Url { get; set; }
+}
