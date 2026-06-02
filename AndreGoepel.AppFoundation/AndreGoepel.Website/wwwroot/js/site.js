@@ -274,5 +274,40 @@ window.site = (() => {
         initSystemThemeListener();
     }
 
-    return { getInitialState, savePrefs, applyAttrs, initAll, refreshReveal, initErrorBg, stopErrorBg };
+    // ── Static-SSR boot: theme/language toggles run with no Blazor circuit ────────
+    function markActiveThemeButton() {
+        const userTheme = document.documentElement.dataset.userTheme || 'dark';
+        document.querySelectorAll('[data-set-theme]').forEach(btn => {
+            btn.classList.toggle('is-on', btn.dataset.setTheme === userTheme);
+            btn.setAttribute('aria-pressed', btn.dataset.setTheme === userTheme);
+        });
+    }
+
+    function setTheme(theme) {
+        const resolved = theme === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : theme;
+        applyAttrs(resolved, document.documentElement.lang);
+        document.documentElement.dataset.userTheme = theme;
+        try { localStorage.setItem('ag-theme', theme); } catch (e) {}
+        markActiveThemeButton();
+    }
+
+    function setLang(lang) {
+        document.cookie = 'ag-lang=' + lang + ';path=/;max-age=31536000;samesite=lax';
+        location.reload();
+    }
+
+    function boot() {
+        markActiveThemeButton();
+        document.addEventListener('click', e => {
+            const themeBtn = e.target.closest('[data-set-theme]');
+            if (themeBtn) { setTheme(themeBtn.dataset.setTheme); return; }
+            const langBtn = e.target.closest('[data-set-lang]');
+            if (langBtn) { setLang(langBtn.dataset.setLang); }
+        });
+        initAll();
+    }
+
+    return { getInitialState, savePrefs, applyAttrs, setTheme, setLang, boot, initAll, refreshReveal, initErrorBg, stopErrorBg };
 })();

@@ -42,6 +42,9 @@ builder
 
 builder.Services.AddWebsite();
 
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<NotificationService>();
 
 builder.Host.UseWolverine(options =>
