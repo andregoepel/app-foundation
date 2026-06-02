@@ -1,6 +1,3 @@
-@inject SiteStateService State
-@inject IJSRuntime JS
-
 <header class="hdr">
     <a href="#top" class="hdr-brand" aria-label="andregoepel.dev">
         <span class="hdr-mark">
@@ -27,22 +24,22 @@
 
     <div class="hdr-tools">
         <div class="hdr-seg" role="group" aria-label="@Navigation.LangLabel">
-            <button class="@(State.Lang == "en" ? "is-on" : "")" @onclick='() => SetLang("en")' aria-pressed="@(State.Lang == "en")">EN</button>
-            <button class="@(State.Lang == "de" ? "is-on" : "")" @onclick='() => SetLang("de")' aria-pressed="@(State.Lang == "de")">DE</button>
+            <button data-set-lang="en" class="@(Lang == "en" ? "is-on" : "")" aria-pressed="@(Lang == "en")">EN</button>
+            <button data-set-lang="de" class="@(Lang == "de" ? "is-on" : "")" aria-pressed="@(Lang == "de")">DE</button>
         </div>
 
         <div class="hdr-seg hdr-theme" role="group" aria-label="@Navigation.ThemeLabel">
-            <button class="@(State.Theme == "light" ? "is-on" : "")" @onclick='() => SetTheme("light")' title="@Navigation.ThemeOptions["light"]" aria-label="@Navigation.ThemeOptions["light"]">
+            <button data-set-theme="light" title="@Navigation.ThemeOptions["light"]" aria-label="@Navigation.ThemeOptions["light"]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
                 </svg>
             </button>
-            <button class="@(State.Theme == "system" ? "is-on" : "")" @onclick='() => SetTheme("system")' title="@Navigation.ThemeOptions["system"]" aria-label="@Navigation.ThemeOptions["system"]">
+            <button data-set-theme="system" title="@Navigation.ThemeOptions["system"]" aria-label="@Navigation.ThemeOptions["system"]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="4" width="20" height="14" rx="2" /><path d="M8 22h8M12 18v4" />
                 </svg>
             </button>
-            <button class="@(State.Theme == "dark" ? "is-on" : "")" @onclick='() => SetTheme("dark")' title="@Navigation.ThemeOptions["dark"]" aria-label="@Navigation.ThemeOptions["dark"]">
+            <button data-set-theme="dark" title="@Navigation.ThemeOptions["dark"]" aria-label="@Navigation.ThemeOptions["dark"]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
@@ -63,20 +60,8 @@
     [EditorRequired]
     public required Navigation Navigation { get; set; }
 
+    [Parameter]
+    public string Lang { get; set; } = "en";
+
     private static readonly List<string> NavKeys = ["problem", "services", "about", "cases", "contact"];
-
-    private async Task SetLang(string lang)
-    {
-        State.SetLang(lang);
-        await JS.InvokeVoidAsync("site.savePrefs", lang, State.Theme);
-    }
-
-    private async Task SetTheme(string theme)
-    {
-        var resolvedTheme = theme == "system"
-            ? await JS.InvokeAsync<bool>("eval", "window.matchMedia('(prefers-color-scheme: dark)').matches") ? "dark" : "light"
-            : theme;
-        State.SetTheme(theme, resolvedTheme);
-        await JS.InvokeVoidAsync("site.savePrefs", State.Lang, theme);
-    }
 }
