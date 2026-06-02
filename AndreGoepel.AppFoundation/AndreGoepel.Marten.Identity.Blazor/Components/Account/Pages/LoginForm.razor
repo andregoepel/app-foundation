@@ -76,7 +76,9 @@
         }
 
         // Hand off to middleware for cookie sign-in (handles 2FA, remember-me, etc.)
-        var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, model.RememberMe));
+        var token = LoginTokens.Protect(
+            new LoginInfo(model.Email, model.Password, model.RememberMe, ReturnUrl)
+        );
         NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}", forceLoad: true);
     }
 

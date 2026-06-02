@@ -61,7 +61,7 @@ public class CookieLoginMiddlewareTests
     #region /login path
 
     [Fact]
-    public async Task Login_Success_RedirectsToRoot()
+    public async Task Login_Success_NoReturnUrl_RedirectsToDashboard()
     {
         // Arrange
         var token = _tokens.Protect(new LoginInfo("alice@example.com", "pw", false));
@@ -80,7 +80,57 @@ public class CookieLoginMiddlewareTests
         await BuildMiddleware().Invoke(context, signInManager, _tokens);
 
         // Assert
-        Assert.Equal("/", RedirectLocation(context));
+        Assert.Equal("/dashboard", RedirectLocation(context));
+    }
+
+    [Fact]
+    public async Task Login_Success_WithReturnUrl_RedirectsToReturnUrl()
+    {
+        // Arrange
+        var token = _tokens.Protect(
+            new LoginInfo("alice@example.com", "pw", false, "/admin/content")
+        );
+        var signInManager = BuildSignInManager();
+        signInManager
+            .PasswordSignInAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<bool>(),
+                Arg.Any<bool>()
+            )
+            .Returns(Task.FromResult(SignInResult.Success));
+        var context = BuildContext("/login", token);
+
+        // Act
+        await BuildMiddleware().Invoke(context, signInManager, _tokens);
+
+        // Assert
+        Assert.Equal("/admin/content", RedirectLocation(context));
+    }
+
+    [Fact]
+    public async Task Login_RequiresTwoFactor_ForwardsReturnUrl()
+    {
+        // Arrange
+        var token = _tokens.Protect(
+            new LoginInfo("alice@example.com", "pw", false, "/admin/content")
+        );
+        var signInManager = BuildSignInManager();
+        signInManager
+            .PasswordSignInAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<bool>(),
+                Arg.Any<bool>()
+            )
+            .Returns(Task.FromResult(SignInResult.TwoFactorRequired));
+        var context = BuildContext("/login", token);
+
+        // Act
+        await BuildMiddleware().Invoke(context, signInManager, _tokens);
+
+        // Assert
+        Assert.Contains("returnUrl=%2Fadmin%2Fcontent", RedirectLocation(context));
     }
 
     [Fact]
@@ -198,7 +248,7 @@ public class CookieLoginMiddlewareTests
     }
 
     [Fact]
-    public async Task Login2fa_Success_NoReturnUrl_RedirectsToRoot()
+    public async Task Login2fa_Success_NoReturnUrl_RedirectsToDashboard()
     {
         // Arrange
         var token = _tokens.Protect(new TwoFactorLoginInfo("123456", false, false, null));
@@ -212,7 +262,7 @@ public class CookieLoginMiddlewareTests
         await BuildMiddleware().Invoke(context, signInManager, _tokens);
 
         // Assert
-        Assert.Equal("/", RedirectLocation(context));
+        Assert.Equal("/dashboard", RedirectLocation(context));
     }
 
     [Fact]
@@ -293,7 +343,7 @@ public class CookieLoginMiddlewareTests
     }
 
     [Fact]
-    public async Task LoginRecovery_Success_NoReturnUrl_RedirectsToRoot()
+    public async Task LoginRecovery_Success_NoReturnUrl_RedirectsToDashboard()
     {
         // Arrange
         var token = _tokens.Protect(new RecoveryCodeLoginInfo("ABCDE-FGHIJ", null));
@@ -307,7 +357,7 @@ public class CookieLoginMiddlewareTests
         await BuildMiddleware().Invoke(context, signInManager, _tokens);
 
         // Assert
-        Assert.Equal("/", RedirectLocation(context));
+        Assert.Equal("/dashboard", RedirectLocation(context));
     }
 
     [Fact]
