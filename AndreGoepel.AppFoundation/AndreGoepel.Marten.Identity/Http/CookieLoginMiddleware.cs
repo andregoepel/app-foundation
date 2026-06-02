@@ -4,7 +4,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AndreGoepel.Marten.Identity.Http;
 
-public sealed record LoginInfo(string Email, string Password, bool RememberMe);
+public sealed record LoginInfo(
+    string Email,
+    string Password,
+    bool RememberMe,
+    string? ReturnUrl = null
+);
 
 public sealed record TwoFactorLoginInfo(
     string Code,
@@ -17,6 +22,9 @@ public sealed record RecoveryCodeLoginInfo(string Code, string? ReturnUrl);
 
 public class CookieLoginMiddleware(RequestDelegate next)
 {
+    /// <summary>Default post-login destination when no explicit returnUrl is supplied.</summary>
+    private const string _defaultRedirect = "/dashboard";
+
     public async Task Invoke(
         HttpContext context,
         SignInManager<User> signinManager,
@@ -40,7 +48,7 @@ public class CookieLoginMiddleware(RequestDelegate next)
             var result = await signinManager.TwoFactorRecoveryCodeSignInAsync(code);
 
             if (result.Succeeded)
-                context.Response.Redirect(info.ReturnUrl ?? "/");
+                context.Response.Redirect(info.ReturnUrl ?? _defaultRedirect);
             else if (result.IsLockedOut)
                 context.Response.Redirect("/Account/Lockout");
             else
@@ -68,7 +76,7 @@ public class CookieLoginMiddleware(RequestDelegate next)
             );
 
             if (result.Succeeded)
-                context.Response.Redirect(info.ReturnUrl ?? "/");
+                context.Response.Redirect(info.ReturnUrl ?? _defaultRedirect);
             else if (result.IsLockedOut)
                 context.Response.Redirect("/Account/Lockout");
             else
@@ -90,12 +98,13 @@ public class CookieLoginMiddleware(RequestDelegate next)
                 lockoutOnFailure: true
             );
             if (result.Succeeded)
-                context.Response.Redirect("/");
+                context.Response.Redirect(info.ReturnUrl ?? _defaultRedirect);
             else if (result.RequiresTwoFactor)
             {
                 var rememberMe = info.RememberMe ? "true" : "false";
+                var returnUrl = Uri.EscapeDataString(info.ReturnUrl ?? _defaultRedirect);
                 context.Response.Redirect(
-                    $"/Account/LoginWith2fa?rememberMe={rememberMe}&returnUrl=%2F"
+                    $"/Account/LoginWith2fa?rememberMe={rememberMe}&returnUrl={returnUrl}"
                 );
             }
             else if (result.IsLockedOut)

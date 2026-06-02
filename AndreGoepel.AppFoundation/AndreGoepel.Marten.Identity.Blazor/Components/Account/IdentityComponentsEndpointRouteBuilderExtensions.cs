@@ -106,7 +106,9 @@ public static class IdentityComponentsEndpointRouteBuilderExtensions
                 var result = await signInManager.PasskeySignInAsync(credentialJson);
 
                 var safeReturnUrl =
-                    !string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith('/') ? returnUrl : "/";
+                    !string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith('/')
+                        ? returnUrl
+                        : "/dashboard";
 
                 if (result.Succeeded)
                     return Results.Content(safeReturnUrl, contentType: "text/plain");
