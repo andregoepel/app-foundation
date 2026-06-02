@@ -1,0 +1,23 @@
+@page "/{*url}"
+@layout EmptyLayout
+@rendermode InteractiveServer
+
+@* Logged-in users get the foundation's simple backend error page; anonymous
+   visitors get the branded error page from AndreGoepel.Website, which overrides
+   the default. A 403 never reaches an anonymous user (the router redirects them
+   to login), so only this 404 catch-all needs to branch on auth state. *@
+<AuthorizeView>
+    <Authorized>
+        <ErrorPage Code="404" />
+    </Authorized>
+    <NotAuthorized>
+        <LayoutView Layout="@typeof(AndreGoepel.Website.Layout.ErrorLayout)">
+            <AndreGoepel.Website.Components.Shared.ErrorPage Code="404" />
+        </LayoutView>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public string? Url { get; set; }
+}

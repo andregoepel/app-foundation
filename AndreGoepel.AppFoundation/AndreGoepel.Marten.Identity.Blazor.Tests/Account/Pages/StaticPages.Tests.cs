@@ -12,27 +12,13 @@ public class StaticPagesTests : BunitContext
     #region AccessDenied
 
     [Fact]
-    public void AccessDenied_RendersAccessDeniedMessage()
+    public void AccessDenied_RedirectsToRoot()
     {
         // Arrange
         JSInterop.Mode = JSRuntimeMode.Loose;
-
-        // Arrange / Act
-        var cut = Render<AccessDenied>();
-
-        // Assert
-        Assert.Contains("Access denied", cut.Markup);
-    }
-
-    [Fact]
-    public void AccessDenied_GoToHomeButton_NavigatesToRoot()
-    {
-        // Arrange
-        JSInterop.Mode = JSRuntimeMode.Loose;
-        var cut = Render<AccessDenied>();
 
         // Act
-        cut.Find("button").Click();
+        Render<AccessDenied>();
 
         // Assert
         Assert.Equal("http://localhost/", Nav.Uri);

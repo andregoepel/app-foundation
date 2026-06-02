@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<HeadContent>
+    <link rel="stylesheet" href="_content/AndreGoepel.Website/css/app.css" />
+</HeadContent>
+
+@Body
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var state = await JS.InvokeAsync<InitialState>("site.getInitialState");
+        await JS.InvokeVoidAsync("site.applyAttrs", state.ResolvedTheme, state.Lang);
+    }
+
+    private record InitialState(string Lang, string Theme, string ResolvedTheme);
+}
