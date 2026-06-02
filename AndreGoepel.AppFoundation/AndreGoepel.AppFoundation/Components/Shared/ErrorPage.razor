@@ -1,0 +1,42 @@
+@inject NavigationManager NavigationManager
+
+<PageTitle>@_copy.Title</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="2rem" AlignItems="AlignItems.Center">
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">@_copy.Title</RadzenText>
+
+            <RadzenAlert AlertStyle="AlertStyle.Danger"
+                         Shade="Shade.Lighter"
+                         Variant="Variant.Flat"
+                         AllowClose="false">
+                @_copy.Message
+            </RadzenAlert>
+
+            <RadzenButton Text="Go to home"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click=@(() => NavigationManager.NavigateTo("/")) />
+
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Code { get; set; }
+
+    private ErrorCopy _copy = default!;
+
+    private static readonly Dictionary<string, ErrorCopy> Copies = new()
+    {
+        ["404"] = new("Page not found", "The page you’re looking for doesn’t exist or has moved."),
+        ["403"] = new("Access denied", "You do not have permission to access this resource."),
+    };
+
+    protected override void OnParametersSet() =>
+        _copy = Copies.GetValueOrDefault(Code, Copies["404"]);
+
+    private record ErrorCopy(string Title, string Message);
+}
