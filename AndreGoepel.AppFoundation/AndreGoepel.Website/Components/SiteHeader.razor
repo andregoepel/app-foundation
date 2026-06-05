@@ -13,7 +13,7 @@
     </a>
 
     <nav class="hdr-nav" aria-label="Sections">
-        @foreach (var (key, label) in Navigation.Links)
+        @foreach (var (key, label) in Navigation.Links.OrderBy(kv => NavKeys.IndexOf(kv.Key)))
         {
             <a href="@($"#{key}")" class="hdr-link" data-nav-section="@key">
                 <span class="hdr-link-num">0@(NavKeys.IndexOf(key) + 1)</span>
