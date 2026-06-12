@@ -3,6 +3,10 @@
 @inject ContentService ContentService
 @inject IHttpContextAccessor HttpContextAccessor
 
+<HeadContent>
+    <meta name="description" content="@_content.MetaDescription" />
+</HeadContent>
+
 <SiteHeader Navigation="@_content.Navigation" Lang="@_lang" />
 
 <main>

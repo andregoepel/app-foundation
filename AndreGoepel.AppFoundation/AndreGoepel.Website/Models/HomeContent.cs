@@ -4,6 +4,7 @@ namespace AndreGoepel.Website.Models;
 
 public class HomeContent
 {
+    public string MetaDescription { get; init; } = "";
     public required Navigation Navigation { get; init; }
     public required Hero Hero { get; init; }
     public required Problems Problem { get; init; }
