@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://andregoepel.dev/sitemap.xml

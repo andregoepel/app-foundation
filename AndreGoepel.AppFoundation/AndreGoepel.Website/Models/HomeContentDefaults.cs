@@ -8,6 +8,8 @@ public static class HomeContentDefaults
     private static HomeContent En =>
         new()
         {
+            MetaDescription =
+                "Senior Software Engineer based in Europe — .NET and modern JavaScript, available for new builds, modernization, and scaling. Remote, async-first.",
             Navigation = new()
             {
                 Links = new()
@@ -177,6 +179,8 @@ public static class HomeContentDefaults
     private static HomeContent De =>
         new()
         {
+            MetaDescription =
+                "Senior Software Engineer mit Basis in Europa — .NET und modernes JavaScript, für Neubau, Modernisierung und Skalierung. Remote, Async-First.",
             Navigation = new()
             {
                 Links = new()
