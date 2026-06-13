@@ -20,9 +20,6 @@ COPY ["Directory.Packages.props", "./"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Abstractions/AndreGoepel.Marten.Identity.Abstractions.csproj", "AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Abstractions/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity/AndreGoepel.Marten.Identity.csproj", "AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor/AndreGoepel.Marten.Identity.Blazor.csproj", "AndreGoepel.AppFoundation/AndreGoepel.Marten.Identity.Blazor/"]
 COPY ["AndreGoepel.AppFoundation/AndreGoepel.Website/AndreGoepel.Website.csproj", "AndreGoepel.AppFoundation/AndreGoepel.Website/"]
 
 RUN dotnet restore "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj"
