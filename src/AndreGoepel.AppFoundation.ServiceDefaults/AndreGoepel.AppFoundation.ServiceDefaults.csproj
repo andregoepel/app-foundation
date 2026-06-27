@@ -6,6 +6,19 @@
     <IsAspireSharedProject>true</IsAspireSharedProject>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>AndreGoepel.AppFoundation.ServiceDefaults</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Shared .NET Aspire service defaults for AndreGoepel.AppFoundation hosts: OpenTelemetry, health checks, HTTP resilience, and service discovery.</Description>
+    <PackageTags>appfoundation;aspire;opentelemetry;servicedefaults</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
