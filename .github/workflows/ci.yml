@@ -7,19 +7,24 @@ on:
   pull_request:
     branches: ["main"]
 
+# Actions are pinned to commit SHAs (not mutable tags) so a retagged or
+# compromised action version cannot silently enter the pipeline. The trailing
+# comment records the human-readable version each SHA corresponds to.
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           dotnet-version: "10.0.x"
 
+      # --locked-mode fails the build if the committed packages.lock.json files
+      # would change, making restores reproducible and tamper-evident.
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore --locked-mode
 
       - name: Restore tools
         run: dotnet tool restore
@@ -33,6 +38,15 @@ jobs:
       - name: Test
         run: dotnet test --no-build -c Release
 
+      # Fail the build on any known-vulnerable package (direct or transitive).
+      - name: Vulnerability scan
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -qiE '\b(Critical|High|Moderate|Low)\b' vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages detected (see log above)."
+            exit 1
+          fi
+
   pack-and-publish:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -43,9 +57,9 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           dotnet-version: "10.0.x"
 
@@ -57,7 +71,7 @@ jobs:
             src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj \
             src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj \
             src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj; do
-            dotnet pack "$proj" -c Release -p:Version=$VERSION -o nupkgs
+            dotnet pack "$proj" -c Release -p:Version=$VERSION -p:RestoreLockedMode=true -o nupkgs
           done
 
       # Trusted publishing: exchange the GitHub OIDC token for a short-lived
