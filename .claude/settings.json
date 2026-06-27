@@ -3,7 +3,19 @@
     "allow": [
       "Bash(dotnet test *)",
       "Bash(dotnet build *)",
-      "Bash(dotnet list *)"
+      "Bash(dotnet list *)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet pack:*)",
+      "Bash(dotnet format:*)",
+      "Bash(dotnet csharpier:*)",
+      "Bash(csharpier format:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(gh pr:*)",
+      "Bash(docker build:*)",
+      "Bash(docker info:*)",
+      "Bash(docker --version)"
     ]
   }
 }
