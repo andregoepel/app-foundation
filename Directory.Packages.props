@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="10.4.4" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.0.5" />
   </ItemGroup>
 
   <ItemGroup Label="Messaging">
