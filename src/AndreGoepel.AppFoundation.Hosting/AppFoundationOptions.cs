@@ -16,4 +16,13 @@ public sealed class AppFoundationOptions
     /// Wolverine service name used for the durable inbox/outbox endpoints.
     /// </summary>
     public string WolverineServiceName { get; set; } = "AppFoundation";
+
+    /// <summary>
+    /// Directory scanned for Docker/Kubernetes secrets (key-per-file). Each file's
+    /// name becomes a configuration key (with <c>__</c> as the section separator), so a
+    /// secret named <c>ConnectionStrings__appfoundation-database</c> supplies the
+    /// connection string. Loaded with <c>optional: true</c>, so it is a no-op when the
+    /// directory is absent (e.g. local development). Set to <c>null</c> to disable.
+    /// </summary>
+    public string? SecretsDirectory { get; set; } = "/run/secrets";
 }
