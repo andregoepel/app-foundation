@@ -1,5 +1,5 @@
 <Router AppAssembly="@typeof(Program).Assembly"
-        AdditionalAssemblies="new[] { typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly, typeof(AndreGoepel.Website.Initialization).Assembly }">
+        AdditionalAssemblies="new[] { typeof(AndreGoepel.AppFoundation.AppFoundationLayoutOptions).Assembly, typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly }">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
             <NotAuthorized Context="_">

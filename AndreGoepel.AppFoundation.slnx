@@ -7,7 +7,7 @@
   <Folder Name="/src/">
     <Project Path="src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj" />
-    <Project Path="src/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
+    <Project Path="src/AndreGoepel.Website.AppHost/AndreGoepel.Website.AppHost.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
     <Project Path="src/AndreGoepel.Website/AndreGoepel.Website.csproj" />

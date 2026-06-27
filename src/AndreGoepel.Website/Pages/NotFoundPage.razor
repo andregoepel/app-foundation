@@ -8,7 +8,7 @@
    to login), so only this 404 catch-all needs to branch on auth state. *@
 <AuthorizeView>
     <Authorized>
-        <ErrorPage Code="404" />
+        <AndreGoepel.AppFoundation.Components.Shared.ErrorPage Code="404" />
     </Authorized>
     <NotAuthorized>
         <LayoutView Layout="@typeof(AndreGoepel.Website.Layout.ErrorLayout)">

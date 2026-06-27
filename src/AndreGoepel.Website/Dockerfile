@@ -23,10 +23,10 @@ COPY ["src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailS
 COPY ["src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "src/AndreGoepel.AppFoundation.ServiceDefaults/"]
 COPY ["src/AndreGoepel.Website/AndreGoepel.Website.csproj", "src/AndreGoepel.Website/"]
 
-RUN dotnet restore "src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj"
+RUN dotnet restore "src/AndreGoepel.Website/AndreGoepel.Website.csproj"
 
 COPY src/ src/
-WORKDIR "/src/src/AndreGoepel.AppFoundation"
+WORKDIR "/src/src/AndreGoepel.Website"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
@@ -34,9 +34,9 @@ ARG BUILD_CONFIGURATION=Release
 # implicit SDK package (not listed in .csproj) that provides _framework/blazor.web.js
 # via the static-web-assets manifest. The csproj-only restore layer above won't
 # fetch it; publish must be allowed to restore so the Blazor SDK task can include it.
-RUN dotnet publish "AndreGoepel.AppFoundation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AndreGoepel.Website.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "AndreGoepel.AppFoundation.dll"]
+ENTRYPOINT ["dotnet", "AndreGoepel.Website.dll"]
