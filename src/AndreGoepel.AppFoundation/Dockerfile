@@ -17,15 +17,15 @@ COPY ["Directory.Packages.props", "./"]
 
 # Every csproj transitively referenced by the host. Test projects are
 # intentionally excluded from the image layer.
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/"]
-COPY ["AndreGoepel.AppFoundation/AndreGoepel.Website/AndreGoepel.Website.csproj", "AndreGoepel.AppFoundation/AndreGoepel.Website/"]
+COPY ["src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "src/AndreGoepel.AppFoundation/"]
+COPY ["src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "src/AndreGoepel.AppFoundation.MailService/"]
+COPY ["src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "src/AndreGoepel.AppFoundation.ServiceDefaults/"]
+COPY ["src/AndreGoepel.Website/AndreGoepel.Website.csproj", "src/AndreGoepel.Website/"]
 
-RUN dotnet restore "AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj"
+RUN dotnet restore "src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj"
 
-COPY AndreGoepel.AppFoundation/ AndreGoepel.AppFoundation/
-WORKDIR "/src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation"
+COPY src/ src/
+WORKDIR "/src/src/AndreGoepel.AppFoundation"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

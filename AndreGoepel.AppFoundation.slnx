@@ -4,15 +4,16 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Website.Tests/AndreGoepel.Website.Tests.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/AndreGoepel.Website/AndreGoepel.Website.csproj" />
-  <Project Path="AndreGoepel.AppFoundation/docker-compose.dcproj">
-    <Build />
-  </Project>
+  <Folder Name="/src/">
+    <Project Path="src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
+    <Project Path="src/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
+    <Project Path="src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
+    <Project Path="src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
+    <Project Path="src/AndreGoepel.Website/AndreGoepel.Website.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
+    <Project Path="tests/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
+    <Project Path="tests/AndreGoepel.Website.Tests/AndreGoepel.Website.Tests.csproj" />
+  </Folder>
 </Solution>

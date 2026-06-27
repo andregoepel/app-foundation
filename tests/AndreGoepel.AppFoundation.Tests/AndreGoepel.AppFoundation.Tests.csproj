@@ -27,6 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
+    <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
   </ItemGroup>
 </Project>

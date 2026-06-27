@@ -25,6 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.Website\AndreGoepel.Website.csproj" />
+    <ProjectReference Include="..\..\src\AndreGoepel.Website\AndreGoepel.Website.csproj" />
   </ItemGroup>
 </Project>
