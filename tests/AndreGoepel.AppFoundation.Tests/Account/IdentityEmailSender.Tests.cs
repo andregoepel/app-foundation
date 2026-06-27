@@ -1,4 +1,4 @@
-using AndreGoepel.AppFoundation.Components.Account;
+using AndreGoepel.AppFoundation.Hosting;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Marten.Identity.Users;
 using NSubstitute;

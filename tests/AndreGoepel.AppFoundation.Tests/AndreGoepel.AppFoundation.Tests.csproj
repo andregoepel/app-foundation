@@ -28,5 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
+    <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation.Hosting\AndreGoepel.AppFoundation.Hosting.csproj" />
   </ItemGroup>
 </Project>

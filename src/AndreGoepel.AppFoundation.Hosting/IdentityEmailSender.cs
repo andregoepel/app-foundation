@@ -3,7 +3,7 @@ using AndreGoepel.Marten.Identity.Users;
 using Microsoft.AspNetCore.Identity;
 using Wolverine;
 
-namespace AndreGoepel.AppFoundation.Components.Account;
+namespace AndreGoepel.AppFoundation.Hosting;
 
 internal sealed class IdentityEmailSender(IMessageBus MessageBus) : IEmailSender<User>
 {
