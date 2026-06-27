@@ -1,0 +1,216 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "MailKit": {
+        "type": "Direct",
+        "requested": "[4.16.0, )",
+        "resolved": "4.16.0",
+        "contentHash": "trJ82DOpAmo8i1jO1vNE+dGn4mPRyeYfy4swRcAGgMJhPoI1Kohf4OFJJf0+YIj4iUxgxPn8W+ht7e7KiYzSjg==",
+        "dependencies": {
+          "MimeKit": "4.16.0"
+        }
+      },
+      "Marten": {
+        "type": "Direct",
+        "requested": "[9.0.2, )",
+        "resolved": "9.0.2",
+        "contentHash": "0uIiWlWBgTDZjqcU/W0LlcY8dRaMU/TEMibDsy94+uUu3sIiktYHLyUT/IbapYuHOj+6bp7efS017i1bcprVpw==",
+        "dependencies": {
+          "JasperFx": "2.0.1",
+          "JasperFx.Events": "2.1.1",
+          "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
+          "Weasel.Postgresql": "9.0.1"
+        }
+      },
+      "WolverineFx.Marten": {
+        "type": "Direct",
+        "requested": "[6.0.1, )",
+        "resolved": "6.0.1",
+        "contentHash": "3yZfOEQWU0qV1tuR+jXetfaZyPVlFFl1Tc39j/cL/S8S7x31Qi41foSV9OZogxlKajLnrXbbiTOtVX9DnUIryQ==",
+        "dependencies": {
+          "Marten": "9.0.1",
+          "WolverineFx.Postgresql": "6.0.1"
+        }
+      },
+      "BouncyCastle.Cryptography": {
+        "type": "Transitive",
+        "resolved": "2.6.2",
+        "contentHash": "7oWOcvnntmMKNzDLsdxAYqApt+AjpRpP2CShjMfIa3umZ42UQMvH0tl1qAliYPNYO6vTdcGMqnRrCPmsfzTI1w=="
+      },
+      "DistributedLock.Core": {
+        "type": "Transitive",
+        "resolved": "1.0.8",
+        "contentHash": "LAOsY8WxX8JU/n3lfXFz+f2pfnv0+4bHkCrOO3bwa28u9HrS3DlxSG6jf+u76SqesKs+KehZi0CndkfaUXBKvg=="
+      },
+      "DistributedLock.Postgres": {
+        "type": "Transitive",
+        "resolved": "1.3.0",
+        "contentHash": "CyjXmbhFgG30qPg4DwGnsmZO63y5DBRo+PI2xW0NwtFrsYsMVt/T1RcEUlb36JMKhDkf+euhnkanv/nU+W35qA==",
+        "dependencies": {
+          "DistributedLock.Core": "[1.0.8, 1.1.0)",
+          "Npgsql": "8.0.6"
+        }
+      },
+      "FastExpressionCompiler": {
+        "type": "Transitive",
+        "resolved": "5.4.1",
+        "contentHash": "nqMykMspK5cQd35Y8ulQzAujxCcCwZVUne32pC5xNpXqrbPCuKOPMWkKHJ3LveAZPm6dsVvump0TJ1SZ9RzfTQ=="
+      },
+      "ImTools": {
+        "type": "Transitive",
+        "resolved": "4.0.0",
+        "contentHash": "dms0JfLKC9AQbQX/EdpRjn59EjEvaCxIgv1z9YxbEQb5SiOVoo7vlIKdEySeEwUkWhN05rZnNpUpG+aw5VqPVQ=="
+      },
+      "JasperFx": {
+        "type": "Transitive",
+        "resolved": "2.0.1",
+        "contentHash": "pXnEPoCceuO/1gmUT8nWMMN3K/9JJqpSpykAMfrJ8a9bTXA04rNsc1N8GFqj53mXI/b2J1ZGNt/lf00aBFVvyw==",
+        "dependencies": {
+          "FastExpressionCompiler": "5.4.1",
+          "ImTools": "4.0.0",
+          "Microsoft.Bcl.TimeProvider": "10.0.0",
+          "Polly.Core": "8.6.5",
+          "Spectre.Console": "0.55.0"
+        }
+      },
+      "JasperFx.Events": {
+        "type": "Transitive",
+        "resolved": "2.1.1",
+        "contentHash": "37KnGUsRMZYtzHL6hsgl0p4Ozg78RxPJKcDJU9+TMo3LPN8ry0PNyWuznY2Jtg9g6IOFRGaYzwuafnZVOv2sgQ==",
+        "dependencies": {
+          "JasperFx": "2.0.1"
+        }
+      },
+      "JasperFx.SourceGenerator": {
+        "type": "Transitive",
+        "resolved": "2.0.1",
+        "contentHash": "3I447sP6DLzjTwBupc1yzhQH465i1yu3SFyQ31wzQSj1BY/Zx5XpgTANhgjw5rt3Fm1xosiqpFk27HskZRRzNQ=="
+      },
+      "Microsoft.Bcl.TimeProvider": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "bUubrBD6tRJE3V1kvRloYc6NymH3R5oFKjAS9e0ELNx6u0ZR+zjps9dDQyjgqN/rArzl7f+21KGszj3YRN7F2Q=="
+      },
+      "Microsoft.IO.RecyclableMemoryStream": {
+        "type": "Transitive",
+        "resolved": "3.0.1",
+        "contentHash": "s/s20YTVY9r9TPfTrN5g8zPF1YhwxyqO6PxUkrYTGI2B+OGPe9AdajWZrLhFqXIvqIW23fnUE4+ztrUWNU1+9g=="
+      },
+      "MimeKit": {
+        "type": "Transitive",
+        "resolved": "4.16.0",
+        "contentHash": "X0LFxeM4gPRIhODyY/HYS9b+zRZ7y//v59rFzgS6wLxcPuZThnMtNZHtrr0fjLyRRkg3gqJBtvW36XfUzZ7Djw==",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.6.2",
+          "System.Security.Cryptography.Pkcs": "10.0.0"
+        }
+      },
+      "NetTopologySuite": {
+        "type": "Transitive",
+        "resolved": "2.5.0",
+        "contentHash": "5/+2O2ADomEdUn09mlSigACdqvAf0m/pVPGtIPEPQWnyrVykYY0NlfXLIdkMgi41kvH9kNrPqYaFBTZtHYH7Xw=="
+      },
+      "NetTopologySuite.IO.PostGis": {
+        "type": "Transitive",
+        "resolved": "2.1.0",
+        "contentHash": "3W8XTFz8iP6GQ5jDXK1/LANHiU+988k1kmmuPWNKcJLpmSg6CvFpbTpz+s4+LBzkAp64wHGOldSlkSuzYfrIKA==",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)"
+        }
+      },
+      "NewId": {
+        "type": "Transitive",
+        "resolved": "4.0.1",
+        "contentHash": "jegBasNndmG21G3BmT51suFDCIz/sLN81j+IxmkZ4iWoaDi8LygeHiyNnYbXz5OQh9nCRJFIx1+PJrlYi1Gc9Q=="
+      },
+      "Npgsql": {
+        "type": "Transitive",
+        "resolved": "9.0.4",
+        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
+      },
+      "Npgsql.NetTopologySuite": {
+        "type": "Transitive",
+        "resolved": "9.0.4",
+        "contentHash": "7AwBLPz8EPmgAXveZ55K0Tz/9bNb8j4VI4pkTOQjyHrce8wWfAA9pefm3REidy+Kt2UFiAWef34YVi7sb/kB4A==",
+        "dependencies": {
+          "NetTopologySuite": "2.5.0",
+          "NetTopologySuite.IO.PostGIS": "2.1.0",
+          "Npgsql": "9.0.4"
+        }
+      },
+      "Polly.Core": {
+        "type": "Transitive",
+        "resolved": "8.6.5",
+        "contentHash": "t+sUVrIwvo7UmsgHGgOG9F0GDZSRIm47u2ylH17Gvcv1q5hNEwgD5GoBlFyc0kh/pebmPyrAgvGsR/65ZBaXlg=="
+      },
+      "Spectre.Console": {
+        "type": "Transitive",
+        "resolved": "0.55.0",
+        "contentHash": "2TVhUHFsDux0Z+y2Hv4bFsOMuON4SuotEEKkMparFkp5Rm259naaaEQrN4Sv6C1cbsiGKPjfkJDGgUp+hZPjTw==",
+        "dependencies": {
+          "Spectre.Console.Ansi": "0.55.0"
+        }
+      },
+      "Spectre.Console.Ansi": {
+        "type": "Transitive",
+        "resolved": "0.55.0",
+        "contentHash": "GIfgOvuF8MpU52bprhwtDEtx0gmVIGOepM8bw0lH/TSMD0rg1Xp+5Y53kPG8rFVdcpbNANlhDQ5mEVVPO3/2Tg=="
+      },
+      "System.Security.Cryptography.Pkcs": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+      },
+      "Weasel.Core": {
+        "type": "Transitive",
+        "resolved": "9.0.1",
+        "contentHash": "UvpUg1lJKmFz/bPg/rv4ZyXxY4Q5os/iuL/8c/bAmE/oxBMeA8uGbjZR8SmijGI7gaWv77Rw8q+cMbOPLjoEDA==",
+        "dependencies": {
+          "JasperFx": "2.0.1"
+        }
+      },
+      "Weasel.Postgresql": {
+        "type": "Transitive",
+        "resolved": "9.0.1",
+        "contentHash": "AP6pmQBcr7/Wl6zv1UBJDcvvTvqoWqQdh7mJWuOYkLwjktGn5licjfOnAxzDEIa5pLjoJAH47cO7dOnYsnnuIg==",
+        "dependencies": {
+          "DistributedLock.Postgres": "1.3.0",
+          "JasperFx.Events": "2.0.0",
+          "Npgsql": "9.0.4",
+          "Npgsql.NetTopologySuite": "9.0.4",
+          "Weasel.Core": "9.0.1"
+        }
+      },
+      "WolverineFx": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "wcIZV81AAhEhfQlAr7DYiwo8qZS1sYnimjEbTGHLSMf7w93s+7Ka9gRXxme1+8blV0bP+E6QSsg6Dju/Oj/DGg==",
+        "dependencies": {
+          "JasperFx": "2.0.1",
+          "JasperFx.Events": "2.1.0",
+          "JasperFx.SourceGenerator": "2.0.1",
+          "NewId": "4.0.1"
+        }
+      },
+      "WolverineFx.Postgresql": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "nRD455vJclPleBgu4b3SwIXCzhEosGwCDjWiDEP6Aq8T3r1U31iekjC6Dc6zgCThXIqjhcbNYQyJZT9wLpbktA==",
+        "dependencies": {
+          "Weasel.Postgresql": "9.0.1",
+          "WolverineFx.RDBMS": "6.0.1"
+        }
+      },
+      "WolverineFx.RDBMS": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "A45xRgBeAu8HP05s7yxnBduWwi3OAJv8G6jfRyrw8Lk8jeAK/4KbpqaSkzC114gkkUfpTg/rMTaUTlsC/8WzVA==",
+        "dependencies": {
+          "Weasel.Core": "9.0.1",
+          "WolverineFx": "6.0.1"
+        }
+      }
+    }
+  }
+}
