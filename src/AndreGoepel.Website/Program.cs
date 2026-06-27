@@ -28,8 +28,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(
         typeof(AppFoundationLayoutOptions).Assembly,
-        typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly,
-        typeof(AndreGoepel.Website.Initialization).Assembly
+        typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly
     );
 
 app.MapAdditionalIdentityEndpoints();
