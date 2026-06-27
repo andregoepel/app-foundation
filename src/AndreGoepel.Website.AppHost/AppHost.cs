@@ -16,7 +16,7 @@ var postgresServer = builder
 var appFoundationDb = postgresServer.AddDatabase("appfoundation-database");
 
 builder
-    .AddProject<Projects.AndreGoepel_AppFoundation>("andregoepel-appfoundation")
+    .AddProject<Projects.AndreGoepel_Website>("andregoepel-website")
     .WithReference(appFoundationDb)
     .WithEnvironment("EmailSender__SenderName", "André Göpel - App Foundation")
     .WithEnvironment("EmailSender__SenderEmail", "no-reply@localhost.dev")

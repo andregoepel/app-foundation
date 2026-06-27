@@ -6,6 +6,7 @@
 
 @inject IQuerySession QuerySession
 @inject NavigationManager NavigationManager
+@inject Microsoft.Extensions.Options.IOptions<AppFoundationLayoutOptions> LayoutOptions
 
 @if (SetupComplete)
 {
@@ -27,9 +28,10 @@
 
         <AuthorizeView Roles="Administrator">
             <Authorized>
-                <RadzenPanelMenuItem Text="andregoepel.dev" Icon="language">
-                    <RadzenPanelMenuItem Text="Texte" Icon="edit_note" Path="admin/content" />
-                </RadzenPanelMenuItem>
+                @if (Layout.AdminMenu is not null)
+                {
+                    <DynamicComponent Type="Layout.AdminMenu" />
+                }
 
                 <RadzenPanelMenuItem Text="Administration" Icon="settings">
                     <RadzenPanelMenuItem Text="User Cleanup" Path="Administration/UserCleanup" />
@@ -49,6 +51,8 @@ else
 
 @code {
     private bool SetupComplete;
+
+    private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
 
     protected override async Task OnInitializedAsync()
     {

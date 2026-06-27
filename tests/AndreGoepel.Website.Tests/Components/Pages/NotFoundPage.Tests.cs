@@ -1,11 +1,11 @@
-using AndreGoepel.AppFoundation.Components.Pages;
-using AndreGoepel.AppFoundation.Tests.Components;
+using AndreGoepel.Website.Pages;
+using AndreGoepel.Website.Tests.Components;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using AppErrorPage = AndreGoepel.AppFoundation.Components.Shared.ErrorPage;
 using WebsiteErrorPage = AndreGoepel.Website.Components.Shared.ErrorPage;
 
-namespace AndreGoepel.AppFoundation.Tests.Components.Pages;
+namespace AndreGoepel.Website.Tests.Components.Pages;
 
 public class NotFoundPageTests : ErrorComponentContext
 {
