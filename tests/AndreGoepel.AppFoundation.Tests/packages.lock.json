@@ -730,9 +730,9 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Blazor": "[1.1.0, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.0.0, )",
           "Marten": "[9.11.0, )",
-          "Radzen.Blazor": "[11.0.4, )"
+          "Radzen.Blazor": "[11.0.5, )"
         }
       },
       "andregoepel.appfoundation.hosting": {
@@ -744,7 +744,7 @@
           "AndreGoepel.Marten.Identity.Blazor": "[1.1.0, )",
           "Marten": "[9.11.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.9, )",
-          "Radzen.Blazor": "[11.0.4, )",
+          "Radzen.Blazor": "[11.0.5, )",
           "WolverineFx.Marten": "[6.15.0, )",
           "WolverineFx.RuntimeCompilation": "[6.15.0, )"
         }
@@ -880,9 +880,9 @@
       },
       "Radzen.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[11.0.4, )",
-        "resolved": "11.0.4",
-        "contentHash": "SqpkYTWi4XnqAvGeh0aHbA7FasAeCia9XQv3XiYYR7CQy7DcumB9xlb08VkX+Sxn5cnexGhWFUbLyn4NT0+9lA=="
+        "requested": "[11.0.5, )",
+        "resolved": "11.0.5",
+        "contentHash": "DGO3Htlmejmvmbh8oJET1ylmifaniPoXK00bzx9zCMR0vL8ccNhpIouObcwWZ0N8HsOgGF9M+YlLUo8DJR1CsQ=="
       },
       "WolverineFx.Marten": {
         "type": "CentralTransitive",
