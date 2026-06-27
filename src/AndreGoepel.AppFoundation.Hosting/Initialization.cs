@@ -31,6 +31,15 @@ public static class Initialization
         var options = new AppFoundationOptions();
         configure?.Invoke(options);
 
+        // Load Docker/Kubernetes secrets (key-per-file) so sensitive configuration —
+        // e.g. the connection string — can be supplied as files under the secrets
+        // directory instead of plaintext environment variables. No-op when the
+        // directory is absent (optional: true), so local development is unaffected.
+        if (!string.IsNullOrWhiteSpace(options.SecretsDirectory))
+        {
+            builder.Configuration.AddKeyPerFile(options.SecretsDirectory, optional: true);
+        }
+
         builder.AddServiceDefaults();
 
         builder.Services.AddMartenIdentity();
