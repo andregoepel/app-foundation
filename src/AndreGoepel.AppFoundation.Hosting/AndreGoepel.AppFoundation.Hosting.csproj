@@ -5,6 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>AndreGoepel.AppFoundation.Hosting</PackageId>
+    <Version>1.0.0</Version>
+    <Description>One-call backend seam (AddAppFoundation / UseAppFoundation) wiring Marten, identity, Wolverine messaging, email, data protection, and the request pipeline for AndreGoepel.AppFoundation hosts.</Description>
+    <PackageTags>appfoundation;aspnetcore;hosting;marten;wolverine</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
@@ -23,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.ServiceDefaults\AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </ItemGroup>

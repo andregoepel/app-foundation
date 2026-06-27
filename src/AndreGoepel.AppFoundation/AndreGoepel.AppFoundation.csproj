@@ -4,9 +4,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <IsPackable>true</IsPackable>
-    <PackageId>AndreGoepel.AppFoundation</PackageId>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>AndreGoepel.AppFoundation</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Reusable Blazor management frontend (layout, navigation, setup, and admin shell) for AndreGoepel.AppFoundation-based applications.</Description>
+    <PackageTags>appfoundation;blazor;aspnetcore;radzen;admin</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
