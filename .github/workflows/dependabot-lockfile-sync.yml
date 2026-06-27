@@ -1,0 +1,55 @@
+name: Dependabot lockfile sync
+
+# Dependabot bumps versions in Directory.Packages.props but cannot regenerate
+# the packages.lock.json files (unsupported for Central Package Management), so
+# its PRs fail CI's --locked-mode restore. This workflow regenerates the
+# lockfiles on each Dependabot PR and pushes the result back onto the PR branch.
+#
+# To make the pushed commit re-trigger CI, store a PAT (contents: write) as the
+# Dependabot secret DEPENDABOT_LOCKFILE_PAT. Without it the push still happens
+# via GITHUB_TOKEN, but GITHUB_TOKEN pushes do not start new workflow runs, so
+# CI must then be re-run manually.
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+# Actions are pinned to commit SHAs (not mutable tags) so a retagged or
+# compromised action version cannot silently enter the pipeline.
+jobs:
+  sync-lockfiles:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the PR head branch (not the merge ref) so we can push back to
+      # it. Prefer the PAT so the resulting commit re-triggers CI; fall back to
+      # the read-write GITHUB_TOKEN otherwise.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.DEPENDABOT_LOCKFILE_PAT || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: "10.0.x"
+
+      # --force-evaluate rewrites the lockfiles to match the bumped versions.
+      - name: Regenerate lockfiles
+        run: dotnet restore --force-evaluate
+
+      # No-op (and no loop) when the lockfiles already match: a PAT push re-runs
+      # this workflow, the second pass finds them in sync and pushes nothing.
+      - name: Commit and push if lockfiles changed
+        run: |
+          if git diff --quiet -- '**/packages.lock.json'; then
+            echo "Lockfiles already in sync; nothing to do."
+            exit 0
+          fi
+          git config user.name "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          git add '**/packages.lock.json'
+          git commit -m "chore(deps): regenerate packages.lock.json"
+          git push

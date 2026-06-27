@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # NuGet dependencies (versions are centrally managed in Directory.Packages.props).
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      nuget-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # GitHub Actions — keep the SHA-pinned actions current (Dependabot updates both
+  # the pinned SHA and the version comment).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
