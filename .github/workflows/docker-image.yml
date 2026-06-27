@@ -22,7 +22,7 @@ jobs:
     - name: Build the Docker image
       run: |
         docker build . \
-          --file ./AndreGoepel.AppFoundation/AndreGoepel.AppFoundation/Dockerfile \
+          --file ./src/AndreGoepel.AppFoundation/Dockerfile \
           --tag nerdventurescontainers.azurecr.io/appfoundation:${{ github.sha }} \
           --tag nerdventurescontainers.azurecr.io/appfoundation:latest
 
