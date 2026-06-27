@@ -18,6 +18,7 @@ COPY ["Directory.Packages.props", "./"]
 # Every csproj transitively referenced by the host. Test projects are
 # intentionally excluded from the image layer.
 COPY ["src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj", "src/AndreGoepel.AppFoundation/"]
+COPY ["src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj", "src/AndreGoepel.AppFoundation.Hosting/"]
 COPY ["src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj", "src/AndreGoepel.AppFoundation.MailService/"]
 COPY ["src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj", "src/AndreGoepel.AppFoundation.ServiceDefaults/"]
 COPY ["src/AndreGoepel.Website/AndreGoepel.Website.csproj", "src/AndreGoepel.Website/"]
