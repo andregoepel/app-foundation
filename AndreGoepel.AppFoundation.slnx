@@ -7,14 +7,11 @@
   <Folder Name="/src/">
     <Project Path="src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj" />
-    <Project Path="src/AndreGoepel.Website.AppHost/AndreGoepel.Website.AppHost.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
-    <Project Path="src/AndreGoepel.Website/AndreGoepel.Website.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
-    <Project Path="tests/AndreGoepel.Website.Tests/AndreGoepel.Website.Tests.csproj" />
   </Folder>
 </Solution>
