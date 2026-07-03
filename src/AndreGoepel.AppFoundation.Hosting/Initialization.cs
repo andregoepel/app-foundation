@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
@@ -5,6 +7,8 @@ using AndreGoepel.Marten.Identity.Users;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -61,6 +65,13 @@ public static class Initialization
 
                 marten.InitializeIdentity();
                 marten.AutoCreateSchemaObjects = AutoCreate.All;
+
+                // The alias (and thus the table name) is part of the storage
+                // contract — hosts that persisted key ring entries with an
+                // identically-shaped document keep their keys on upgrade.
+                marten
+                    .Schema.For<DataProtectionKeyDocument>()
+                    .DocumentAlias("dataprotectionkeydocument");
             })
             .IntegrateWithWolverine();
 
@@ -81,13 +92,53 @@ public static class Initialization
 
         builder.AddEmailService();
 
-        builder.Services.AddDataProtection();
+        AddDataProtection(builder, options);
 
         builder.Services.AddRadzenComponents();
 
         builder.Services.AddHeaderPropagation();
 
         return builder;
+    }
+
+    /// <summary>
+    /// DataProtection with a durable key ring: keys are persisted in Postgres via
+    /// Marten (surviving container rebuilds) and — when a certificate is
+    /// configured — encrypted at rest, so a database dump alone cannot decrypt
+    /// <c>IDataProtector</c>-protected payloads. Without
+    /// <c>DataProtection:CertificatePath</c> (e.g. local development) keys are
+    /// stored unencrypted and ASP.NET Core logs its at-rest warning.
+    /// </summary>
+    private static void AddDataProtection(
+        WebApplicationBuilder builder,
+        AppFoundationOptions options
+    )
+    {
+        builder.Services.Configure<DataProtectionOptions>(dataProtection =>
+            dataProtection.ApplicationDiscriminator =
+                options.DataProtectionApplicationDiscriminator ?? options.WolverineServiceName
+        );
+
+        builder
+            .Services.AddOptions<KeyManagementOptions>()
+            .Configure<IServiceProvider>(
+                (keyManagement, provider) =>
+                    keyManagement.XmlRepository = new MartenXmlRepository(provider)
+            );
+
+        var dataProtectionBuilder = builder.Services.AddDataProtection();
+
+        var certificatePath = builder.Configuration["DataProtection:CertificatePath"];
+        if (!string.IsNullOrWhiteSpace(certificatePath))
+        {
+            var certificate = X509CertificateLoader.LoadPkcs12FromFile(
+                certificatePath,
+                builder.Configuration["DataProtection:CertificatePassword"]
+            );
+            dataProtectionBuilder.ProtectKeysWithCertificate(certificate);
+        }
+
+        options.ConfigureDataProtection?.Invoke(dataProtectionBuilder);
     }
 
     public static WebApplication UseAppFoundation(this WebApplication app)

@@ -93,7 +93,8 @@ In order:
 7. `AddMarten(...)` with `InitializeIdentity()` + `AutoCreate.All`, `IntegrateWithWolverine()`.
 8. Memory cache, `IHttpContextAccessor`, Radzen `NotificationService`.
 9. `UseWolverine(...)` — durable inbox/outbox on all endpoints, handler discovery of the MailService assembly, service name `options.WolverineServiceName`.
-10. `AddEmailService()` (§5), `AddDataProtection()`, `AddRadzenComponents()`, `AddHeaderPropagation()`.
+10. `AddEmailService()` (§5), DataProtection with a Marten-persisted key ring and optional
+    certificate encryption at rest (§7), `AddRadzenComponents()`, `AddHeaderPropagation()`.
 
 ### `UseAppFoundation(this WebApplication)`
 
@@ -115,6 +116,8 @@ and `MapAdditionalIdentityEndpoints()` — plus its own root `App.razor` and `Ro
 | `DatabaseConnectionName` | `appfoundation-database` | Connection-string name |
 | `WolverineServiceName` | `AppFoundation` | Durable inbox/outbox service name |
 | `SecretsDirectory` | `/run/secrets` | Key-per-file secrets directory (from 1.1.0) |
+| `DataProtectionApplicationDiscriminator` | `null` (→ `WolverineServiceName`) | DataProtection app isolation (from 1.1.0) |
+| `ConfigureDataProtection` | `null` | Extension point on `IDataProtectionBuilder`, e.g. Key Vault or certificate rotation (from 1.1.0) |
 
 `IdentityEmailSender` (internal) bridges ASP.NET Identity's `IEmailSender<TUser>` to a
 Wolverine `MailMessage` published via `IMessageBus`, decoupling email from the request.
@@ -206,8 +209,24 @@ secrets:
     file: ./secrets/connectionstring   # chmod 600; or external: true under Swarm
 ```
 
-> Data protection keys: `AddDataProtection()` uses the default key ring. For multi-instance
-> deployments the host is responsible for a shared, persisted key ring.
+### Data protection keys (from 1.1.0)
+
+The key ring is persisted in Postgres as Marten documents (`DataProtectionKeyDocument`,
+table `mt_doc_dataprotectionkeydocument`), so keys — and with them login cookies and all
+`IDataProtector`-encrypted payloads — survive container rebuilds and are shared across
+instances.
+
+When `DataProtection__CertificatePath` / `DataProtection__CertificatePassword` are configured
+(e.g. as key-per-file secrets), key ring entries are additionally encrypted with the X.509
+certificate before being written, so a database dump alone cannot decrypt protected payloads.
+Keep the PFX (and its password) backed up separately from database backups — a lost
+certificate makes the key ring, and everything encrypted with it, unrecoverable. Certificate
+expiry only stops *new* keys from being encrypted; decryption keeps working.
+
+The application discriminator defaults to `WolverineServiceName`
+(`DataProtectionApplicationDiscriminator` overrides). For host-specific key protection
+(Azure Key Vault, DPAPI) or certificate rotation (`UnprotectKeysWithAnyCertificate`), use
+`AppFoundationOptions.ConfigureDataProtection`.
 
 ---
 
