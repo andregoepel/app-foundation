@@ -27,6 +27,7 @@
     <PackageReference Include="Marten" />
     <PackageReference Include="Radzen.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
+    <PackageReference Include="WolverineFx.Marten" />
   </ItemGroup>
 
   <ItemGroup>
