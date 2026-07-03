@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
@@ -17,7 +16,7 @@ public class SmtpEmailSenderTests
         };
 
     private static TestableSmtpEmailSender BuildSender(MailConfiguration config) =>
-        new(Options.Create(config));
+        new(new FixedSettingsProvider(config));
 
     [Fact]
     public async Task SendAsync_SetsFromAddress()
@@ -121,15 +120,43 @@ public class SmtpEmailSenderTests
         Assert.Equal(1, sender.SendMailCallCount);
     }
 
-    #region Test double
+    [Fact]
+    public async Task SendAsync_ResolvesSettingsPerSend()
+    {
+        // Arrange
+        var provider = new FixedSettingsProvider(Config());
+        var sender = new TestableSmtpEmailSender(provider);
 
-    private sealed class TestableSmtpEmailSender(IOptions<MailConfiguration> options)
-        : SmtpEmailSender(options)
+        // Act
+        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync("to@example.com", "Subject", "Body");
+
+        // Assert
+        Assert.Equal(2, provider.GetCallCount);
+    }
+
+    #region Test doubles
+
+    private sealed class FixedSettingsProvider(MailConfiguration configuration)
+        : IMailSettingsProvider
+    {
+        public int GetCallCount { get; private set; }
+
+        public Task<MailConfiguration> GetAsync(CancellationToken cancellationToken = default)
+        {
+            GetCallCount++;
+            return Task.FromResult(configuration);
+        }
+    }
+
+    private sealed class TestableSmtpEmailSender(IMailSettingsProvider settingsProvider)
+        : SmtpEmailSender(settingsProvider)
     {
         public MimeMessage? CapturedMessage { get; private set; }
         public int SendMailCallCount { get; private set; }
 
         protected override Task SendMailAsync(
+            MailConfiguration configuration,
             MimeMessage message,
             CancellationToken cancellationToken = default
         )

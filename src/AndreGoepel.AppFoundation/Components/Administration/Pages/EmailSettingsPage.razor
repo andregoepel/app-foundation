@@ -1,0 +1,241 @@
+@page "/Administration/EmailSettings"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrator")]
+
+@using AndreGoepel.AppFoundation.MailService
+
+@inject IEmailSettingsStore SettingsStore
+@inject IEmailSender EmailSender
+@inject NotificationService NotificationService
+
+<PageTitle>Email Settings</PageTitle>
+
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem" Style="max-width: 48rem;">
+
+        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Email Settings</RadzenText>
+
+        @if (loadedFromConfiguration)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                These values come from the EmailSender configuration section. Saving stores them
+                in the database, which takes precedence from then on — no restart required.
+            </RadzenAlert>
+        }
+
+        <RadzenCard>
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
+                <RadzenStack Gap="1.25rem">
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Sender name" Component="SenderName" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenTextBox @bind-Value=@Input.SenderName Name="SenderName" Style="width:100%" />
+                            <RadzenRequiredValidator Component="SenderName" Text="Sender name is required" />
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Sender email" Component="SenderEmail" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenTextBox @bind-Value=@Input.SenderEmail Name="SenderEmail" Style="width:100%" />
+                            <RadzenRequiredValidator Component="SenderEmail" Text="Sender email is required" />
+                            <RadzenEmailValidator Component="SenderEmail" Text="Invalid email address" />
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="SMTP server" Component="Server" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenTextBox @bind-Value=@Input.Server Name="Server" Style="width:100%" />
+                            <RadzenRequiredValidator Component="Server" Text="Server is required" />
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Port" Component="Port" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenNumeric TValue="int" @bind-Value=@Input.Port Name="Port" Min="1" Max="65535" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Use SSL" Component="UseSsl" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenSwitch @bind-Value=@Input.UseSsl Name="UseSsl" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Username" Component="Username" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenTextBox @bind-Value=@Input.Username Name="Username" Style="width:100%" />
+                            <RadzenRequiredValidator Component="Username" Text="Username is required" />
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="Password" Component="Password" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenPassword @bind-Value=@Input.Password
+                                            Name="Password"
+                                            Placeholder="@(hasPassword ? "Leave blank to keep the current password" : "")"
+                                            autocomplete="new-password"
+                                            Style="width:100%" />
+                            @if (!hasPassword)
+                            {
+                                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+                            }
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenLabel Text="HTML emails" Component="Html" Style="width: 10rem; flex-shrink: 0;" />
+                        <RadzenSwitch @bind-Value=@Input.Html Name="Html" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Save"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      IsBusy=@isSaving
+                                      BusyText="Saving..." />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </RadzenCard>
+
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H6">Send test email</RadzenText>
+                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+                    Uses the last saved settings.
+                </RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                    <RadzenTextBox @bind-Value=@testRecipient
+                                   Name="TestRecipient"
+                                   Placeholder="recipient@example.com"
+                                   Style="flex: 1;" />
+                    <RadzenButton Text="Send test"
+                                  ButtonStyle="ButtonStyle.Secondary"
+                                  Click=@OnSendTest
+                                  IsBusy=@isSendingTest
+                                  BusyText="Sending..."
+                                  Disabled=@string.IsNullOrWhiteSpace(testRecipient) />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
+</div>
+
+@code {
+    private InputModel Input { get; set; } = new();
+    private bool hasPassword;
+    private bool loadedFromConfiguration;
+    private bool isSaving;
+    private bool isSendingTest;
+    private string testRecipient = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settings = await SettingsStore.LoadAsync();
+        hasPassword = settings.HasPassword;
+        loadedFromConfiguration = settings.FromConfiguration;
+        Input = new InputModel
+        {
+            SenderName = settings.SenderName,
+            SenderEmail = settings.SenderEmail,
+            Server = settings.Server,
+            Port = settings.Port,
+            UseSsl = settings.UseSsl,
+            Username = settings.Username,
+            Html = settings.Html,
+        };
+    }
+
+    private async Task OnValidSubmit(InputModel model)
+    {
+        isSaving = true;
+        try
+        {
+            await SettingsStore.SaveAsync(
+                new EmailSettings
+                {
+                    SenderName = model.SenderName,
+                    SenderEmail = model.SenderEmail,
+                    Server = model.Server,
+                    Port = model.Port,
+                    UseSsl = model.UseSsl,
+                    Username = model.Username,
+                    Html = model.Html,
+                },
+                string.IsNullOrEmpty(model.Password) ? null : model.Password
+            );
+
+            hasPassword = true;
+            loadedFromConfiguration = false;
+            Input.Password = "";
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Saved",
+                "Email settings updated. Changes apply to the next email sent."
+            );
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error saving settings", ex.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task OnSendTest()
+    {
+        isSendingTest = true;
+        try
+        {
+            await EmailSender.SendAsync(
+                testRecipient,
+                "Test email",
+                "This is a test email verifying the configured email settings."
+            );
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Test email sent",
+                $"Sent to {testRecipient}."
+            );
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Test email failed", ex.Message);
+        }
+        finally
+        {
+            isSendingTest = false;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string SenderName { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        public string SenderEmail { get; set; } = "";
+
+        [Required]
+        public string Server { get; set; } = "";
+
+        public int Port { get; set; } = 587;
+
+        public bool UseSsl { get; set; }
+
+        [Required]
+        public string Username { get; set; } = "";
+
+        public string Password { get; set; } = "";
+
+        public bool Html { get; set; } = true;
+    }
+}

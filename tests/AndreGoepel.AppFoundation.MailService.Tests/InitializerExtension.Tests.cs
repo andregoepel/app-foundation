@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
 
@@ -13,6 +14,10 @@ public class InitializerExtensionTests
         // Arrange
         var builder = WebApplication.CreateBuilder();
         builder.Configuration.AddInMemoryCollection(ValidConfig());
+        // SmtpEmailSender depends on the settings provider, which needs Marten
+        // and DataProtection — supplied by AddAppFoundation in a real host.
+        builder.Services.AddSingleton(Substitute.For<Marten.IDocumentStore>());
+        builder.Services.AddDataProtection();
 
         // Act
         builder.AddEmailService();
@@ -57,6 +62,31 @@ public class InitializerExtensionTests
         // Assert
         Assert.Throws<OptionsValidationException>(() =>
             sp.GetRequiredService<IOptions<MailConfiguration>>().Value
+        );
+    }
+
+    [Fact]
+    public void AddEmailService_RegistersSettingsStoreAndProvider()
+    {
+        // Arrange
+        var builder = WebApplication.CreateBuilder();
+        builder.Configuration.AddInMemoryCollection(ValidConfig());
+
+        // Act
+        builder.AddEmailService();
+
+        // Assert — registration only; resolving requires Marten's IDocumentStore.
+        Assert.Contains(
+            builder.Services,
+            descriptor =>
+                descriptor.ServiceType == typeof(IEmailSettingsStore)
+                && descriptor.ImplementationType == typeof(MartenEmailSettingsStore)
+        );
+        Assert.Contains(
+            builder.Services,
+            descriptor =>
+                descriptor.ServiceType == typeof(IMailSettingsProvider)
+                && descriptor.ImplementationType == typeof(MailSettingsProvider)
         );
     }
 

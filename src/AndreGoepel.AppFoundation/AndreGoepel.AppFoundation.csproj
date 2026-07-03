@@ -28,4 +28,8 @@
     <PackageReference Include="Radzen.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
+  </ItemGroup>
 </Project>

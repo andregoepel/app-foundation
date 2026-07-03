@@ -134,6 +134,7 @@ routable pages are discovered.
 | `Layout/EmptyLayout`, `Layout/ReconnectModal` | Bare layout for setup/errors; Blazor reconnect UI |
 | `Pages/Home` | Dashboard landing (`/dashboard`) |
 | `Pages/Setup` | First-run setup page |
+| `Administration/Pages/EmailSettingsPage` | Admin-only email settings editor (`/Administration/EmailSettings`, from 1.1.0; §5) |
 | `Pages/Error`, `Pages/NotFound`, `Shared/ErrorPage` | Generic error surfaces |
 
 ### Branding & extension — `AppFoundationLayoutOptions`
@@ -166,10 +167,27 @@ IdentityEmailSender (Hosting)
 - `MailConfiguration` (bound from the `EmailSender` config section, data-annotation
   validated): `SenderName`, `SenderEmail`, `Server`, `Port` (587), `UseSsl`, `Username`,
   `Password`, `Html` (true).
-- `AddEmailService()` binds + validates the config and registers `SmtpEmailSender`.
+- `AddEmailService()` binds + validates the config and registers `SmtpEmailSender`,
+  `IMailSettingsProvider` and `IEmailSettingsStore`.
 
 Persisting the message to PostgreSQL before SMTP delivery guarantees at-least-once delivery
 across restarts.
+
+### Database-backed settings (from 1.1.0)
+
+Email settings live in Postgres (`EmailSettingsDocument`, single record) and are editable at
+runtime via the admin-only **Email Settings** page (`/Administration/EmailSettings`,
+`Administrator` role). Resolution is database-first, per send — saves take effect without a
+restart:
+
+- No database record → the `EmailSender` configuration section applies (bootstrap path,
+  identical to pre-1.1.0 behaviour). The admin page pre-fills from it and flags the source.
+- The SMTP password is stored DataProtection-protected
+  (purpose `AndreGoepel.AppFoundation.MailService.EmailSettings`) and never rendered back to
+  the UI: leaving the password field blank keeps the current one; the first save without input
+  falls back to the configured password.
+- `IEmailSettingsStore` (public) is the load/save seam for UIs; the page also offers a
+  "send test email" action using the last saved settings.
 
 ---
 
