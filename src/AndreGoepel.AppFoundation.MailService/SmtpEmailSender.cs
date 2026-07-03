@@ -1,10 +1,9 @@
-﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Options;
+using MailKit.Net.Smtp;
 using MimeKit;
 
 namespace AndreGoepel.AppFoundation.MailService;
 
-internal class SmtpEmailSender(IOptions<MailConfiguration> configuration) : IEmailSender
+internal class SmtpEmailSender(IMailSettingsProvider settingsProvider) : IEmailSender
 {
     public async Task SendAsync(
         string recipient,
@@ -13,18 +12,19 @@ internal class SmtpEmailSender(IOptions<MailConfiguration> configuration) : IEma
         CancellationToken cancellationToken = default
     )
     {
+        var configuration = await settingsProvider.GetAsync(cancellationToken);
+
         var message = new MimeMessage();
-        message.From.Add(
-            new MailboxAddress(configuration.Value.SenderName, configuration.Value.SenderEmail)
-        );
+        message.From.Add(new MailboxAddress(configuration.SenderName, configuration.SenderEmail));
         message.To.Add(MailboxAddress.Parse(recipient));
         message.Subject = subject;
-        message.Body = new TextPart(configuration.Value.Html ? "html" : "plain") { Text = body };
+        message.Body = new TextPart(configuration.Html ? "html" : "plain") { Text = body };
 
-        await SendMailAsync(message, cancellationToken);
+        await SendMailAsync(configuration, message, cancellationToken);
     }
 
     protected virtual async Task SendMailAsync(
+        MailConfiguration configuration,
         MimeMessage message,
         CancellationToken cancellationToken = default
     )
@@ -32,14 +32,14 @@ internal class SmtpEmailSender(IOptions<MailConfiguration> configuration) : IEma
         using var client = new SmtpClient();
 
         await client.ConnectAsync(
-            configuration.Value.Server,
-            configuration.Value.Port,
-            configuration.Value.UseSsl,
+            configuration.Server,
+            configuration.Port,
+            configuration.UseSsl,
             cancellationToken
         );
         await client.AuthenticateAsync(
-            configuration.Value.Username,
-            configuration.Value.Password,
+            configuration.Username,
+            configuration.Password,
             cancellationToken
         );
         await client.SendAsync(message, cancellationToken);

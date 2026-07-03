@@ -545,6 +545,7 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
+          "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.1.0, )",
           "Marten": "[9.11.0, )",
           "Radzen.Blazor": "[11.0.5, )"
