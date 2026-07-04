@@ -79,6 +79,8 @@
     </RadzenStack>
 </RadzenTemplateForm>
 
+<SignInHandoff Action="/login" Handle="@_handle" />
+
 <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
     This step is only shown once.
 </RadzenText>
@@ -86,6 +88,7 @@
 @code {
     private InputModel Input { get; set; } = new();
     private bool isProcessing;
+    private string? _handle;
 
     private int MinPasswordLength => IdentityOptions.Value.Password.RequiredLength;
 
@@ -184,13 +187,19 @@
 
             if (signingResult == SignInResult.Success)
             {
-                var token = LoginTokens.Protect(new LoginInfo(model.Email, model.Password, RememberMe: false));
                 NotificationService.Notify(
                     NotificationSeverity.Success,
                     "Success",
                     "Administrator account created. You are now signed in."
                 );
-                NavigationManager.NavigateTo($"/login?token={Uri.EscapeDataString(token)}", forceLoad: true);
+
+                // Hand the single-use login handle to the cookie-sign-in middleware.
+                // SignInHandoff renders a hidden form and POSTs the handle in the request
+                // body — it never travels in the URL, where it would otherwise leak into
+                // access logs, browser history, and Referer headers (#50).
+                _handle = LoginTokens.Protect(
+                    new LoginInfo(model.Email, model.Password, RememberMe: false)
+                );
             }
             else
             {
