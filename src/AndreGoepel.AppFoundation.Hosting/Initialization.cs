@@ -61,7 +61,7 @@ public static class Initialization
         builder.AddServiceDefaults();
 
         builder.Services.AddMartenIdentity();
-        builder.Services.AddMartenIdentityBlazor();
+        builder.Services.AddMartenIdentityBlazor(options.ConfigureIdentity);
         builder.Services.AddMartenIdentityCleanup();
 
         var connectionString =
@@ -226,6 +226,11 @@ public static class Initialization
         app.UseAuthorization();
 
         app.UseMartenIdentityMiddleware();
+
+        // Enforce the identity feature flags (registration / 2FA / passkeys) at the
+        // request level: a disabled feature's pages and endpoints are unreachable by
+        // direct URL, not merely hidden in the nav menu.
+        app.UseMartenIdentityFeatureGate();
 
         return app;
     }

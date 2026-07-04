@@ -1,10 +1,12 @@
 @implements IDisposable
 
 @using AndreGoepel.Marten.Identity
+@using AndreGoepel.Marten.Identity.Blazor
 @using Radzen.Blazor
 @using global::Marten
 
 @inject IQuerySession QuerySession
+@inject IIdentityFeatureProvider Features
 @inject NavigationManager NavigationManager
 @inject Microsoft.Extensions.Options.IOptions<AppFoundationLayoutOptions> LayoutOptions
 
@@ -19,8 +21,14 @@
                     <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
                     <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
                     <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
-                    <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
-                    <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
+                    @if (twoFactorEnabled)
+                    {
+                        <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
+                    }
+                    @if (passkeyEnabled)
+                    {
+                        <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
+                    }
                     <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
                 </RadzenPanelMenuItem>
             </Authorized>
@@ -52,12 +60,18 @@ else
 
 @code {
     private bool SetupComplete;
+    private bool twoFactorEnabled = true;
+    private bool passkeyEnabled = true;
 
     private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
 
     protected override async Task OnInitializedAsync()
     {
         SetupComplete = await SetupCompletion.IsCompleteAsync(QuerySession);
+
+        var features = await Features.GetAsync();
+        twoFactorEnabled = features.IsEnabled(IdentityFeature.TwoFactor);
+        passkeyEnabled = features.IsEnabled(IdentityFeature.Passkey);
     }
 
     protected override void OnInitialized()
