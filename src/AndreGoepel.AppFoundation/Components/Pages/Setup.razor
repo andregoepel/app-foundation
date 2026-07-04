@@ -8,6 +8,7 @@
 @using AndreGoepel.AppFoundation
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Options
 @using global::Marten
 
 @inject IQuerySession QuerySession
@@ -20,6 +21,7 @@
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 @inject LoginTokenProtector LoginTokens
+@inject IOptions<IdentityOptions> IdentityOptions
 
 <PageTitle>Initial Setup – nerdventures.blog</PageTitle>
 
@@ -49,7 +51,7 @@
                                 Name="Password"
                                 Style="width:100%" />
                 <RadzenRequiredValidator Component="Password" Text="Password is required" />
-                <RadzenLengthValidator Component="Password" Min="6" Text="At least 6 characters" />
+                <RadzenLengthValidator Component="Password" Min="@MinPasswordLength" Text="@($"At least {MinPasswordLength} characters")" />
             </RadzenStack>
         </RadzenStack>
 
@@ -84,6 +86,8 @@
 @code {
     private InputModel Input { get; set; } = new();
     private bool isProcessing;
+
+    private int MinPasswordLength => IdentityOptions.Value.Password.RequiredLength;
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,7 +203,7 @@
         public string Email { get; set; } = "";
 
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
+        [StringLength(100, MinimumLength = 12, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
