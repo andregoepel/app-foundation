@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Radzen;
 using Wolverine;
 using Wolverine.Marten;
@@ -43,6 +45,16 @@ public static class Initialization
         {
             builder.Configuration.AddKeyPerFile(options.SecretsDirectory, optional: true);
         }
+
+        // Let hosts declare trusted reverse proxies via configuration (environment
+        // variables / .env / appsettings) in addition to code, so production proxy
+        // CIDRs — unknown at build time — can be supplied at deploy time. Config
+        // values augment anything set in the configure callback.
+        MergeForwardedHeaderConfiguration(builder.Configuration, options);
+
+        // Expose the resolved options to the request-pipeline side (UseAppFoundation),
+        // which reads them to configure forwarded headers.
+        builder.Services.AddSingleton(options);
 
         builder.AddServiceDefaults();
 
@@ -163,12 +175,30 @@ public static class Initialization
     {
         app.MapDefaultEndpoints();
 
-        var forwardedOptions = new ForwardedHeadersOptions
+        var options = app.Services.GetRequiredService<AppFoundationOptions>();
+        var forwardedOptions = BuildForwardedHeadersOptions(
+            options,
+            app.Environment.IsDevelopment()
+        );
+        options.ConfigureForwardedHeaders?.Invoke(forwardedOptions);
+
+        if (
+            !app.Environment.IsDevelopment()
+            && options.KnownProxyNetworks.Count == 0
+            && options.KnownProxies.Count == 0
+            && options.ConfigureForwardedHeaders is null
+        )
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        };
-        forwardedOptions.KnownIPNetworks.Clear();
-        forwardedOptions.KnownProxies.Clear();
+            app.Services.GetRequiredService<ILoggerFactory>()
+                .CreateLogger(typeof(Initialization).FullName!)
+                .LogWarning(
+                    "AppFoundation: no reverse-proxy networks configured; X-Forwarded-* "
+                        + "headers are honored only from loopback. If the app runs behind a "
+                        + "reverse proxy, set AppFoundationOptions.KnownProxyNetworks / "
+                        + "KnownProxies so the client IP and scheme are trusted from it."
+                );
+        }
+
         app.UseForwardedHeaders(forwardedOptions);
 
         if (!app.Environment.IsDevelopment())
@@ -186,5 +216,102 @@ public static class Initialization
         app.UseMartenIdentityMiddleware();
 
         return app;
+    }
+
+    /// <summary>
+    /// Builds the forwarded-headers trust configuration. Honors <c>X-Forwarded-For</c>
+    /// and <c>X-Forwarded-Proto</c>, but only from trusted origins: the configured
+    /// proxy networks/proxies when supplied; otherwise every origin in Development
+    /// (local convenience) and only the framework default (loopback) elsewhere, so
+    /// arbitrary clients cannot spoof the client IP or scheme in production (#51).
+    /// </summary>
+    /// <summary>
+    /// Merges reverse-proxy trust configured under <c>AppFoundation:KnownProxyNetworks</c>
+    /// and <c>AppFoundation:KnownProxies</c> into <paramref name="options"/>. Each key
+    /// accepts either a delimited scalar (<c>"172.28.0.0/16, 10.0.0.0/8"</c> — friendly
+    /// for a single environment variable / <c>.env</c>) or a configuration array, so the
+    /// production proxy CIDRs can be supplied at deploy time without a code change.
+    /// Values augment (and de-duplicate against) any set in code.
+    /// </summary>
+    internal static void MergeForwardedHeaderConfiguration(
+        IConfiguration configuration,
+        AppFoundationOptions options
+    )
+    {
+        MergeInto(configuration, "AppFoundation:KnownProxyNetworks", options.KnownProxyNetworks);
+        MergeInto(configuration, "AppFoundation:KnownProxies", options.KnownProxies);
+
+        static void MergeInto(IConfiguration configuration, string key, IList<string> target)
+        {
+            foreach (var value in ReadDelimitedOrArray(configuration, key))
+            {
+                if (!target.Contains(value))
+                {
+                    target.Add(value);
+                }
+            }
+        }
+
+        static IEnumerable<string> ReadDelimitedOrArray(IConfiguration configuration, string key)
+        {
+            var section = configuration.GetSection(key);
+
+            // Array form (appsettings.json arrays, or KEY__0 / KEY__1 env vars).
+            var children = section.GetChildren().ToList();
+            if (children.Count > 0)
+            {
+                return children
+                    .Select(child => child.Value)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Select(value => value!.Trim());
+            }
+
+            // Scalar / delimited form (a single environment variable / .env entry).
+            // Split on comma/semicolon/whitespace only — never ':' — so IPv6 CIDRs
+            // such as fd00::/8 stay intact.
+            return section.Value is { Length: > 0 } scalar
+                ? scalar.Split(
+                    [',', ';', ' ', '\t', '\r', '\n'],
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                : [];
+        }
+    }
+
+    internal static ForwardedHeadersOptions BuildForwardedHeadersOptions(
+        AppFoundationOptions options,
+        bool isDevelopment
+    )
+    {
+        var forwardedOptions = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        };
+
+        if (options.KnownProxyNetworks.Count > 0 || options.KnownProxies.Count > 0)
+        {
+            // Trust exactly the configured reverse proxies — and nothing else.
+            forwardedOptions.KnownIPNetworks.Clear();
+            forwardedOptions.KnownProxies.Clear();
+            foreach (var network in options.KnownProxyNetworks)
+            {
+                forwardedOptions.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+            }
+            foreach (var proxy in options.KnownProxies)
+            {
+                forwardedOptions.KnownProxies.Add(IPAddress.Parse(proxy));
+            }
+        }
+        else if (isDevelopment)
+        {
+            // Local development: no proxy in front, so accept forwarded headers from
+            // any origin for convenience.
+            forwardedOptions.KnownIPNetworks.Clear();
+            forwardedOptions.KnownProxies.Clear();
+        }
+        // Otherwise keep the framework defaults (loopback only): without a configured
+        // proxy, arbitrary clients must not be able to spoof X-Forwarded-* headers.
+
+        return forwardedOptions;
     }
 }
