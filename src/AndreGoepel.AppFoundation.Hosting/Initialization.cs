@@ -64,7 +64,19 @@ public static class Initialization
                 marten.Connection(connectionString);
 
                 marten.InitializeIdentity();
-                marten.AutoCreateSchemaObjects = AutoCreate.All;
+
+                // Never let the running app drop/rewrite schema to match code: default
+                // to additive-only (CreateOrUpdate) outside Development, keeping the
+                // permissive All only for the local inner loop. A host can override —
+                // e.g. AutoCreate.None for a least-privilege role with schema applied
+                // out-of-band (#53).
+                marten.AutoCreateSchemaObjects =
+                    options.SchemaCreation
+                    ?? (
+                        builder.Environment.IsDevelopment()
+                            ? AutoCreate.All
+                            : AutoCreate.CreateOrUpdate
+                    );
 
                 // The alias (and thus the table name) is part of the storage
                 // contract — hosts that persisted key ring entries with an

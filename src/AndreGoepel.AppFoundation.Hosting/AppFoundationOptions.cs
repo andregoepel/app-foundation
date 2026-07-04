@@ -1,3 +1,4 @@
+using JasperFx;
 using Microsoft.AspNetCore.DataProtection;
 using Wolverine;
 
@@ -54,4 +55,20 @@ public sealed class AppFoundationOptions
     /// <c>options.ConfigureWolverine = w =&gt; w.Discovery.IncludeAssembly(typeof(SomeHandler).Assembly)</c>.
     /// </summary>
     public Action<WolverineOptions>? ConfigureWolverine { get; set; }
+
+    /// <summary>
+    /// How Marten manages the database schema. When <c>null</c> (the default) the
+    /// foundation selects a safe mode by environment: <see cref="AutoCreate.All"/> in
+    /// Development (fast inner loop; permits destructive rebuilds) and
+    /// <see cref="AutoCreate.CreateOrUpdate"/> everywhere else (additive only — never
+    /// drops or rewrites existing objects, so a code/database mismatch cannot destroy
+    /// data at runtime).
+    /// <para>
+    /// Set explicitly to take control — most notably <see cref="AutoCreate.None"/> for a
+    /// least-privilege deployment where the schema is provisioned out-of-band (a
+    /// migration job / <c>db-apply</c>) and the application runs with a database role
+    /// that has no DDL rights.
+    /// </para>
+    /// </summary>
+    public AutoCreate? SchemaCreation { get; set; }
 }
