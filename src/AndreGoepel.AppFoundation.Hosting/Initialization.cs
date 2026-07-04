@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Radzen;
 using Wolverine;
 using Wolverine.Marten;
@@ -34,6 +36,10 @@ public static class Initialization
     {
         var options = new AppFoundationOptions();
         configure?.Invoke(options);
+
+        // Expose the resolved options to the request-pipeline side (UseAppFoundation),
+        // which reads them to configure forwarded headers.
+        builder.Services.AddSingleton(options);
 
         // Load Docker/Kubernetes secrets (key-per-file) so sensitive configuration —
         // e.g. the connection string — can be supplied as files under the secrets
@@ -163,12 +169,30 @@ public static class Initialization
     {
         app.MapDefaultEndpoints();
 
-        var forwardedOptions = new ForwardedHeadersOptions
+        var options = app.Services.GetRequiredService<AppFoundationOptions>();
+        var forwardedOptions = BuildForwardedHeadersOptions(
+            options,
+            app.Environment.IsDevelopment()
+        );
+        options.ConfigureForwardedHeaders?.Invoke(forwardedOptions);
+
+        if (
+            !app.Environment.IsDevelopment()
+            && options.KnownProxyNetworks.Count == 0
+            && options.KnownProxies.Count == 0
+            && options.ConfigureForwardedHeaders is null
+        )
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        };
-        forwardedOptions.KnownIPNetworks.Clear();
-        forwardedOptions.KnownProxies.Clear();
+            app.Services.GetRequiredService<ILoggerFactory>()
+                .CreateLogger(typeof(Initialization).FullName!)
+                .LogWarning(
+                    "AppFoundation: no reverse-proxy networks configured; X-Forwarded-* "
+                        + "headers are honored only from loopback. If the app runs behind a "
+                        + "reverse proxy, set AppFoundationOptions.KnownProxyNetworks / "
+                        + "KnownProxies so the client IP and scheme are trusted from it."
+                );
+        }
+
         app.UseForwardedHeaders(forwardedOptions);
 
         if (!app.Environment.IsDevelopment())
@@ -186,5 +210,49 @@ public static class Initialization
         app.UseMartenIdentityMiddleware();
 
         return app;
+    }
+
+    /// <summary>
+    /// Builds the forwarded-headers trust configuration. Honors <c>X-Forwarded-For</c>
+    /// and <c>X-Forwarded-Proto</c>, but only from trusted origins: the configured
+    /// proxy networks/proxies when supplied; otherwise every origin in Development
+    /// (local convenience) and only the framework default (loopback) elsewhere, so
+    /// arbitrary clients cannot spoof the client IP or scheme in production (#51).
+    /// </summary>
+    internal static ForwardedHeadersOptions BuildForwardedHeadersOptions(
+        AppFoundationOptions options,
+        bool isDevelopment
+    )
+    {
+        var forwardedOptions = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        };
+
+        if (options.KnownProxyNetworks.Count > 0 || options.KnownProxies.Count > 0)
+        {
+            // Trust exactly the configured reverse proxies — and nothing else.
+            forwardedOptions.KnownIPNetworks.Clear();
+            forwardedOptions.KnownProxies.Clear();
+            foreach (var network in options.KnownProxyNetworks)
+            {
+                forwardedOptions.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+            }
+            foreach (var proxy in options.KnownProxies)
+            {
+                forwardedOptions.KnownProxies.Add(IPAddress.Parse(proxy));
+            }
+        }
+        else if (isDevelopment)
+        {
+            // Local development: no proxy in front, so accept forwarded headers from
+            // any origin for convenience.
+            forwardedOptions.KnownIPNetworks.Clear();
+            forwardedOptions.KnownProxies.Clear();
+        }
+        // Otherwise keep the framework defaults (loopback only): without a configured
+        // proxy, arbitrary clients must not be able to spoof X-Forwarded-* headers.
+
+        return forwardedOptions;
     }
 }
