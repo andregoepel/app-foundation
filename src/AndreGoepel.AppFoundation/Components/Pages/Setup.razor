@@ -100,6 +100,23 @@
 
         try
         {
+            // Re-assert setup is still incomplete immediately before creating the
+            // root admin. OnInitializedAsync guards the initial render and the
+            // SetupRedirectMiddleware blocks fresh GETs of /Setup once an admin
+            // exists, but neither re-runs for a submit on an already-open circuit —
+            // so a circuit opened during the first-run window could otherwise mint a
+            // second root administrator. Fail closed here (#52).
+            if (await SetupCompletion.IsCompleteAsync(QuerySession))
+            {
+                NotificationService.Notify(
+                    NotificationSeverity.Info,
+                    "Setup already completed",
+                    "An administrator account already exists."
+                );
+                NavigationManager.NavigateTo("/", forceLoad: true);
+                return;
+            }
+
             var user = new User
             {
                 Email = Input.Email,
