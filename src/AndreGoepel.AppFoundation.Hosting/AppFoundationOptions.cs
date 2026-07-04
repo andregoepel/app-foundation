@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
+using Wolverine;
 
 namespace AndreGoepel.AppFoundation.Hosting;
 
@@ -43,4 +44,14 @@ public sealed class AppFoundationOptions
     /// <c>UnprotectKeysWithAnyCertificate</c>.
     /// </summary>
     public Action<IDataProtectionBuilder>? ConfigureDataProtection { get; set; }
+
+    /// <summary>
+    /// Optional extension point on the Wolverine options, invoked inside the
+    /// foundation's single <c>UseWolverine</c> call after its own configuration.
+    /// The host owns the one allowed <c>UseWolverine</c>, so consuming apps use
+    /// this to contribute Wolverine setup — most commonly opting their handler
+    /// assemblies into discovery, e.g.
+    /// <c>options.ConfigureWolverine = w =&gt; w.Discovery.IncludeAssembly(typeof(SomeHandler).Assembly)</c>.
+    /// </summary>
+    public Action<WolverineOptions>? ConfigureWolverine { get; set; }
 }
