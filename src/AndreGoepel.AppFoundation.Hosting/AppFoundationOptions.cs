@@ -48,6 +48,17 @@ public sealed class AppFoundationOptions
     public Action<IDataProtectionBuilder>? ConfigureDataProtection { get; set; }
 
     /// <summary>
+    /// Opt in to storing the DataProtection key ring <b>without</b> at-rest encryption
+    /// outside Development. The key ring lives in the same database as the data it
+    /// protects, so by default the foundation refuses to start in a non-Development
+    /// environment unless key encryption is configured (a certificate via
+    /// <c>DataProtection:CertificatePath</c>, or Key Vault/KMS via
+    /// <see cref="ConfigureDataProtection"/>). Set this to <c>true</c> only when the
+    /// database storage is encrypted at rest by other means (#54).
+    /// </summary>
+    public bool AllowUnprotectedKeyRing { get; set; }
+
+    /// <summary>
     /// Optional extension point on the Wolverine options, invoked inside the
     /// foundation's single <c>UseWolverine</c> call after its own configuration.
     /// The host owns the one allowed <c>UseWolverine</c>, so consuming apps use

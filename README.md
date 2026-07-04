@@ -106,6 +106,12 @@ A PostgreSQL connection string is required, by default under
 | `DatabaseConnectionName` | `appfoundation-database` | Connection-string name to read |
 | `WolverineServiceName` | `AppFoundation` | Service name for the durable inbox/outbox |
 | `SecretsDirectory` | `/run/secrets` | Key-per-file secrets directory (see below) — *from 1.1.0* |
+| `SchemaCreation` | env-based | Marten schema mode; `null` ⇒ `All` in Development, `CreateOrUpdate` otherwise. Set `None` for least-privilege — see [Database schema](#database-schema) |
+| `KnownProxyNetworks` / `KnownProxies` | *(empty)* | Trusted reverse-proxy CIDRs / IPs for `X-Forwarded-*` — see [Running behind a reverse proxy](#running-behind-a-reverse-proxy) |
+| `ConfigureForwardedHeaders` | — | Callback for full `ForwardedHeadersOptions` control |
+| `DataProtectionApplicationDiscriminator` | `WolverineServiceName` | Isolates protected payloads from other apps sharing infrastructure |
+| `ConfigureDataProtection` | — | Callback on the DataProtection builder (Key Vault, cert rotation, …) |
+| `AllowUnprotectedKeyRing` | `false` | Accept an unencrypted key ring outside Development — see [Data protection keys](#data-protection-keys) |
 
 **`AppFoundationLayoutOptions`** (management shell branding):
 `BrandName`, `LogoPath`, `Copyright`, and `AdminMenu` (a Razor component type rendered as
@@ -133,6 +139,89 @@ secrets:
   ConnectionStrings__appfoundation-database:
     file: ./secrets/connectionstring   # chmod 600; or `external: true` under Swarm
 ```
+
+---
+
+## Production configuration
+
+Outside `Development`, a few things must be configured — the app is secure by default and
+**fails fast** rather than running in an unsafe state. Checklist for a non-Development host
+(`ASPNETCORE_ENVIRONMENT=Production` or `Staging`):
+
+1. **Connection string** — required (see [Configuration](#configuration)).
+2. **Data protection keys** — required, or the app won't start (see below).
+3. **Reverse proxy** — set the trusted proxy networks so client IP/scheme are honored (see below).
+4. **Database schema** — defaults to non-destructive; tighten for least privilege (see below).
+
+### Data protection keys
+
+The DataProtection key ring is persisted in the same database as the data it protects, so
+outside Development the foundation **refuses to start unless the keys are encrypted at rest**
+— otherwise a database dump would also expose the keys guarding the SMTP password, login
+tokens, and auth cookies. Provide one of:
+
+- **A certificate** via `DataProtection:CertificatePath` (+ `DataProtection:CertificatePassword`),
+  ideally supplied as Docker secrets:
+
+  ```yaml
+  environment:
+    - DataProtection__CertificatePath=/run/secrets/dataprotection_cert
+  secrets:
+    - dataprotection_cert
+    - DataProtection__CertificatePassword
+  ```
+
+- **Key Vault / KMS** via `options.ConfigureDataProtection = b => b.ProtectKeysWithAzureKeyVault(...)`.
+- Or, only when the database storage is already encrypted at rest by other means, opt out with
+  `options.AllowUnprotectedKeyRing = true`.
+
+### Running behind a reverse proxy
+
+The app trusts the TCP peer of each request — which behind a proxy is the **proxy's** address,
+not the client's. Declare the proxy so `X-Forwarded-For` / `X-Forwarded-Proto` are honored only
+from it (and never spoofable by arbitrary clients). Configure via code or, since the production
+CIDR is usually only known at deploy time, via configuration:
+
+```yaml
+# docker-compose.yml — app service
+environment:
+  - AppFoundation__KnownProxyNetworks=172.28.0.0/16   # your proxy/ingress subnet
+expose: ["8080"]        # not published to the host — only the proxy can reach the app
+networks: [edge]
+networks:
+  edge:
+    ipam:
+      config: [{ subnet: 172.28.0.0/16 }]
+```
+
+`AppFoundation__KnownProxyNetworks` (and `AppFoundation__KnownProxies` for single IPs) accept a
+comma/semicolon/space-delimited list or a config array; IPv6 CIDRs are supported. With none set,
+forwarded headers are trusted from any origin in Development but only from loopback otherwise
+(the app logs a warning). The proxy must forward the headers — for nginx, and to keep Blazor
+Server circuits alive over WebSockets:
+
+```nginx
+location / {
+    proxy_pass http://app:8080;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;   # https → app sees IsHttps=true
+    proxy_http_version 1.1;                        # WebSocket upgrade for SignalR
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+}
+```
+
+For multiple proxies (e.g. Cloudflare → nginx), also raise `ForwardLimit` via
+`ConfigureForwardedHeaders` and trust each hop.
+
+### Database schema
+
+`SchemaCreation` defaults to `AutoCreate.All` in Development (permits destructive rebuilds) and
+`AutoCreate.CreateOrUpdate` (additive only — never drops) elsewhere, so a code/database mismatch
+can't destroy data at runtime. For a least-privilege deployment, set `SchemaCreation = AutoCreate.None`
+and provision the schema out-of-band (a migration job / `db-apply`) with a privileged role, then
+run the app with a role that has no DDL rights.
 
 ---
 
