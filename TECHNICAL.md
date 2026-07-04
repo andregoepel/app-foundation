@@ -118,6 +118,7 @@ and `MapAdditionalIdentityEndpoints()` — plus its own root `App.razor` and `Ro
 | `SecretsDirectory` | `/run/secrets` | Key-per-file secrets directory (from 1.1.0) |
 | `DataProtectionApplicationDiscriminator` | `null` (→ `WolverineServiceName`) | DataProtection app isolation (from 1.1.0) |
 | `ConfigureDataProtection` | `null` | Extension point on `IDataProtectionBuilder`, e.g. Key Vault or certificate rotation (from 1.1.0) |
+| `ConfigureWolverine` | `null` | Extension point on `WolverineOptions`, invoked inside the foundation's `UseWolverine`; opt handler assemblies into discovery, e.g. `w => w.Discovery.IncludeAssembly(typeof(SomeHandler).Assembly)` (from 1.1.2) |
 
 `IdentityEmailSender` (internal) bridges ASP.NET Identity's `IEmailSender<TUser>` to a
 Wolverine `MailMessage` published via `IMessageBus`, decoupling email from the request.

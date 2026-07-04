@@ -88,6 +88,12 @@ public static class Initialization
             wolverine.Policies.UseDurableOutboxOnAllSendingEndpoints();
 
             wolverine.Discovery.IncludeAssembly(typeof(SendEmailMessageHandler).Assembly);
+
+            // Consuming apps contribute Wolverine setup here — the host owns the
+            // one allowed UseWolverine call. Typically opting handler assemblies
+            // into discovery. Runs inside the UseWolverine lambda so it is applied
+            // deterministically before handler discovery.
+            options.ConfigureWolverine?.Invoke(wolverine);
         });
 
         builder.AddEmailService();

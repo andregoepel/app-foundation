@@ -121,6 +121,21 @@ public class AddAppFoundationDataProtectionTests
         Assert.True(invoked);
     }
 
+    [Fact]
+    public void AddAppFoundation_ConfigureWolverineCallback_IsInvokedInsideUseWolverine()
+    {
+        // Arrange — the Wolverine callback is deferred to host build, so build the host.
+        var builder = CreateBuilder();
+        var invoked = false;
+        builder.AddAppFoundation(options => options.ConfigureWolverine = _ => invoked = true);
+
+        // Act
+        using var app = builder.Build();
+
+        // Assert
+        Assert.True(invoked);
+    }
+
     private static WebApplicationBuilder CreateBuilder(
         IDictionary<string, string?>? extraConfig = null
     )
