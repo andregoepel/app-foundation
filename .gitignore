@@ -443,3 +443,7 @@ FodyWeavers.xsd
 *.msp
 /repomix-output.xml
 /.repomix
+
+# Local security audit artifacts — keep the prompt, ignore the generated report
+/audit/*
+!/audit/audit-prompt.md
