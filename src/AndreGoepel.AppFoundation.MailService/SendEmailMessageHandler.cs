@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Wolverine;
 using Wolverine.Attributes;
+using Wolverine.ErrorHandling;
+using Wolverine.Runtime.Handlers;
 
 namespace AndreGoepel.AppFoundation.MailService;
 
@@ -10,6 +12,24 @@ public class SendEmailMessageHandler(
     ILogger<SendEmailMessageHandler> Logger
 )
 {
+    /// <summary>
+    /// Wolverine convention: customizes this handler's error handling. A MailMessage
+    /// body carries a short-lived token and the recipient's address, so on repeated
+    /// failure it is <b>discarded</b> after a few retries rather than moved to the
+    /// dead-letter table, where the token-bearing body would otherwise persist. The
+    /// token expires and the user can re-request; the synchronous admin "send test"
+    /// path remains the way to diagnose SMTP problems (#55).
+    /// </summary>
+    public static void Configure(HandlerChain chain) =>
+        chain
+            .OnAnyException()
+            .RetryWithCooldown(
+                TimeSpan.FromMilliseconds(100),
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5)
+            )
+            .Then.Discard();
+
     public async Task Handle(MailMessage message, Envelope envelope)
     {
         // MailMessage is an internal, in-process contract. Refuse to act on one that
