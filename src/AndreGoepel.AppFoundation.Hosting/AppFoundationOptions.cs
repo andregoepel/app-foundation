@@ -82,12 +82,22 @@ public sealed class AppFoundationOptions
     /// headers from any origin in Development (local convenience) but only from
     /// loopback otherwise, so a client cannot spoof <c>X-Forwarded-For</c>/
     /// <c>-Proto</c> in production (#51).
+    /// <para>
+    /// Values may also be supplied via configuration under
+    /// <c>AppFoundation:KnownProxyNetworks</c> (env var
+    /// <c>AppFoundation__KnownProxyNetworks</c>) as a delimited scalar such as
+    /// <c>"172.28.0.0/16, 10.0.0.0/8"</c> or a configuration array — handy when the
+    /// production proxy CIDR is only known at deploy time. Config values augment any
+    /// set here in code.
+    /// </para>
     /// </summary>
     public IList<string> KnownProxyNetworks { get; } = new List<string>();
 
     /// <summary>
     /// Individual reverse-proxy IP addresses whose <c>X-Forwarded-*</c> headers are
-    /// trusted. See <see cref="KnownProxyNetworks"/> for the trust model.
+    /// trusted. See <see cref="KnownProxyNetworks"/> for the trust model. Also
+    /// bindable from configuration under <c>AppFoundation:KnownProxies</c> (env var
+    /// <c>AppFoundation__KnownProxies</c>).
     /// </summary>
     public IList<string> KnownProxies { get; } = new List<string>();
 
