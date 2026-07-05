@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.3.5" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!-- The Aspire.AppHost.Sdk injects RID-specific orchestration/dashboard packages that
+         don't fit central package management, so manage this project's versions locally. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- Those injected packages are RID-specific, so a committed lock file would be
+         win-x64/linux-x64 dependent and break CI's locked-mode restore across OSes.
+         The AppHost is a dev-only sample, so opt it out of lock files. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <UserSecretsId>appfoundation-sample-apphost</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.3.5" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.3.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.Sample\AndreGoepel.AppFoundation.Sample.csproj" />
+  </ItemGroup>
+
+</Project>

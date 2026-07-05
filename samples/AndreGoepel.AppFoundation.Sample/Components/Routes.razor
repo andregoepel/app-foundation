@@ -1,0 +1,23 @@
+@using AndreGoepel.AppFoundation.Components.Layout
+@using AndreGoepel.Marten.Identity.Blazor.Components.Account.Shared
+
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="_additionalAssemblies">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+@code {
+    // The routable pages live in the AppFoundation UI and the Marten.Identity account
+    // packages, so the router must scan those assemblies in addition to this host.
+    private readonly System.Reflection.Assembly[] _additionalAssemblies =
+    [
+        typeof(AppFoundationLayoutOptions).Assembly,
+        typeof(AndreGoepel.Marten.Identity.Blazor.Initialization).Assembly,
+    ];
+}
