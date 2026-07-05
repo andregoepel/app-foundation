@@ -37,11 +37,23 @@ internal class SmtpEmailSender(IMailSettingsProvider settingsProvider) : IEmailS
             configuration.UseSsl,
             cancellationToken
         );
-        await client.AuthenticateAsync(
-            configuration.Username,
-            configuration.Password,
-            cancellationToken
-        );
+
+        // Only authenticate when the server offers it and credentials are configured.
+        // Development relays such as MailHog accept mail without authentication and don't
+        // advertise AUTH, and MailKit throws if AuthenticateAsync is called against such a
+        // server.
+        if (
+            client.Capabilities.HasFlag(SmtpCapabilities.Authentication)
+            && !string.IsNullOrEmpty(configuration.Username)
+        )
+        {
+            await client.AuthenticateAsync(
+                configuration.Username,
+                configuration.Password,
+                cancellationToken
+            );
+        }
+
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
     }
