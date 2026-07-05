@@ -4,13 +4,13 @@
     "net10.0": {
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.2.0-preview1, )",
-        "resolved": "1.2.0-preview1",
-        "contentHash": "z4I3j67okBe5jd7u7CZ8O/fQd5I4Cg8/sxO4jFJA2/uz5GADOoFuPKQpjZGKpTQXsB5yRIUn9BbmtIIi9cCDBg==",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "9333mUhD6RIWdimln+ex5suLnY51DcafY+LHU4jVmfKngTKi5J0WTgNBau5+3lPi5+3PjUjnLaHq6pUPFUn48Q==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity": "1.2.0-preview1",
+          "AndreGoepel.Marten.Identity": "1.2.0",
           "Marten": "9.12.0",
-          "Radzen.Blazor": "11.0.5"
+          "Radzen.Blazor": "11.1.0"
         }
       },
       "Marten": {
@@ -43,10 +43,10 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.2.0-preview1",
-        "contentHash": "waMtQSMH642lZO8h6xAi15oufQqpZtpietAdE3G2YXpDN4vwnQ5iIcjdv4mlcl253mk7U2s7q+7CPfYvlroo1Q==",
+        "resolved": "1.2.0",
+        "contentHash": "zfvSm4io9gcCjQCFyWThZlbSOwfGoH+Idbp2l/gReR3OcyoUf4VPHiECdBmWGkxIS8mczBiaiI3blL0nuKChQQ==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.2.0-preview1",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.2.0",
           "Marten": "9.12.0",
           "Marten.AspNetCore": "9.12.0",
           "Quartz.Extensions.Hosting": "3.18.2"
@@ -54,8 +54,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.2.0-preview1",
-        "contentHash": "8bT3wLtf5l/P+9DKRYBNbc+fCkc+scXRSb1SfS++MNOJL8uC17YKbrAflf4SzCwl1X6ZYFw2LcFkfx7+RKyDGw=="
+        "resolved": "1.2.0",
+        "contentHash": "CYj9qrcXogO6kciAF7rQfuiERBdXm8T7e4DY4pc5qSEufWyhUAC7DqJksedigQ4NBpsdoT1AXE9KBxWTMnHPkA=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
