@@ -1,0 +1,135 @@
+@page "/Administration/LoginFeatures"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrator")]
+
+@using AndreGoepel.AppFoundation.Identity
+
+@inject IIdentityFeatureSettingsStore SettingsStore
+@inject NotificationService NotificationService
+
+<PageTitle>Login Features</PageTitle>
+
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem" Style="max-width: 48rem;">
+
+        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Login Features</RadzenText>
+
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-secondary-color);">
+            Turn self-service sign-up and the optional sign-in methods on or off. A disabled
+            feature is hidden here and made unreachable by direct URL.
+        </RadzenText>
+
+        @if (loadedFromConfiguration)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                These values come from the application's configuration baseline. Saving stores them
+                in the database, which takes precedence from then on — no restart required.
+            </RadzenAlert>
+        }
+
+        <RadzenCard>
+            <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
+                <RadzenStack Gap="1.25rem">
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Self-service registration</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+                                Lets visitors create their own account.
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenSwitch @bind-Value=@Input.EnableUserRegistration Name="EnableUserRegistration" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Two-factor authentication</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+                                Authenticator-app setup. Users already enrolled can still complete sign-in.
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenSwitch @bind-Value=@Input.EnableTwoFactor Name="EnableTwoFactor" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Passkeys</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+                                WebAuthn passkey registration and sign-in.
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenSwitch @bind-Value=@Input.EnablePasskey Name="EnablePasskey" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+                        <RadzenButton ButtonType="ButtonType.Submit"
+                                      Text="Save"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      IsBusy=@isSaving
+                                      BusyText="Saving..." />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </RadzenCard>
+
+    </RadzenStack>
+</div>
+
+@code {
+    private InputModel Input { get; set; } = new();
+    private bool loadedFromConfiguration;
+    private bool isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settings = await SettingsStore.LoadAsync();
+        loadedFromConfiguration = settings.FromConfiguration;
+        Input = new InputModel
+        {
+            EnableUserRegistration = settings.EnableUserRegistration,
+            EnableTwoFactor = settings.EnableTwoFactor,
+            EnablePasskey = settings.EnablePasskey,
+        };
+    }
+
+    private async Task OnValidSubmit(InputModel model)
+    {
+        isSaving = true;
+        try
+        {
+            await SettingsStore.SaveAsync(
+                new IdentityFeatureSettings
+                {
+                    EnableUserRegistration = model.EnableUserRegistration,
+                    EnableTwoFactor = model.EnableTwoFactor,
+                    EnablePasskey = model.EnablePasskey,
+                }
+            );
+
+            loadedFromConfiguration = false;
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Saved",
+                "Login features updated. Changes apply to the next request."
+            );
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error saving settings", ex.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        public bool EnableUserRegistration { get; set; } = true;
+
+        public bool EnableTwoFactor { get; set; } = true;
+
+        public bool EnablePasskey { get; set; } = true;
+    }
+}

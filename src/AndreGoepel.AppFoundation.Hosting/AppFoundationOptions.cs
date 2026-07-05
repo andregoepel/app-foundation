@@ -1,3 +1,4 @@
+using AndreGoepel.Marten.Identity.Blazor;
 using JasperFx;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -120,4 +121,15 @@ public sealed class AppFoundationOptions
     /// upstream ingress is guaranteed to sanitize the headers.
     /// </summary>
     public Action<ForwardedHeadersOptions>? ConfigureForwardedHeaders { get; set; }
+
+    /// <summary>
+    /// Optional extension point on the identity UI options, forwarded to
+    /// <c>AddMartenIdentityBlazor</c>. Consuming apps use it to configure the login
+    /// features — most commonly toggling self-service registration, two-factor
+    /// authentication, and passkeys, e.g.
+    /// <c>options.ConfigureIdentity = i =&gt; { i.EnableUserRegistration = false; i.EnablePasskey = false; }</c>.
+    /// A disabled feature is hidden in the management shell <b>and</b> made unreachable
+    /// by direct URL via the identity feature gate wired in <c>UseAppFoundation</c>.
+    /// </summary>
+    public Action<MartenIdentityBlazorOptions>? ConfigureIdentity { get; set; }
 }

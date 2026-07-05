@@ -4,11 +4,11 @@
     "net10.0": {
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.1.3, )",
-        "resolved": "1.1.3",
-        "contentHash": "GseXArQ+jtV7mRqKAqSrF3kjrskKxEhZVFcMCN9pAUMG3sXU4nqhWq0EkVW1KZ1GtNbL9XmfDc737AQrmG655Q==",
+        "requested": "[1.2.0-preview1, )",
+        "resolved": "1.2.0-preview1",
+        "contentHash": "z4I3j67okBe5jd7u7CZ8O/fQd5I4Cg8/sxO4jFJA2/uz5GADOoFuPKQpjZGKpTQXsB5yRIUn9BbmtIIi9cCDBg==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity": "1.1.3",
+          "AndreGoepel.Marten.Identity": "1.2.0-preview1",
           "Marten": "9.12.0",
           "Radzen.Blazor": "11.0.5"
         }
@@ -59,10 +59,10 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.1.3",
-        "contentHash": "5ThzsH0mJOYYGwBtBh9dRj8Pwc78wvOTYnGyM5io82N4ItEG4+lkmSq2X4JdcxHdptFc0BxLCWPnEpOFCYAxbA==",
+        "resolved": "1.2.0-preview1",
+        "contentHash": "waMtQSMH642lZO8h6xAi15oufQqpZtpietAdE3G2YXpDN4vwnQ5iIcjdv4mlcl253mk7U2s7q+7CPfYvlroo1Q==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.1.3",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.2.0-preview1",
           "Marten": "9.12.0",
           "Marten.AspNetCore": "9.12.0",
           "Quartz.Extensions.Hosting": "3.18.2"
@@ -70,8 +70,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.1.3",
-        "contentHash": "2GQmYNU6RHXqKenvYqD+QkUKbuJnaC66XkdGEYoiLVSUnoTZZiiAP14QuJ1CpoAL6L8qR17E7WI3VBZsSH49oA=="
+        "resolved": "1.2.0-preview1",
+        "contentHash": "8bT3wLtf5l/P+9DKRYBNbc+fCkc+scXRSb1SfS++MNOJL8uC17YKbrAflf4SzCwl1X6ZYFw2LcFkfx7+RKyDGw=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
@@ -546,7 +546,7 @@
         "type": "Project",
         "dependencies": {
           "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[1.1.3, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.2.0-preview1, )",
           "Marten": "[9.12.0, )",
           "Radzen.Blazor": "[11.1.0, )",
           "WolverineFx.Marten": "[6.16.0, )"
