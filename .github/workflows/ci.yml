@@ -35,8 +35,10 @@ jobs:
       - name: Build
         run: dotnet build --no-restore -c Release
 
-      - name: Test
-        run: dotnet test --no-build -c Release
+      - name: Test (unit & component)
+        # Exclude the E2E project here — it needs a container runtime + Playwright and runs in
+        # its own workflow. Filtering out every E2E test means its collection fixture never boots.
+        run: dotnet test --no-build -c Release --filter "FullyQualifiedName!~E2ETests"
 
       # Fail the build on any known-vulnerable package (direct or transitive).
       - name: Vulnerability scan

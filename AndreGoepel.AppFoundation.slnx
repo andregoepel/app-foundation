@@ -13,6 +13,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
+    <Project Path="tests/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
