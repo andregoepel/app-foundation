@@ -61,7 +61,15 @@ public static class Initialization
         builder.AddServiceDefaults();
 
         builder.Services.AddMartenIdentity();
-        builder.Services.AddMartenIdentityBlazor(options.ConfigureIdentity);
+        builder.Services.AddMartenIdentityBlazor(identity =>
+        {
+            // AppFoundation default: self-service registration is off unless a host opts
+            // in (#49) — two-factor and passkeys stay on. Applied before the host's
+            // callback so it can override, and an administrator can still toggle any flag
+            // at runtime on the Login Features page.
+            identity.EnableUserRegistration = false;
+            options.ConfigureIdentity?.Invoke(identity);
+        });
         builder.Services.AddMartenIdentityCleanup();
 
         // Database-backed feature flags: an administrator can toggle registration / 2FA /

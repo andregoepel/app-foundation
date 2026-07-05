@@ -33,7 +33,7 @@ public class AddAppFoundationIdentityTests
     }
 
     [Fact]
-    public void AddAppFoundation_WithoutConfigureIdentity_LeavesFullFeatureSetEnabled()
+    public void AddAppFoundation_WithoutConfigureIdentity_DisablesRegistrationKeepsOthers()
     {
         // Arrange
         var builder = CreateBuilder();
@@ -41,12 +41,29 @@ public class AddAppFoundationIdentityTests
         // Act
         builder.AddAppFoundation();
 
-        // Assert — the full login feature set is available unless a host opts out.
+        // Assert — AppFoundation default: registration is off, 2FA and passkeys stay on (#49).
+        using var provider = builder.Services.BuildServiceProvider();
+        var identity = provider.GetRequiredService<IOptions<MartenIdentityBlazorOptions>>().Value;
+        Assert.False(identity.EnableUserRegistration);
+        Assert.True(identity.EnableTwoFactor);
+        Assert.True(identity.EnablePasskey);
+    }
+
+    [Fact]
+    public void AddAppFoundation_ConfigureIdentity_CanReEnableRegistration()
+    {
+        // Arrange
+        var builder = CreateBuilder();
+
+        // Act — a host opts back in over the AppFoundation default.
+        builder.AddAppFoundation(options =>
+            options.ConfigureIdentity = identity => identity.EnableUserRegistration = true
+        );
+
+        // Assert
         using var provider = builder.Services.BuildServiceProvider();
         var identity = provider.GetRequiredService<IOptions<MartenIdentityBlazorOptions>>().Value;
         Assert.True(identity.EnableUserRegistration);
-        Assert.True(identity.EnableTwoFactor);
-        Assert.True(identity.EnablePasskey);
     }
 
     private static WebApplicationBuilder CreateBuilder()
