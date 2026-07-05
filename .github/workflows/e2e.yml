@@ -1,0 +1,46 @@
+name: E2E
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  end-to-end:
+    runs-on: ubuntu-latest
+    # GitHub-hosted Linux runners ship with Docker, which Aspire.Hosting.Testing needs to
+    # start the Postgres and MailHog containers for the real end-to-end run.
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj
+
+      - name: Build
+        run: dotnet build AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj --no-restore -c Release
+
+      - name: Install Playwright browsers
+        run: pwsh AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run E2E tests
+        run: >
+          dotnet test
+          AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj
+          --no-build -c Release
+          --logger "trx;LogFileName=e2e.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: ignore

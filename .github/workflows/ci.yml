@@ -24,8 +24,10 @@ jobs:
       - name: Build
         run: dotnet build AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-restore -c Release
 
-      - name: Test
-        run: dotnet test AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-build -c Release
+      - name: Test (unit & component)
+        # Exclude the E2E project here — it needs Docker + Playwright and runs in its own workflow.
+        # Filtering out every E2E test means its collection fixture never boots, so no containers start.
+        run: dotnet test AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.slnx --no-build -c Release --filter "FullyQualifiedName!~E2ETests"
 
   pack-and-push:
     needs: build-and-test
