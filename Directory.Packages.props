@@ -4,8 +4,8 @@
   </PropertyGroup>
 
   <ItemGroup Label="Aspire">
-    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.3.5" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.3.5" />
+    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
   </ItemGroup>
 
   <ItemGroup Label="Marten">

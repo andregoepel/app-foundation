@@ -14,4 +14,8 @@
     <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
   </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
+    <Project Path="samples/AndreGoepel.AppFoundation.Sample/AndreGoepel.AppFoundation.Sample.csproj" />
+  </Folder>
 </Solution>

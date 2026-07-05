@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- The Web SDK pulls Microsoft.AspNetCore.App.Internal.Assets, whose version tracks
+         the installed ASP.NET Core runtime patch, so a committed lock file drifts whenever
+         local and CI SDK patch levels differ and breaks locked-mode restore. This is a
+         dev-only sample, so opt it out of lock files (as the AppHost does). -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation.Hosting\AndreGoepel.AppFoundation.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
+  </ItemGroup>
+</Project>

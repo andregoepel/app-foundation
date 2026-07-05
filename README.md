@@ -94,6 +94,30 @@ for a complete, working example.
 
 ---
 
+## Try it locally (sample host)
+
+The repo ships a runnable example under `samples/`: a .NET Aspire AppHost that starts
+PostgreSQL in a container plus a minimal Blazor Server host that wires the packages exactly
+as [Using it in a host app](#using-it-in-a-host-app) describes. It doubles as a manual smoke
+test for the foundation.
+
+**Prerequisites:** the .NET 10 SDK and a container runtime (Docker / Podman) for the database.
+
+```bash
+dotnet run --project samples/AndreGoepel.AppFoundation.AppHost
+```
+
+Open the Aspire dashboard URL printed to the console, start the **web** resource, and open it.
+The first visit funnels you to **/Setup** to create the administrator; after that you can sign
+in and explore the dashboard and the Administration area.
+
+| Project | Role |
+|---|---|
+| `samples/AndreGoepel.AppFoundation.AppHost` | Aspire orchestrator — starts Postgres and the web app, wiring the `appfoundation-database` connection string |
+| `samples/AndreGoepel.AppFoundation.Sample` | Minimal Blazor Server host consuming the packages — the reference `Program.cs`, `App.razor`, and `Routes.razor` |
+
+---
+
 ## Configuration
 
 A PostgreSQL connection string is required, by default under

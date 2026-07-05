@@ -1,0 +1,48 @@
+@page "/"
+@rendermode InteractiveServer
+
+@using AndreGoepel.Marten.Identity
+@using global::Marten
+
+@inject IQuerySession QuerySession
+@inject NavigationManager NavigationManager
+
+<PageTitle>AppFoundation Sample</PageTitle>
+
+<div class="rz-p-4 rz-p-md-8">
+    <RadzenStack Gap="1.5rem" Style="max-width: 40rem; margin: 0 auto;">
+
+        <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">AppFoundation Sample</RadzenText>
+
+        <RadzenText TextStyle="TextStyle.Body1">
+            A minimal host that wires the AppFoundation packages. Use it to exercise the setup,
+            sign-in, and administration flows against a real PostgreSQL started by .NET Aspire.
+        </RadzenText>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Wrap="FlexWrap.Wrap">
+            @if (setupComplete)
+            {
+                <RadzenButton Text="Dashboard"
+                              Icon="dashboard"
+                              Click="@(() => NavigationManager.NavigateTo("/dashboard"))" />
+                <RadzenButton Text="Sign in"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Click="@(() => NavigationManager.NavigateTo("/Account/Login"))" />
+            }
+            else
+            {
+                <RadzenButton Text="Run initial setup"
+                              Icon="install_desktop"
+                              Click="@(() => NavigationManager.NavigateTo("/Setup"))" />
+            }
+        </RadzenStack>
+
+    </RadzenStack>
+</div>
+
+@code {
+    private bool setupComplete;
+
+    protected override async Task OnInitializedAsync() =>
+        setupComplete = await SetupCompletion.IsCompleteAsync(QuerySession);
+}
