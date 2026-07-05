@@ -5,7 +5,7 @@ namespace AndreGoepel.AppFoundation;
 /// <summary>
 /// Branding and navigation extension points for the AppFoundation management shell.
 /// Host apps configure these (e.g. <c>services.Configure&lt;AppFoundationLayoutOptions&gt;(...)</c>)
-/// to brand the management area and contribute their own admin menu entries.
+/// to brand the management area and contribute their own navigation entries.
 /// </summary>
 public sealed class AppFoundationLayoutOptions
 {
@@ -19,8 +19,27 @@ public sealed class AppFoundationLayoutOptions
     public string? Copyright { get; set; }
 
     /// <summary>
-    /// Optional component type rendered inside the administrator section of the nav menu,
-    /// letting a consumer add its own admin entries. Rendered via <see cref="DynamicComponent"/>.
+    /// Optional component type whose entries are rendered in the navigation menu, immediately
+    /// after <c>Home</c> and before the <c>Account</c> group. Lets a consumer contribute its own
+    /// nav entries. Rendered via <see cref="DynamicComponent"/> for all users — the contributed
+    /// component is responsible for gating any role-specific entries (e.g. with an
+    /// <c>AuthorizeView</c>).
     /// </summary>
-    public Type? AdminMenu { get; set; }
+    public Type? Menu { get; set; }
+
+    /// <summary>
+    /// Obsolete alias for <see cref="Menu"/>. The contributed entries are no longer confined to
+    /// the administrator section — they now render between <c>Home</c> and <c>Account</c> for all
+    /// users — so the <c>Admin</c>-prefixed name no longer fits.
+    /// </summary>
+    [Obsolete(
+        "Renamed to Menu. The contributed entries now render between Home and Account for all "
+            + "users, not only administrators; gate role-specific entries inside your component. "
+            + "Set Menu instead."
+    )]
+    public Type? AdminMenu
+    {
+        get => Menu;
+        set => Menu = value;
+    }
 }

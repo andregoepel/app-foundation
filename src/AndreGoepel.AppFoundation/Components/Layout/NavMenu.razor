@@ -15,6 +15,11 @@
     <RadzenPanelMenu>
         <RadzenPanelMenuItem Text="Home" Icon="home" Path="/dashboard" />
 
+        @if (Layout.Menu is not null)
+        {
+            <DynamicComponent Type="Layout.Menu" />
+        }
+
         <AuthorizeView>
             <Authorized>
                 <RadzenPanelMenuItem Text="Account" Icon="manage_accounts">
@@ -36,11 +41,6 @@
 
         <AuthorizeView Roles="Administrator">
             <Authorized>
-                @if (Layout.AdminMenu is not null)
-                {
-                    <DynamicComponent Type="Layout.AdminMenu" />
-                }
-
                 <RadzenPanelMenuItem Text="Administration" Icon="settings">
                     <RadzenPanelMenuItem Text="User Cleanup" Path="Administration/UserCleanup" />
                     <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
