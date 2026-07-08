@@ -19,18 +19,24 @@
         <ThemeToggle />
         <AuthorizeView>
             <Authorized>
-                <RadzenProfileMenu Click="@OnProfileMenuClick">
-                    <ChildContent>
-                        <RadzenProfileMenuItem Path="/Account/Manage/Profile"
-                                               Icon="manage_accounts"
-                                               Text="Profile" />
-                        <RadzenProfileMenuItem Text="Logout"
-                                               Icon="power_settings_new" />
-                    </ChildContent>
-                    <Template>
-                        <RadzenLabel Text="@currentUserName" />
-                    </Template>
-                </RadzenProfileMenu>
+                @* Design user chip that opens a dropdown (Profile + Log out). The
+                   avatar/email use the design's ag-* classes; the dropdown + backdrop
+                   are scoped in MainLayout.razor.css. *@
+                <div class="user-menu">
+                    <div class="ag-user-chip" @onclick="ToggleMenu">
+                        <span class="ag-avatar">@Initials(currentUserName)</span>
+                        <span class="ag-user-email">@currentUserName</span>
+                        <span class="user-caret">▾</span>
+                    </div>
+                    @if (menuOpen)
+                    {
+                        <div class="user-backdrop" @onclick="CloseMenu"></div>
+                        <div class="user-dropdown">
+                            <button type="button" class="user-dropdown-item" @onclick="GoToProfile">Profile</button>
+                            <button type="button" class="user-dropdown-item" @onclick="Logout">Log out</button>
+                        </div>
+                    }
+                </div>
             </Authorized>
         </AuthorizeView>
     </TopbarActions>
@@ -55,6 +61,7 @@
 
 @code {
     private string? currentUserName;
+    private bool menuOpen;
 
     private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
 
@@ -64,9 +71,39 @@
         currentUserName = authState.User.Identity?.Name;
     }
 
-    void OnProfileMenuClick(RadzenProfileMenuItem item)
+    private void ToggleMenu() => menuOpen = !menuOpen;
+
+    private void CloseMenu() => menuOpen = false;
+
+    private void GoToProfile()
     {
-        if (item.Text == "Logout")
-            NavigationManager.NavigateTo("/Account/SignOutAndRedirect", forceLoad: true);
+        menuOpen = false;
+        NavigationManager.NavigateTo("/Account/Manage/Profile");
+    }
+
+    private void Logout()
+    {
+        menuOpen = false;
+        NavigationManager.NavigateTo("/Account/SignOutAndRedirect", forceLoad: true);
+    }
+
+    // Two-letter avatar initials derived from the account name / email local part.
+    private static string Initials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "?";
+        }
+
+        var at = name.IndexOf('@');
+        var local = at > 0 ? name[..at] : name;
+        var parts = local.Split(['.', '-', '_', ' '], StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant(),
+            _ => $"{parts[0][0]}{parts[1][0]}".ToUpperInvariant(),
+        };
     }
 }
