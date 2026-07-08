@@ -1,4 +1,4 @@
-using AndreGoepel.Marten.Identity.Blazor;
+using AndreGoepel.Marten.Identity.Blazor.Features;
 
 namespace AndreGoepel.AppFoundation.Identity;
 

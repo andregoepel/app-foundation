@@ -7,75 +7,45 @@
 @inject NavigationManager NavigationManager
 @inject Microsoft.Extensions.Options.IOptions<AppFoundationLayoutOptions> LayoutOptions
 
+@* Radzen overlay hosts (dialog/notification/tooltip/context-menu) for interactive pages. *@
 <RadzenComponents @rendermode="InteractiveServer" />
 
-<RadzenLayout Style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
-
-    <RadzenHeader>
-        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
-            <RadzenColumn Size="5">
-                <RadzenSidebarToggle Click="@SidebarToggleClick" />
-            </RadzenColumn>
-            <RadzenColumn Size="7">
-                <RadzenStack AlignItems="AlignItems.Center"
-                             Orientation="Orientation.Horizontal"
-                             JustifyContent="JustifyContent.End">
-                    <AuthorizeView>
-                        <Authorized>
-                            <RadzenProfileMenu Click="@OnProfileMenuClick">
-                                <ChildContent>
-                                    <RadzenProfileMenuItem Path="/Account/Manage/Profile"
-                                                           Icon="manage_accounts"
-                                                           Text="Profile" />
-                                    <RadzenProfileMenuItem Text="Logout"
-                                                           Icon="power_settings_new" />
-                                </ChildContent>
-                                <Template>
-                                    <RadzenLabel Text="@currentUserName" />
-                                </Template>
-                            </RadzenProfileMenu>
-                        </Authorized>
-                    </AuthorizeView>
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenHeader>
-
-    <RadzenSidebar Expanded="@sidebarExpanded" Style="z-index: 2;">
-        <RadzenStack AlignItems="AlignItems.Center"
-                     class="rz-py-4 rz-py-lg-6"
-                     Style="padding: var(--rz-panel-menu-item-padding); border-bottom: var(--rz-panel-menu-item-border);">
-            <RadzenImage Path="@Layout.LogoPath" Style="width: 48px; height: 48px;" />
-            <RadzenText Text="@Layout.BrandName"
-                        TextStyle="TextStyle.Subtitle1"
-                        class="rz-mb-0"
-                        Style="color: var(--rz-primary-light);" />
-        </RadzenStack>
-
+<AppShell BrandName="@Layout.BrandName">
+    <Sidebar>
         <NavMenu />
+    </Sidebar>
 
+    <TopbarActions>
+        <ThemeToggle />
+        <AuthorizeView>
+            <Authorized>
+                <RadzenProfileMenu Click="@OnProfileMenuClick">
+                    <ChildContent>
+                        <RadzenProfileMenuItem Path="/Account/Manage/Profile"
+                                               Icon="manage_accounts"
+                                               Text="Profile" />
+                        <RadzenProfileMenuItem Text="Logout"
+                                               Icon="power_settings_new" />
+                    </ChildContent>
+                    <Template>
+                        <RadzenLabel Text="@currentUserName" />
+                    </Template>
+                </RadzenProfileMenu>
+            </Authorized>
+        </AuthorizeView>
+    </TopbarActions>
+
+    <SidebarFooter>
         @if (!string.IsNullOrWhiteSpace(Layout.Copyright))
         {
-            <RadzenStack AlignItems="AlignItems.Center"
-                         Gap="0"
-                         class="rz-py-4 rz-py-lg-6"
-                         Style="padding: var(--rz-panel-menu-item-padding);">
-                <RadzenText Text="@Layout.Copyright"
-                            TextStyle="TextStyle.Caption"
-                            Style="color: var(--rz-text-disabled-color);"
-                            TagName="TagName.P"
-                            TextAlign="TextAlign.Center" />
-            </RadzenStack>
+            <span class="ag-sidebar-note">@Layout.Copyright</span>
         }
-    </RadzenSidebar>
+    </SidebarFooter>
 
-    <RadzenBody>
-        <RadzenContentContainer>
-            @Body
-        </RadzenContentContainer>
-    </RadzenBody>
-
-</RadzenLayout>
+    <ChildContent>
+        @Body
+    </ChildContent>
+</AppShell>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -84,7 +54,6 @@
 </div>
 
 @code {
-    private bool sidebarExpanded = true;
     private string? currentUserName;
 
     private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
@@ -94,8 +63,6 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         currentUserName = authState.User.Identity?.Name;
     }
-
-    void SidebarToggleClick() => sidebarExpanded = !sidebarExpanded;
 
     void OnProfileMenuClick(RadzenProfileMenuItem item)
     {

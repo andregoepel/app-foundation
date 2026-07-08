@@ -4,6 +4,7 @@ using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
+using AndreGoepel.Marten.Identity.Blazor.Features;
 using AndreGoepel.Marten.Identity.Users;
 using JasperFx;
 using Marten;
