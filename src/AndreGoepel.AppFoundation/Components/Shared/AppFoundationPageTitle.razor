@@ -1,0 +1,16 @@
+@inject Microsoft.Extensions.Options.IOptions<AppFoundationLayoutOptions> LayoutOptions
+
+@* App-branded page title: sets the document <title> (with the configured brand name
+   as suffix) and, for shell pages, the topbar breadcrumb — delegating to the design
+   system's AppPageTitle. Mirrors the identity package's IdentityPageTitle. *@
+<AppPageTitle Title="@Title" Breadcrumb="@Breadcrumb" Suffix="@LayoutOptions.Value.BrandName" />
+
+@code {
+    /// <summary>The page-specific title, e.g. "Dashboard".</summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+
+    /// <summary>Optional topbar breadcrumb (shell pages). Falls back to <see cref="Title"/>.</summary>
+    [Parameter]
+    public string? Breadcrumb { get; set; }
+}
