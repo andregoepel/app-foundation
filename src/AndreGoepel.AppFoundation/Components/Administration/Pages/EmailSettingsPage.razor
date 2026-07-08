@@ -8,12 +8,17 @@
 @inject IEmailSender EmailSender
 @inject NotificationService NotificationService
 
-<PageTitle>Email Settings</PageTitle>
+<AppFoundationPageTitle Title="Email Settings" Breadcrumb="Administration / Email Settings" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
-        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Email Settings</RadzenText>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Email Settings</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
+                Outgoing SMTP configuration for system emails.
+            </RadzenText>
+        </div>
 
         @if (loadedFromConfiguration)
         {
@@ -27,55 +32,42 @@
             <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
                 <RadzenStack Gap="1.25rem">
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Sender name" Component="SenderName" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                    <div class="ag-form-grid">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="Sender name" Component="SenderName" />
                             <RadzenTextBox @bind-Value=@Input.SenderName Name="SenderName" Style="width:100%" />
                             <RadzenRequiredValidator Component="SenderName" Text="Sender name is required" />
                         </RadzenStack>
-                    </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Sender email" Component="SenderEmail" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="Sender email" Component="SenderEmail" />
                             <RadzenTextBox @bind-Value=@Input.SenderEmail Name="SenderEmail" Style="width:100%" />
                             <RadzenRequiredValidator Component="SenderEmail" Text="Sender email is required" />
                             <RadzenEmailValidator Component="SenderEmail" Text="Invalid email address" />
                         </RadzenStack>
-                    </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="SMTP server" Component="Server" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="SMTP server" Component="Server" />
                             <RadzenTextBox @bind-Value=@Input.Server Name="Server" Style="width:100%" />
                             <RadzenRequiredValidator Component="Server" Text="Server is required" />
                         </RadzenStack>
-                    </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Port" Component="Port" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenNumeric TValue="int" @bind-Value=@Input.Port Name="Port" Min="1" Max="65535" />
-                    </RadzenStack>
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="Port" Component="Port" />
+                            <RadzenNumeric TValue="int" @bind-Value=@Input.Port Name="Port" Min="1" Max="65535" Style="width:120px" />
+                        </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Use SSL" Component="UseSsl" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenSwitch @bind-Value=@Input.UseSsl Name="UseSsl" />
-                    </RadzenStack>
-
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Username" Component="Username" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="Username" Component="Username" />
                             <RadzenTextBox @bind-Value=@Input.Username Name="Username" Style="width:100%" />
                             <RadzenRequiredValidator Component="Username" Text="Username is required" />
                         </RadzenStack>
-                    </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="Password" Component="Password" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenLabel Text="Password" Component="Password" />
                             <RadzenPassword @bind-Value=@Input.Password
                                             Name="Password"
-                                            Placeholder="@(hasPassword ? "Leave blank to keep the current password" : "")"
+                                            Placeholder="@(hasPassword ? "Leave blank to keep current" : "")"
                                             autocomplete="new-password"
                                             Style="width:100%" />
                             @if (!hasPassword)
@@ -83,20 +75,31 @@
                                 <RadzenRequiredValidator Component="Password" Text="Password is required" />
                             }
                         </RadzenStack>
+                    </div>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem" AlignItems="AlignItems.Center">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.6rem">
+                            <RadzenSwitch @bind-Value=@Input.UseSsl Name="UseSsl" />
+                            <RadzenLabel Text="Use SSL" Component="UseSsl" />
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.6rem">
+                            <RadzenSwitch @bind-Value=@Input.Html Name="Html" />
+                            <RadzenLabel Text="HTML emails" Component="Html" />
+                        </RadzenStack>
                     </RadzenStack>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenLabel Text="HTML emails" Component="Html" Style="width: 10rem; flex-shrink: 0;" />
-                        <RadzenSwitch @bind-Value=@Input.Html Name="Html" />
-                    </RadzenStack>
-
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+                    <div class="ag-card-actions">
+                        <RadzenButton ButtonType="ButtonType.Button"
+                                      Text="Discard"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Click=@OnDiscard
+                                      Disabled=@isSaving />
                         <RadzenButton ButtonType="ButtonType.Submit"
-                                      Text="Save"
+                                      Text="Save changes"
                                       ButtonStyle="ButtonStyle.Primary"
                                       IsBusy=@isSaving
                                       BusyText="Saving..." />
-                    </RadzenStack>
+                    </div>
 
                 </RadzenStack>
             </RadzenTemplateForm>
@@ -104,17 +107,19 @@
 
         <RadzenCard>
             <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Send test email</RadzenText>
-                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-                    Uses the last saved settings.
-                </RadzenText>
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6">Send test email</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
+                        Uses the last saved settings.
+                    </RadzenText>
+                </div>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
                     <RadzenTextBox @bind-Value=@testRecipient
                                    Name="TestRecipient"
                                    Placeholder="recipient@example.com"
                                    Style="flex: 1;" />
                     <RadzenButton Text="Send test"
-                                  ButtonStyle="ButtonStyle.Secondary"
+                                  ButtonStyle="ButtonStyle.Light"
                                   Click=@OnSendTest
                                   IsBusy=@isSendingTest
                                   BusyText="Sending..."
@@ -134,7 +139,9 @@
     private bool isSendingTest;
     private string testRecipient = "";
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync() => LoadSettingsAsync();
+
+    private async Task LoadSettingsAsync()
     {
         var settings = await SettingsStore.LoadAsync();
         hasPassword = settings.HasPassword;
@@ -150,6 +157,9 @@
             Html = settings.Html,
         };
     }
+
+    // Discard: reload the persisted settings, dropping any unsaved edits.
+    private Task OnDiscard() => LoadSettingsAsync();
 
     private async Task OnValidSubmit(InputModel model)
     {
