@@ -7,17 +7,18 @@
 @inject IIdentityFeatureSettingsStore SettingsStore
 @inject NotificationService NotificationService
 
-<PageTitle>Login Features</PageTitle>
+<AppFoundationPageTitle Title="Login Features" Breadcrumb="Administration / Login Features" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
-        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Login Features</RadzenText>
-
-        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-secondary-color);">
-            Turn self-service sign-up and the optional sign-in methods on or off. A disabled
-            feature is hidden here and made unreachable by direct URL.
-        </RadzenText>
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Login Features</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
+                Turn self-service sign-up and the optional sign-in methods on or off. A disabled
+                feature is hidden here and made unreachable by direct URL.
+            </RadzenText>
+        </div>
 
         @if (loadedFromConfiguration)
         {
@@ -27,49 +28,41 @@
             </RadzenAlert>
         }
 
-        <RadzenCard>
+        <RadzenCard Style="padding: 8px 30px;">
             <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
-                <RadzenStack Gap="1.25rem">
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Self-service registration</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-                                Lets visitors create their own account.
-                            </RadzenText>
-                        </RadzenStack>
-                        <RadzenSwitch @bind-Value=@Input.EnableUserRegistration Name="EnableUserRegistration" />
-                    </RadzenStack>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--rz-border-color);">
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+                        <span style="font: 600 15px 'Space Grotesk', system-ui, sans-serif; color: var(--rz-text-title-color);">Self-service registration</span>
+                        <span style="font-size: 12.5px; color: var(--rz-text-secondary-color);">Lets visitors create their own account.</span>
+                    </div>
+                    <RadzenSwitch @bind-Value=@Input.EnableUserRegistration Name="EnableUserRegistration" />
+                </div>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Two-factor authentication</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-                                Authenticator-app setup. Users already enrolled can still complete sign-in.
-                            </RadzenText>
-                        </RadzenStack>
-                        <RadzenSwitch @bind-Value=@Input.EnableTwoFactor Name="EnableTwoFactor" />
-                    </RadzenStack>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--rz-border-color);">
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+                        <span style="font: 600 15px 'Space Grotesk', system-ui, sans-serif; color: var(--rz-text-title-color);">Two-factor authentication</span>
+                        <span style="font-size: 12.5px; color: var(--rz-text-secondary-color);">Authenticator-app setup. Users already enrolled can still complete sign-in.</span>
+                    </div>
+                    <RadzenSwitch @bind-Value=@Input.EnableTwoFactor Name="EnableTwoFactor" />
+                </div>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                        <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">Passkeys</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-                                WebAuthn passkey registration and sign-in.
-                            </RadzenText>
-                        </RadzenStack>
-                        <RadzenSwitch @bind-Value=@Input.EnablePasskey Name="EnablePasskey" />
-                    </RadzenStack>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--rz-border-color);">
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+                        <span style="font: 600 15px 'Space Grotesk', system-ui, sans-serif; color: var(--rz-text-title-color);">Passkeys</span>
+                        <span style="font-size: 12.5px; color: var(--rz-text-secondary-color);">WebAuthn passkey registration and sign-in.</span>
+                    </div>
+                    <RadzenSwitch @bind-Value=@Input.EnablePasskey Name="EnablePasskey" />
+                </div>
 
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
-                        <RadzenButton ButtonType="ButtonType.Submit"
-                                      Text="Save"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      IsBusy=@isSaving
-                                      BusyText="Saving..." />
-                    </RadzenStack>
+                <div style="display: flex; justify-content: flex-end; padding: 18px 0 20px;">
+                    <RadzenButton ButtonType="ButtonType.Submit"
+                                  Text="Save changes"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  IsBusy=@isSaving
+                                  BusyText="Saving..." />
+                </div>
 
-                </RadzenStack>
             </RadzenTemplateForm>
         </RadzenCard>
 
