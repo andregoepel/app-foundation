@@ -16,3 +16,62 @@
     right: 0.75rem;
     top: 0.5rem;
 }
+
+/* User-chip dropdown (topbar). The chip itself uses the design's ag-user-chip /
+   ag-avatar / ag-user-email classes; these scoped rules add the caret, the dropdown
+   panel, and a click-away backdrop. */
+
+.user-menu {
+    position: relative;
+}
+
+.user-caret {
+    color: var(--ag-faint);
+    font-size: 10px;
+    line-height: 1;
+    margin-left: 2px;
+}
+
+/* Full-screen click-away layer behind the dropdown. */
+.user-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 50;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: var(--ag-surface);
+    border: 1px solid var(--ag-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--ag-text2);
+    font: 600 12.5px "Manrope", sans-serif;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+    background: var(--ag-hover);
+    color: var(--ag-text);
+}

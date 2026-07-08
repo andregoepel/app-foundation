@@ -4,9 +4,9 @@
     "net10.0": {
       "AndreGoepel.Design.Blazor": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "2Sz0LwsyzW0T2RLqdPPza6l/RfVvHkdUt1rKEiQoJQGXmdng+Lw8ehvtQ99M6zMWuT46HQlusbIB5LOK1cyXcQ==",
+        "requested": "[1.0.1, )",
+        "resolved": "1.0.1",
+        "contentHash": "5wByQLjMD+izn6w35LcMQo1CPk7CmlaMkOl8uMWRxiwFBY+0iS4sW6VlaRwo3Xc66o1BY9zbSJB491Ud6ETKrg==",
         "dependencies": {
           "Radzen.Blazor": "11.1.0"
         }
