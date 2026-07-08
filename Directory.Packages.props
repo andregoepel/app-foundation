@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup Label="AndreGoepel">
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.2.0" />
+    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.0.0" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.3.0" />
   </ItemGroup>
 
   <ItemGroup Label="OpenTelemetry">

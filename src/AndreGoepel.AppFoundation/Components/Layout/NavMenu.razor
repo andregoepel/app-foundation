@@ -2,7 +2,7 @@
 
 @using AndreGoepel.Marten.Identity
 @using AndreGoepel.Marten.Identity.Blazor
-@using Radzen.Blazor
+@using AndreGoepel.Marten.Identity.Blazor.Features
 @using global::Marten
 
 @inject IQuerySession QuerySession
@@ -12,51 +12,51 @@
 
 @if (SetupComplete)
 {
-    <RadzenPanelMenu>
-        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/dashboard" />
+    <NavLink class="ag-nav-item ag-home" href="dashboard" Match="NavLinkMatch.All">⌂&nbsp;&nbsp;Home</NavLink>
 
-        @if (Layout.Menu is not null)
-        {
-            <DynamicComponent Type="Layout.Menu" />
-        }
+    @* Host-contributed entries. Contributed menus should render ag-nav-item /
+       ag-nav-section markup to match the design shell. *@
+    @if (Layout.Menu is not null)
+    {
+        <DynamicComponent Type="Layout.Menu" />
+    }
 
-        <AuthorizeView>
-            <Authorized>
-                <RadzenPanelMenuItem Text="Account" Icon="manage_accounts">
-                    <RadzenPanelMenuItem Text="Profile" Path="Account/Manage/Profile" />
-                    <RadzenPanelMenuItem Text="Email" Path="Account/Manage/Email" />
-                    <RadzenPanelMenuItem Text="Password" Path="Account/Manage/ChangePassword" />
-                    @if (twoFactorEnabled)
-                    {
-                        <RadzenPanelMenuItem Text="Two-factor authentication" Path="Account/Manage/TwoFactorAuthentication" />
-                    }
-                    @if (passkeyEnabled)
-                    {
-                        <RadzenPanelMenuItem Text="Passkeys" Path="Account/Manage/Passkeys" />
-                    }
-                    <RadzenPanelMenuItem Text="Personal data" Path="Account/Manage/PersonalData" />
-                </RadzenPanelMenuItem>
-            </Authorized>
-        </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
+            <div class="ag-nav-section">ACCOUNT</div>
+            <div class="ag-nav-group">
+                <NavLink class="ag-nav-item" href="Account/Manage/Profile">Profile</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/Email">Email</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/ChangePassword">Password</NavLink>
+                @if (twoFactorEnabled)
+                {
+                    <NavLink class="ag-nav-item" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
+                }
+                @if (passkeyEnabled)
+                {
+                    <NavLink class="ag-nav-item" href="Account/Manage/Passkeys">Passkeys</NavLink>
+                }
+                <NavLink class="ag-nav-item" href="Account/Manage/PersonalData">Personal data</NavLink>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 
-        <AuthorizeView Roles="Administrator">
-            <Authorized>
-                <RadzenPanelMenuItem Text="Administration" Icon="settings">
-                    <RadzenPanelMenuItem Text="User Cleanup" Path="Administration/UserCleanup" />
-                    <RadzenPanelMenuItem Text="Users" Path="Administration/Users" />
-                    <RadzenPanelMenuItem Text="Roles" Path="Administration/Roles" />
-                    <RadzenPanelMenuItem Text="Login Features" Path="Administration/LoginFeatures" />
-                    <RadzenPanelMenuItem Text="Email Settings" Path="Administration/EmailSettings" />
-                </RadzenPanelMenuItem>
-            </Authorized>
-        </AuthorizeView>
-    </RadzenPanelMenu>
+    <AuthorizeView Roles="Administrator">
+        <Authorized>
+            <div class="ag-nav-section">ADMINISTRATION</div>
+            <div class="ag-nav-group">
+                <NavLink class="ag-nav-item" href="Administration/UserCleanup">User cleanup</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/Users">Users</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/Roles">Roles</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/LoginFeatures">Login features</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/EmailSettings">Email settings</NavLink>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 }
 else
 {
-    <RadzenPanelMenu>
-        <RadzenPanelMenuItem Text="Setup" Icon="install_desktop" Path="/Setup" />
-    </RadzenPanelMenu>
+    <NavLink class="ag-nav-item ag-home" href="Setup" Match="NavLinkMatch.All">Setup</NavLink>
 }
 
 @code {

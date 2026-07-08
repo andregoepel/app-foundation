@@ -1,5 +1,5 @@
 using AndreGoepel.AppFoundation.Identity;
-using AndreGoepel.Marten.Identity.Blazor;
+using AndreGoepel.Marten.Identity.Blazor.Features;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

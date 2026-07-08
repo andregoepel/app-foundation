@@ -5,9 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <!-- Self-hosted design-system fonts (Manrope / Space Grotesk / JetBrains Mono). -->
+    <link rel="stylesheet" href="_content/AndreGoepel.Design.Blazor/css/fonts.css" />
     <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css" />
+    <!-- AndreGoepel.Design.Blazor token layer — must load AFTER Radzen's material-base. -->
+    <link rel="stylesheet" href="_content/AndreGoepel.Design.Blazor/css/design.css" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["AndreGoepel.AppFoundation.Sample.styles.css"]" />
+    <!-- Resolve + apply the persisted theme before first paint; off-canvas nav toggle. -->
+    <script src="_content/AndreGoepel.Design.Blazor/js/theme.js"></script>
+    <script src="_content/AndreGoepel.Design.Blazor/js/nav.js"></script>
     <ImportMap />
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
