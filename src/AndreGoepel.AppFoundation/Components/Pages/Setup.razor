@@ -21,48 +21,42 @@
 @inject NotificationService NotificationService
 @inject LoginTokenProtector LoginTokens
 
-<PageTitle>Initial Setup – nerdventures.blog</PageTitle>
+<AppFoundationPageTitle Title="Initial setup" />
 
 <SectionContent SectionName="login-tagline">Set up your administrator account.</SectionContent>
 
-<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Initial Setup</RadzenText>
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Initial setup</RadzenText>
 
 <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
     <DataAnnotationsValidator />
     <RadzenStack Gap="1.25rem">
 
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-            <RadzenLabel Text="Email" Component="Email" Style="width: 10rem; flex-shrink: 0;" />
-            <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                <RadzenTextBox @bind-Value=@Input.Email
-                               Name="Email"
-                               Placeholder="admin@nerdventures.blog"
-                               Style="width:100%" />
-                <ValidationMessage For="@(() => Input.Email)" class="rz-message rz-messages-error" />
-            </RadzenStack>
+        <RadzenStack Gap="0.4rem">
+            <RadzenLabel Text="Email" Component="Email" />
+            <RadzenTextBox @bind-Value=@Input.Email
+                           Name="Email"
+                           Placeholder="admin@example.com"
+                           Style="width:100%" />
+            <ValidationMessage For="@(() => Input.Email)" class="rz-message rz-messages-error" />
         </RadzenStack>
 
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-            <RadzenLabel Text="Password" Component="Password" Style="width: 10rem; flex-shrink: 0;" />
-            <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                <RadzenPassword @bind-Value=@Input.Password
-                                Name="Password"
-                                Style="width:100%" />
-                <ValidationMessage For="@(() => Input.Password)" class="rz-message rz-messages-error" />
-            </RadzenStack>
+        <RadzenStack Gap="0.4rem">
+            <RadzenLabel Text="Password" Component="Password" />
+            <RadzenPassword @bind-Value=@Input.Password
+                            Name="Password"
+                            Style="width:100%" />
+            <ValidationMessage For="@(() => Input.Password)" class="rz-message rz-messages-error" />
         </RadzenStack>
 
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-            <RadzenLabel Text="Confirm password" Component="ConfirmPassword" Style="width: 10rem; flex-shrink: 0;" />
-            <RadzenStack Gap="0.25rem" Style="flex: 1;">
-                <RadzenPassword @bind-Value=@Input.ConfirmPassword
-                                Name="ConfirmPassword"
-                                Style="width:100%" />
-                <ValidationMessage For="@(() => Input.ConfirmPassword)" class="rz-message rz-messages-error" />
-            </RadzenStack>
+        <RadzenStack Gap="0.4rem">
+            <RadzenLabel Text="Confirm password" Component="ConfirmPassword" />
+            <RadzenPassword @bind-Value=@Input.ConfirmPassword
+                            Name="ConfirmPassword"
+                            Style="width:100%" />
+            <ValidationMessage For="@(() => Input.ConfirmPassword)" class="rz-message rz-messages-error" />
         </RadzenStack>
 
-        <div class="login-action-row">
+        <div class="ag-login-actions">
             <RadzenButton ButtonType="ButtonType.Submit"
                           Text="Create admin & complete setup"
                           ButtonStyle="ButtonStyle.Primary"
