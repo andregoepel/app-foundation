@@ -1,3 +1,11 @@
+@page "/not-found"
 @rendermode InteractiveServer
 
-<ErrorPage Code="404" />
+<ErrorPage Code="@(Code ?? "404")" />
+
+@code {
+    // Original status code when the status-code-pages middleware re-executes a bare
+    // 4xx response here (e.g. "?code=403"); absent for router-level not-found.
+    [SupplyParameterFromQuery(Name = "code")]
+    public string? Code { get; set; }
+}
