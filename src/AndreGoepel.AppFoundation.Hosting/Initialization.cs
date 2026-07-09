@@ -232,6 +232,13 @@ public static class Initialization
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
             app.UseHsts();
         }
+
+        // Requests that match no endpoint at all (hard 404s) never reach the Blazor
+        // router, so re-execute them against the designed not-found page, passing the
+        // original status code so 403s render their own copy. Interactive navigations
+        // to unknown routes are handled by the Router's NotFoundPage.
+        app.UseStatusCodePagesWithReExecute("/not-found", "?code={0}");
+
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseHeaderPropagation();
