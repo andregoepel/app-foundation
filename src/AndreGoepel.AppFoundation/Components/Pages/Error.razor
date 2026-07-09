@@ -1,28 +1,40 @@
 ﻿@page "/Error"
 @using System.Diagnostics
 
-<PageTitle>Error</PageTitle>
+<AppFoundationPageTitle Title="Error" />
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="rz-p-4 rz-p-md-6">
+    <RadzenStack Gap="1.5rem">
 
-@if (ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
+        <div>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Error</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
+                An error occurred while processing your request.
+            </RadzenText>
+        </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        @if (ShowRequestId)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                <strong>Request ID:</strong> <code>@RequestId</code>
+            </RadzenText>
+        }
+
+        <RadzenCard>
+            <RadzenStack Gap="0.75rem">
+                <RadzenText TextStyle="TextStyle.H6">Development mode</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
+                    Swapping to the <strong>Development</strong> environment displays more detailed
+                    information about the error. It shouldn't be enabled for deployed applications, as
+                    it can leak sensitive information from exceptions to end users. For local debugging,
+                    set the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to
+                    <strong>Development</strong> and restart the app.
+                </RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+
+    </RadzenStack>
+</div>
 
 @code{
     [CascadingParameter]
