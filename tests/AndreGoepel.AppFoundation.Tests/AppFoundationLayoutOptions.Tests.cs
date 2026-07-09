@@ -7,6 +7,16 @@ public class AppFoundationLayoutOptionsTests
     private sealed class SampleMenu { }
 
     [Fact]
+    public void HomeUrl_DefaultsToThePackagedDashboard()
+    {
+        // Arrange / Act
+        var options = new AppFoundationLayoutOptions();
+
+        // Assert — hosts that keep the default get the packaged dashboard page.
+        Assert.Equal("dashboard", options.HomeUrl);
+    }
+
+    [Fact]
     public void AdminMenu_IsBackwardCompatibleAliasFor_Menu()
     {
 #pragma warning disable CS0618 // exercising the obsolete alias on purpose
