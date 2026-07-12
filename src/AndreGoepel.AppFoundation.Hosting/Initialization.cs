@@ -236,8 +236,15 @@ public static class Initialization
         // Requests that match no endpoint at all (hard 404s) never reach the Blazor
         // router, so re-execute them against the designed not-found page, passing the
         // original status code so 403s render their own copy. Interactive navigations
-        // to unknown routes are handled by the Router's NotFoundPage.
-        app.UseStatusCodePagesWithReExecute("/not-found", "?code={0}");
+        // to unknown routes are handled by the Router's NotFoundPage. The re-execution
+        // needs its own DI scope: when the original request already rendered a Razor
+        // component (e.g. a host page that set a 4xx status), re-rendering in the same
+        // scope throws "'RemoteNavigationManager' already initialized".
+        app.UseStatusCodePagesWithReExecute(
+            "/not-found",
+            "?code={0}",
+            createScopeForStatusCodePages: true
+        );
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
