@@ -19,6 +19,12 @@ public sealed class AppFoundationLayoutOptions
     public string? Copyright { get; set; }
 
     /// <summary>
+    /// Target of the sidebar's <c>Home</c> entry. Defaults to the packaged dashboard;
+    /// hosts with their own landing page point this at it (e.g. <c>"/"</c>).
+    /// </summary>
+    public string HomeUrl { get; set; } = "dashboard";
+
+    /// <summary>
     /// Optional component type whose entries are rendered in the navigation menu, immediately
     /// after <c>Home</c> and before the <c>Account</c> group. Lets a consumer contribute its own
     /// nav entries. Rendered via <see cref="DynamicComponent"/> for all users — the contributed
