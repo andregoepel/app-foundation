@@ -32,12 +32,37 @@ public abstract class E2ETestBase(E2EAppFixture fixture) : IAsyncLifetime
         await page.WaitForBlazorAsync();
         await page.FillFieldAsync("Email", email);
         await page.FillFieldAsync("Password", password);
-        await page.ClickButtonAsync("Log in");
-        // Cookie middleware redirects away from the login page on success. Use exact-path equality so
-        // a redirect to /Account/LoginWith2fa (which *contains* /Account/Login) still counts as "left".
-        await page.WaitForURLAsync(url =>
-            !new Uri(url).AbsolutePath.Equals("/Account/Login", StringComparison.OrdinalIgnoreCase)
-        );
+        await ClickAndLeaveLoginAsync(page);
+    }
+
+    /// <summary>
+    /// Clicks "Log in" and waits to leave the login page. A click can land in the gap between the
+    /// circuit connecting and the Radzen form's submit handler attaching — it is then silently lost —
+    /// so the click is retried until the cookie middleware redirects away. Exact-path equality keeps a
+    /// redirect to /Account/LoginWith2fa (which *contains* /Account/Login) counting as "left".
+    /// </summary>
+    private static async Task ClickAndLeaveLoginAsync(IPage page)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            await page.ClickButtonAsync("Log in");
+            try
+            {
+                await page.WaitForURLAsync(
+                    url =>
+                        !new Uri(url).AbsolutePath.Equals(
+                            "/Account/Login",
+                            StringComparison.OrdinalIgnoreCase
+                        ),
+                    new PageWaitForURLOptions { Timeout = 5_000 }
+                );
+                return;
+            }
+            catch (TimeoutException) when (attempt < 5)
+            {
+                // Submit was lost before the handler attached — click again.
+            }
+        }
     }
 
     /// <summary>Ensures the root admin exists, then logs this page in as that admin.</summary>

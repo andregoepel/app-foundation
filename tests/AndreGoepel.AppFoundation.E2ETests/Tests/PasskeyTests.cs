@@ -32,10 +32,21 @@ public sealed class PasskeyTests(E2EAppFixture fixture) : E2ETestBase(fixture)
         await RegisterPasskeyAsync("Login Key");
         await LogoutAsync();
 
-        // Act — sign in via the passkey button on the login page.
+        // Act — sign in with the passkey. On the login page the browser's conditional
+        // mediation often picks up the resident credential from the virtual authenticator
+        // and completes the assertion on its own; if it hasn't, click the passkey button
+        // to trigger it explicitly. Either way the ceremony ends by leaving the login page.
         await Page.GotoAsync("/Account/Login");
         await Page.WaitForBlazorAsync();
-        await Page.GetByText("Log in with a passkey").ClickAsync();
+        try
+        {
+            await Page.GetByText("Log in with a passkey")
+                .ClickAsync(new LocatorClickOptions { Timeout = 5_000 });
+        }
+        catch (TimeoutException)
+        {
+            // Conditional mediation already signed in and navigated away — nothing to click.
+        }
 
         // Assert — the assertion ceremony logs us in and leaves the login page.
         await Page.WaitForURLAsync(url =>

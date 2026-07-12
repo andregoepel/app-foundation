@@ -4,7 +4,7 @@ namespace AndreGoepel.AppFoundation.MailService;
 /// Resolves the effective <see cref="MailConfiguration"/> for sending. Looked up
 /// per send so database changes take effect without an application restart.
 /// </summary>
-internal interface IMailSettingsProvider
+public interface IMailSettingsProvider
 {
     Task<MailConfiguration> GetAsync(CancellationToken cancellationToken = default);
 }

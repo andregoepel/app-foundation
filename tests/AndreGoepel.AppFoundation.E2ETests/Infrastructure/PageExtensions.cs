@@ -40,9 +40,21 @@ public static class PageExtensions
     /// <summary>Asserts the current URL path matches (ignoring query string and trailing slash).</summary>
     public static async Task AssertOnPathAsync(this IPage page, string expectedPath)
     {
-        await page.WaitForURLAsync(url =>
-            NormalizePath(url).Contains(expectedPath.Trim('/'), StringComparison.OrdinalIgnoreCase)
-        );
+        try
+        {
+            await page.WaitForURLAsync(
+                url =>
+                    NormalizePath(url)
+                        .Contains(expectedPath.Trim('/'), StringComparison.OrdinalIgnoreCase),
+                new PageWaitForURLOptions { Timeout = 15_000 }
+            );
+        }
+        catch (TimeoutException)
+        {
+            throw new TimeoutException(
+                $"Expected path to contain '{expectedPath}' but was '{page.Url}'."
+            );
+        }
     }
 
     private static string NormalizePath(string url) => new Uri(url).AbsolutePath.Trim('/');

@@ -15,8 +15,10 @@ public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fix
         await Page.GotoAsync("/Administration/Users");
         await Page.WaitForBlazorAsync();
 
-        // Assert — the admin's own account is listed in the grid.
-        await Expect(Page.GetByText(TestData.AdminEmail)).ToBeVisibleAsync();
+        // Assert — the admin's own account is listed in the grid. Scoped to the grid
+        // because the topbar user chip shows the same email.
+        await Expect(Page.Locator(".rz-data-grid").GetByText(TestData.AdminEmail))
+            .ToBeVisibleAsync();
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fix
     }
 
     [Fact]
-    public async Task NonAdmin_AccessingAdministration_IsRedirectedToLogin()
+    public async Task NonAdmin_AccessingAdministration_IsBouncedAway()
     {
         // Arrange — a confirmed non-admin user.
         await Fixture.ProvisionAdminAsync();
@@ -53,7 +55,15 @@ public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fix
         // Act
         await Page.GotoAsync("/Administration/Roles");
 
-        // Assert — the Administrator-only page bounces a non-admin back to login.
-        await Page.AssertOnPathAsync("Account/Login");
+        // Assert — the Administrator-only page never renders for a non-admin: the
+        // authorization redirect bounces them off the /Administration path (to the app
+        // home, since they are already authenticated — an anonymous visitor would instead
+        // be sent to the login page).
+        await Page.WaitForURLAsync(url =>
+            !new Uri(url).AbsolutePath.Contains(
+                "Administration",
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
     }
 }

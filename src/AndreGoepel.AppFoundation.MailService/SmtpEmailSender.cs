@@ -3,7 +3,11 @@ using MimeKit;
 
 namespace AndreGoepel.AppFoundation.MailService;
 
-internal class SmtpEmailSender(IMailSettingsProvider settingsProvider) : IEmailSender
+// Public (not internal) so Wolverine's generated MailMessage handler code can construct
+// it directly: ServiceLocationPolicy.NotAllowed (Wolverine 6 default) rejects handlers
+// whose dependencies resolve to non-public concrete types, which silently killed every
+// outgoing email.
+public class SmtpEmailSender(IMailSettingsProvider settingsProvider) : IEmailSender
 {
     public async Task SendAsync(
         string recipient,

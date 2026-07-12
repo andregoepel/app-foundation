@@ -10,8 +10,8 @@ namespace AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 /// <summary>
 /// Boots the whole Aspire application graph (Postgres + MailHog + the sample web app) once for the
 /// entire test collection via the sample AppHost, then launches a single Chromium browser that every
-/// test shares. On CI's fresh runners the Postgres volume starts empty; the account flows are
-/// idempotent (admin provisioned once, unique emails per test) so they tolerate reused local state.
+/// test shares. The AppHost is started with E2E=true so Postgres runs without its persistent
+/// volume — every suite run gets a throwaway, empty database, locally and on CI alike.
 /// </summary>
 public sealed class E2EAppFixture : IAsyncLifetime
 {
@@ -37,8 +37,12 @@ public sealed class E2EAppFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // E2E=true tells the AppHost to run Postgres without its persistent volume, so every
+        // suite run starts from an empty database instead of the developer's local data.
         var appHostBuilder =
-            await DistributedApplicationTestingBuilder.CreateAsync<Projects.AndreGoepel_AppFoundation_AppHost>();
+            await DistributedApplicationTestingBuilder.CreateAsync<Projects.AndreGoepel_AppFoundation_AppHost>([
+                "E2E=true",
+            ]);
 
         _app = await appHostBuilder.BuildAsync();
 
@@ -94,13 +98,42 @@ public sealed class E2EAppFixture : IAsyncLifetime
                     .Equals("Setup", StringComparison.OrdinalIgnoreCase)
             )
             {
-                await page.FillFieldAsync("Email", TestData.AdminEmail);
-                await page.FillFieldAsync("Password", TestData.DefaultPassword);
-                await page.FillFieldAsync("ConfirmPassword", TestData.DefaultPassword);
-                await page.ClickButtonAsync("Create admin");
-                await page.WaitForURLAsync(url =>
-                    !new Uri(url).AbsolutePath.Contains("Setup", StringComparison.OrdinalIgnoreCase)
-                );
+                // On the app's very first circuit, interactivity can attach a beat after
+                // window.Blazor exists (cold JIT); a click landing in that gap silently
+                // does nothing. Retry fill+submit, reloading in between — once the setup
+                // succeeded server-side, the reload redirects away by itself.
+                for (var attempt = 0; ; attempt++)
+                {
+                    await page.FillFieldAsync("Email", TestData.AdminEmail);
+                    await page.FillFieldAsync("Password", TestData.DefaultPassword);
+                    await page.FillFieldAsync("ConfirmPassword", TestData.DefaultPassword);
+                    await page.ClickButtonAsync("Create admin");
+                    try
+                    {
+                        await page.WaitForURLAsync(
+                            url =>
+                                !new Uri(url).AbsolutePath.Contains(
+                                    "Setup",
+                                    StringComparison.OrdinalIgnoreCase
+                                ),
+                            new PageWaitForURLOptions { Timeout = 15_000 }
+                        );
+                        break;
+                    }
+                    catch (TimeoutException) when (attempt < 7)
+                    {
+                        await page.ReloadAsync();
+                        await page.WaitForBlazorAsync();
+                        if (
+                            !new Uri(page.Url)
+                                .AbsolutePath.Trim('/')
+                                .Equals("Setup", StringComparison.OrdinalIgnoreCase)
+                        )
+                        {
+                            break;
+                        }
+                    }
+                }
             }
 
             _adminProvisioned = true;

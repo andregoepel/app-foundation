@@ -53,7 +53,7 @@ public sealed class AccountManagementTests(E2EAppFixture fixture) : E2ETestBase(
         // Act — submit triggers a Radzen confirm dialog that must be accepted.
         await Page.FillFieldAsync("Password", TestData.DefaultPassword);
         await Page.ClickButtonAsync("Permanently Delete My Account");
-        await Page.ClickButtonAsync("Yes, Delete Forever");
+        await Page.ClickButtonAsync("Yes, Delete My Account");
 
         // Assert — the deleted account can no longer log in.
         await Page.GotoAsync("/Account/Login");

@@ -95,27 +95,62 @@ public sealed partial class MailHogClient(string baseUrl)
 
         if (
             message.TryGetProperty("Content", out var content)
-            && content.TryGetProperty("Body", out var body)
+            && content.ValueKind == JsonValueKind.Object
         )
         {
-            builder.AppendLine(DecodeQuotedPrintable(body.GetString() ?? string.Empty));
+            AppendPart(builder, content);
         }
 
+        // MailHog serializes "MIME": null for non-multipart messages.
         if (
             message.TryGetProperty("MIME", out var mime)
+            && mime.ValueKind == JsonValueKind.Object
             && mime.TryGetProperty("Parts", out var parts)
+            && parts.ValueKind == JsonValueKind.Array
         )
         {
             foreach (var part in parts.EnumerateArray())
             {
-                if (part.TryGetProperty("Body", out var partBody))
-                {
-                    builder.AppendLine(DecodeQuotedPrintable(partBody.GetString() ?? string.Empty));
-                }
+                AppendPart(builder, part);
             }
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Appends one MIME part's decoded body. Quoted-printable decoding is applied only when
+    /// the part actually declares that transfer encoding — decoding unconditionally corrupts
+    /// URLs whose <c>=</c> is followed by two hex digits (e.g. <c>userId=a1…</c> → <c>userId¡…</c>).
+    /// </summary>
+    private static void AppendPart(StringBuilder builder, JsonElement part)
+    {
+        if (!part.TryGetProperty("Body", out var body))
+        {
+            return;
+        }
+
+        var text = body.GetString() ?? string.Empty;
+        builder.AppendLine(IsQuotedPrintable(part) ? DecodeQuotedPrintable(text) : text);
+    }
+
+    /// <summary>True when the part's <c>Content-Transfer-Encoding</c> header is quoted-printable.</summary>
+    private static bool IsQuotedPrintable(JsonElement part)
+    {
+        if (
+            !part.TryGetProperty("Headers", out var headers)
+            || headers.ValueKind != JsonValueKind.Object
+            || !headers.TryGetProperty("Content-Transfer-Encoding", out var cte)
+            || cte.ValueKind != JsonValueKind.Array
+        )
+        {
+            return false;
+        }
+
+        return cte.EnumerateArray()
+            .Any(v =>
+                string.Equals(v.GetString(), "quoted-printable", StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     /// <summary>Undoes the quoted-printable encoding MailHog stores so URLs are reassembled.</summary>
