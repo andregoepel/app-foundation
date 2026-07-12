@@ -9,7 +9,9 @@ namespace AndreGoepel.AppFoundation.MailService;
 /// without one the <c>EmailSender</c> configuration section applies (bootstrap
 /// path — same behaviour as before database-backed settings existed).
 /// </summary>
-internal sealed class MailSettingsProvider(
+// Public for the same Wolverine codegen reason as SmtpEmailSender: it is constructed
+// inside the generated MailMessage handler as SmtpEmailSender's dependency.
+public sealed class MailSettingsProvider(
     IDocumentStore store,
     IOptions<MailConfiguration> fallback,
     IDataProtectionProvider dataProtectionProvider

@@ -6,6 +6,7 @@
   <ItemGroup Label="Aspire">
     <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
   </ItemGroup>
 
   <ItemGroup Label="Marten">
@@ -52,6 +53,8 @@
 
   <ItemGroup Label="Testing">
     <PackageVersion Include="bunit" Version="2.7.2" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
+    <PackageVersion Include="Otp.NET" Version="1.4.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />

@@ -2,7 +2,7 @@
 
 namespace AndreGoepel.AppFoundation.MailService;
 
-internal record MailConfiguration
+public record MailConfiguration
 {
     [Required]
     public required string SenderName { get; init; }

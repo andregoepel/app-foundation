@@ -1,7 +1,15 @@
+using Microsoft.Extensions.Configuration;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // A PostgreSQL container with a persistent volume so setup and accounts survive restarts.
-var postgres = builder.AddPostgres("postgres").WithDataVolume();
+// The E2E suite passes E2E=true to skip the volume: tests need a throwaway database, and
+// sharing the developer's volume would leak their local admin account into the test run.
+var postgres = builder.AddPostgres("postgres");
+if (!builder.Configuration.GetValue<bool>("E2E"))
+{
+    postgres.WithDataVolume();
+}
 
 // The database resource name is the connection-string name the foundation reads by default
 // (AppFoundationOptions.DatabaseConnectionName == "appfoundation-database").
@@ -26,8 +34,15 @@ builder
     // credentials, but the settings are required, so placeholders are supplied.
     .WithEnvironment("EmailSender__SenderName", "AppFoundation Dev")
     .WithEnvironment("EmailSender__SenderEmail", "dev@appfoundation.local")
-    .WithEnvironment("EmailSender__Server", "localhost")
-    .WithEnvironment("EmailSender__Port", "1025")
+    // Resolve MailHog's SMTP endpoint at run time instead of hardcoding localhost:1025:
+    // under `dotnet run` that is what it resolves to anyway, but the E2E testing host
+    // assigns random proxy ports and a hardcoded port would send email into the void.
+    .WithEnvironment(context =>
+    {
+        var smtp = mailhog.GetEndpoint("smtp");
+        context.EnvironmentVariables["EmailSender__Server"] = smtp.Property(EndpointProperty.Host);
+        context.EnvironmentVariables["EmailSender__Port"] = smtp.Property(EndpointProperty.Port);
+    })
     .WithEnvironment("EmailSender__UseSsl", "false")
     .WithEnvironment("EmailSender__Username", "dev")
     .WithEnvironment("EmailSender__Password", "dev");

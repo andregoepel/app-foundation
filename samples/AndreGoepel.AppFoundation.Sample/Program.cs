@@ -8,7 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 // One call wires the data store, identity, messaging, email, data protection, and the
 // shared request pipeline. The connection string named "appfoundation-database" is
 // supplied by the Aspire AppHost (or Docker secrets in production).
-builder.AddAppFoundation();
+builder.AddAppFoundation(options =>
+    // Self-service registration is off by default (#49); the sample opts in — the same
+    // way a real host would — so the E2E suite can exercise the registration flows.
+    options.ConfigureIdentity = identity => identity.EnableUserRegistration = true
+);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
