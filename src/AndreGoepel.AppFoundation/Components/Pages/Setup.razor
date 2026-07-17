@@ -4,6 +4,7 @@
 
 @using AndreGoepel.Marten.Identity
 @using AndreGoepel.Marten.Identity.Roles
+@using AndreGoepel.Marten.Identity.Services
 @using AndreGoepel.Marten.Identity.Users
 @using AndreGoepel.AppFoundation
 @using Microsoft.AspNetCore.Identity
@@ -16,6 +17,7 @@
 @inject IUserStore<User> UserStore
 @inject SignInManager<User> SignInManager
 @inject IEmailSender<User> EmailSender
+@inject IIdentityAuthorizer Authorizer
 @inject ILogger<Setup> Logger
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
@@ -136,18 +138,32 @@
 
             Logger.LogInformation("Root admin {Email} created successfully", Input.Email);
 
-            // Create default roles if they don't exist
+            // Create default roles if they don't exist.
+            //
+            // RoleStore.CreateAsync is authorisation-gated and fails closed for an
+            // unidentified caller (#41). Nobody is signed in yet at this point —
+            // sign-in is the last step below — so these writes have to run inside the
+            // authorizer's system scope, the escape hatch marten-identity ships for
+            // exactly this case. Without it every role creation is rejected (#89).
+            //
+            // Administrator is not listed: UserStore.CreateAsync already creates it and
+            // assigns it in the same transaction as the root user, so a root account
+            // never depends on this flow.
             var defaultRoles = new[]
             {
-                (Roles.Administrator, false),
                 (Roles.Member, false),
                 (Roles.User, false)
             };
 
-            foreach (var (name, deletable) in defaultRoles)
+            using (Authorizer.BeginSystemScope())
             {
-                if (!await RoleManager.RoleExistsAsync(name))
+                foreach (var (name, deletable) in defaultRoles)
                 {
+                    if (await RoleManager.RoleExistsAsync(name))
+                    {
+                        continue;
+                    }
+
                     var role = new Role
                     {
                         Name = name,
@@ -155,19 +171,39 @@
                         CreatedBy = user.UserId,
                         ChangedBy = user.UserId
                     };
+
                     var roleResult = await RoleManager.CreateAsync(role);
                     if (!roleResult.Succeeded)
                     {
+                        // A missing default role is recoverable — an administrator can add
+                        // it later under Administration → Roles. Report it and carry on, so
+                        // the operator still ends up signed in.
+                        var detail = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+
+                        Logger.LogError("Error creating default role {Role}: {Detail}", name, detail);
+
                         NotificationService.Notify(
                             NotificationSeverity.Error,
-                            summary: $"Error creating role {name}"
+                            summary: $"Error creating role {name}",
+                            detail: detail
                         );
-                        return;
                     }
                 }
-            }
 
-            await UserManager.AddToRoleAsync(user, Roles.Administrator);
+                // Belt and braces: UserStore already assigned Administrator to the root
+                // user, so this is a no-op in practice. It stays inside the system scope
+                // because it is just as authorisation-gated as the role writes above.
+                var adminRoleResult = await UserManager.AddToRoleAsync(user, Roles.Administrator);
+                if (!adminRoleResult.Succeeded)
+                {
+                    Logger.LogError(
+                        "Could not assign the {Role} role to root admin {Email}: {Detail}",
+                        Roles.Administrator,
+                        Input.Email,
+                        string.Join(", ", adminRoleResult.Errors.Select(e => e.Description))
+                    );
+                }
+            }
 
             var signingResult = await SignInManager.CheckPasswordSignInAsync(user, model.Password, true);
 
