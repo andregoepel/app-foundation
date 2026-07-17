@@ -24,6 +24,23 @@ public sealed class SmokeTests(E2EAppFixture fixture) : E2ETestBase(fixture)
     }
 
     [Fact]
+    public async Task Setup_CreatesDefaultRoles_MemberAndUser()
+    {
+        // Arrange — Setup creates the default roles while nobody is signed in yet, so the
+        // writes only land inside the authorizer's system scope. Without it the role store
+        // fails closed and the roles silently never appear (#89).
+        await LoginAsAdminAsync();
+
+        // Act
+        await Page.GotoAsync("/Administration/Roles");
+
+        // Assert — scoped to the grid: "Users" also appears as a nav button on this page.
+        var grid = Page.Locator(".rz-data-grid");
+        await Expect(grid.GetByText("Member", new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(grid.GetByText("User", new() { Exact = true })).ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async Task Admin_CanLogIn_AndReachDashboard()
     {
         // Arrange / Act
