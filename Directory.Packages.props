@@ -1,7 +1,18 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Let a central PackageVersion override a transitive dependency's resolved
+         version without a direct PackageReference (see AngleSharp pin below). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
+  <ItemGroup Label="Transitive security pins">
+    <!-- bUnit -> AngleSharp.Diffing pulls AngleSharp 1.4.0, which has a moderate
+         mXSS advisory (GHSA-pgww-w46g-26qg / CVE-2026-54570). Pin to the patched
+         1.5.x line to clear the CI vulnerability gate. Remove once bUnit ships a
+         transitive chain that resolves to >= 1.5.0 on its own (tracked in #97). -->
+    <PackageVersion Include="AngleSharp" Version="1.5.2" />
+  </ItemGroup>
 
   <ItemGroup Label="Aspire">
     <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
@@ -11,7 +22,7 @@
 
   <ItemGroup Label="Marten">
     <PackageVersion Include="Marten" Version="9.14.1" />
-    <PackageVersion Include="Marten.AspNetCore" Version="9.0.2" />
+    <PackageVersion Include="Marten.AspNetCore" Version="9.14.1" />
   </ItemGroup>
 
   <ItemGroup Label="Wolverine">
@@ -48,7 +59,7 @@
 
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.18.1" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.18.2" />
   </ItemGroup>
 
   <ItemGroup Label="Testing">

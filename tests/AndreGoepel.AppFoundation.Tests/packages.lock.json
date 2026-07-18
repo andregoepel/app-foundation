@@ -83,11 +83,6 @@
         "resolved": "1.3.1",
         "contentHash": "aHaTONAIw9m1aaDaq+maJD93A4fni+XbrucJ2YoZwou//sZL6Zo0xSpsuKr8tztpKd7xrRWfYPu/azfEylXwrA=="
       },
-      "AngleSharp": {
-        "type": "Transitive",
-        "resolved": "1.4.0",
-        "contentHash": "6ph8mpaQx0KL0COYRt0kI8MB9gSp1PtKijKMhJU//+aVFgKAJLKDesG/+26JSaVCOrHNgPf12wpfoyRcMYOeXg=="
-      },
       "AngleSharp.Css": {
         "type": "Transitive",
         "resolved": "1.0.0-beta.157",
@@ -791,6 +786,12 @@
           "Radzen.Blazor": "11.1.3"
         }
       },
+      "AngleSharp": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.2, )",
+        "resolved": "1.5.2",
+        "contentHash": "LVZ7rrr6GHbhERhTgVDarVygl1e6KwE96pronA90LBOMacDhxR4lB+xYLjn/vlnUu+xbOB2RM9fuCPEx5bdyWA=="
+      },
       "MailKit": {
         "type": "CentralTransitive",
         "requested": "[4.17.0, )",
@@ -815,7 +816,7 @@
       },
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[9.0.2, )",
+        "requested": "[9.14.1, )",
         "resolved": "9.14.1",
         "contentHash": "smf1RZMDMlTrl+WYkKHbrZbXI9WJPMPa0ZsFkJ5owmzrOn3kueD4h7cnwZlvCWbaDoybo8XKoZs92yuQ+5OEbg==",
         "dependencies": {
@@ -894,7 +895,7 @@
       },
       "Quartz.Extensions.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[3.18.1, )",
+        "requested": "[3.18.2, )",
         "resolved": "3.18.2",
         "contentHash": "6uSMAm4FArjtVoxBjlkA+gHL1Eln2ngIOnRTrVrYxtSlM5PpLQd2aV+fc/OOwfwt+AyDm69HOAybEFqVvyyG2A==",
         "dependencies": {
