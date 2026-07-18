@@ -4,14 +4,16 @@
     "net10.0": {
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "bxm2rvcbGvKTP0ATcd2TfSu9+W5+LxdHf1YI6SQNoO70ubFZqAeiS3/ufG2K/S/hCFgHmJPEfpdBI6/x70mabg==",
+        "requested": "[1.3.3, )",
+        "resolved": "1.3.3",
+        "contentHash": "46O5BbVuImG1gTPckD+zE46nyZTG8cY5jo1zzoZ5Z+qeBKUF0Z+rMDfb3JGxF5dn1Wj2HyJ1aalPotxthEw4uQ==",
         "dependencies": {
-          "AndreGoepel.Design.Blazor": "1.0.2",
-          "AndreGoepel.Marten.Identity": "1.3.1",
-          "Marten": "9.14.1",
-          "Radzen.Blazor": "11.1.3"
+          "AndreGoepel.Design.Blazor": "1.0.3",
+          "AndreGoepel.Marten.Identity": "1.3.3",
+          "Marten": "9.16.0",
+          "Marten.AspNetCore": "9.16.0",
+          "Quartz.Extensions.Hosting": "3.18.2",
+          "Radzen.Blazor": "11.1.5"
         }
       },
       "Marten": {
@@ -61,19 +63,19 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.3.1",
-        "contentHash": "IBAQHfnwTW2PjrCrOELdDv5c0Rgh8Sq+rHG9ALB+oLnaLzc9kuEM5X6mj1WyH3oVEpIIP6P3vSgNrfn6ssnmuQ==",
+        "resolved": "1.3.3",
+        "contentHash": "1TGCxpTJwM1iPNCOttSncR8qqXqT1HhN64U3lAJfgfL2ubZ7cMmMyZ94IWf2D1dKp/yPIgBmpLUD9qLHZcUCKg==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.3.1",
-          "Marten": "9.14.1",
-          "Marten.AspNetCore": "9.14.1",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.3.3",
+          "Marten": "9.16.0",
+          "Marten.AspNetCore": "9.16.0",
           "Quartz.Extensions.Hosting": "3.18.2"
         }
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.3.1",
-        "contentHash": "aHaTONAIw9m1aaDaq+maJD93A4fni+XbrucJ2YoZwou//sZL6Zo0xSpsuKr8tztpKd7xrRWfYPu/azfEylXwrA=="
+        "resolved": "1.3.3",
+        "contentHash": "gBpwIQS0R5jVL04GCBuWeR59c4nhtgjCpWfmkhBXrjLZ65yABskj79gz/vpQYfeJd1J7zabB7WSphSmYGN5YSA=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
@@ -558,7 +560,7 @@
         "dependencies": {
           "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
           "AndreGoepel.Design.Blazor": "[1.0.3, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[1.3.1, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.3.3, )",
           "Marten": "[9.16.0, )",
           "Radzen.Blazor": "[11.1.5, )",
           "WolverineFx.Marten": "[6.20.0, )"
@@ -604,11 +606,11 @@
       },
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[9.14.1, )",
-        "resolved": "9.14.1",
-        "contentHash": "smf1RZMDMlTrl+WYkKHbrZbXI9WJPMPa0ZsFkJ5owmzrOn3kueD4h7cnwZlvCWbaDoybo8XKoZs92yuQ+5OEbg==",
+        "requested": "[9.16.0, )",
+        "resolved": "9.16.0",
+        "contentHash": "vi4N+FdsFEVYHD2mgt6maBy2TWjYsKgSM6tqzKwxTRdJzYox3ipGeLsXTWtIvRKHkrNVfpiupnLRqLIqVUR2Ug==",
         "dependencies": {
-          "Marten": "9.14.1"
+          "Marten": "9.16.0"
         }
       },
       "Microsoft.Extensions.Http.Resilience": {
