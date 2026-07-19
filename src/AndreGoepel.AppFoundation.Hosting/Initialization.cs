@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
+using AndreGoepel.Design.Blazor;
 using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
 using AndreGoepel.Marten.Identity.Blazor.Features;
@@ -141,6 +142,18 @@ public static class Initialization
         AddDataProtection(builder, options);
 
         builder.Services.AddRadzenComponents();
+
+        // AddMartenIdentityBlazor (above) already seeds DesignBlazorOptions.BrandName from
+        // MartenIdentityBlazorOptions.ApplicationName. Registering our own Configure here —
+        // after that call — runs later in the options pipeline and wins, so the dashboard,
+        // login, and account pages all share one brand sourced from the host's
+        // AppFoundationLayoutOptions.BrandName instead of two independently configured names.
+        builder
+            .Services.AddDesignBlazor()
+            .AddOptions<DesignBlazorOptions>()
+            .Configure<IOptions<AppFoundationLayoutOptions>>(
+                (design, layout) => design.BrandName = layout.Value.BrandName
+            );
 
         builder.Services.AddHeaderPropagation();
 
