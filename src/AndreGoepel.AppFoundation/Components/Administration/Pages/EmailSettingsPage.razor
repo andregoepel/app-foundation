@@ -8,17 +8,12 @@
 @inject IEmailSender EmailSender
 @inject NotificationService NotificationService
 
-<AppFoundationPageTitle Title="Email Settings" Breadcrumb="Administration / Email Settings" />
+<AppPageTitle Title="Email Settings" Breadcrumb="Administration / Email Settings" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
-        <div>
-            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Email Settings</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
-                Outgoing SMTP configuration for system emails.
-            </RadzenText>
-        </div>
+        <PageHeader Title="Email Settings" Subtitle="Outgoing SMTP configuration for system emails." />
 
         @if (loadedFromConfiguration)
         {
@@ -33,38 +28,32 @@
                 <RadzenStack Gap="1.25rem">
 
                     <div class="ag-form-grid">
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="Sender name" Component="SenderName" />
+                        <FormField Label="Sender name" For="SenderName">
                             <RadzenTextBox @bind-Value=@Input.SenderName Name="SenderName" Style="width:100%" />
                             <RadzenRequiredValidator Component="SenderName" Text="Sender name is required" />
-                        </RadzenStack>
+                        </FormField>
 
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="Sender email" Component="SenderEmail" />
+                        <FormField Label="Sender email" For="SenderEmail">
                             <RadzenTextBox @bind-Value=@Input.SenderEmail Name="SenderEmail" Style="width:100%" />
                             <RadzenRequiredValidator Component="SenderEmail" Text="Sender email is required" />
                             <RadzenEmailValidator Component="SenderEmail" Text="Invalid email address" />
-                        </RadzenStack>
+                        </FormField>
 
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="SMTP server" Component="Server" />
+                        <FormField Label="SMTP server" For="Server">
                             <RadzenTextBox @bind-Value=@Input.Server Name="Server" Style="width:100%" />
                             <RadzenRequiredValidator Component="Server" Text="Server is required" />
-                        </RadzenStack>
+                        </FormField>
 
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="Port" Component="Port" />
+                        <FormField Label="Port" For="Port">
                             <RadzenNumeric TValue="int" @bind-Value=@Input.Port Name="Port" Min="1" Max="65535" Style="width:120px" />
-                        </RadzenStack>
+                        </FormField>
 
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="Username" Component="Username" />
+                        <FormField Label="Username" For="Username">
                             <RadzenTextBox @bind-Value=@Input.Username Name="Username" Style="width:100%" />
                             <RadzenRequiredValidator Component="Username" Text="Username is required" />
-                        </RadzenStack>
+                        </FormField>
 
-                        <RadzenStack Gap="0.4rem">
-                            <RadzenLabel Text="Password" Component="Password" />
+                        <FormField Label="Password" For="Password">
                             <RadzenPassword @bind-Value=@Input.Password
                                             Name="Password"
                                             Placeholder="@(hasPassword ? "Leave blank to keep current" : "")"
@@ -74,7 +63,7 @@
                             {
                                 <RadzenRequiredValidator Component="Password" Text="Password is required" />
                             }
-                        </RadzenStack>
+                        </FormField>
                     </div>
 
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem" AlignItems="AlignItems.Center">
