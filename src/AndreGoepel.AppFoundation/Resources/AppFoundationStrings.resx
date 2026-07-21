@@ -123,4 +123,60 @@
   <data name="Error.NotFoundMessage" xml:space="preserve"><value><![CDATA[The page you're looking for doesn't exist or has moved.]]></value></data>
   <data name="Error.AccessDeniedTitle" xml:space="preserve"><value><![CDATA[Access denied]]></value></data>
   <data name="Error.AccessDeniedMessage" xml:space="preserve"><value><![CDATA[You do not have permission to access this resource.]]></value></data>
+
+  <!-- EmailSettingsPage.razor -->
+  <data name="EmailSettings.PageTitle" xml:space="preserve"><value><![CDATA[Email Settings]]></value></data>
+  <data name="EmailSettings.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / Email Settings]]></value></data>
+  <data name="EmailSettings.Subtitle" xml:space="preserve"><value><![CDATA[Outgoing SMTP configuration for system emails.]]></value></data>
+  <data name="EmailSettings.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[These values come from the EmailSender configuration section. Saving stores them in the database, which takes precedence from then on — no restart required.]]></value></data>
+  <data name="EmailSettings.SenderNameLabel" xml:space="preserve"><value><![CDATA[Sender name]]></value></data>
+  <data name="EmailSettings.SenderNameRequired" xml:space="preserve"><value><![CDATA[Sender name is required]]></value></data>
+  <data name="EmailSettings.SenderEmailLabel" xml:space="preserve"><value><![CDATA[Sender email]]></value></data>
+  <data name="EmailSettings.SenderEmailRequired" xml:space="preserve"><value><![CDATA[Sender email is required]]></value></data>
+  <data name="EmailSettings.SenderEmailInvalid" xml:space="preserve"><value><![CDATA[Invalid email address]]></value></data>
+  <data name="EmailSettings.ServerLabel" xml:space="preserve"><value><![CDATA[SMTP server]]></value></data>
+  <data name="EmailSettings.ServerRequired" xml:space="preserve"><value><![CDATA[Server is required]]></value></data>
+  <data name="EmailSettings.PortLabel" xml:space="preserve"><value><![CDATA[Port]]></value></data>
+  <data name="EmailSettings.UsernameLabel" xml:space="preserve"><value><![CDATA[Username]]></value></data>
+  <data name="EmailSettings.UsernameRequired" xml:space="preserve"><value><![CDATA[Username is required]]></value></data>
+  <data name="EmailSettings.PasswordLabel" xml:space="preserve"><value><![CDATA[Password]]></value></data>
+  <data name="EmailSettings.PasswordPlaceholder" xml:space="preserve"><value><![CDATA[Leave blank to keep current]]></value></data>
+  <data name="EmailSettings.PasswordRequired" xml:space="preserve"><value><![CDATA[Password is required]]></value></data>
+  <data name="EmailSettings.UseSslLabel" xml:space="preserve"><value><![CDATA[Use SSL]]></value></data>
+  <data name="EmailSettings.HtmlEmailsLabel" xml:space="preserve"><value><![CDATA[HTML emails]]></value></data>
+  <data name="EmailSettings.DiscardButton" xml:space="preserve"><value><![CDATA[Discard]]></value></data>
+  <data name="EmailSettings.SaveButton" xml:space="preserve"><value><![CDATA[Save changes]]></value></data>
+  <data name="EmailSettings.SavingBusyText" xml:space="preserve"><value><![CDATA[Saving...]]></value></data>
+  <data name="EmailSettings.SendTestEmailTitle" xml:space="preserve"><value><![CDATA[Send test email]]></value></data>
+  <data name="EmailSettings.SendTestEmailCaption" xml:space="preserve"><value><![CDATA[Uses the last saved settings.]]></value></data>
+  <data name="EmailSettings.SendTestButton" xml:space="preserve"><value><![CDATA[Send test]]></value></data>
+  <data name="EmailSettings.SendingBusyText" xml:space="preserve"><value><![CDATA[Sending...]]></value></data>
+  <data name="EmailSettings.SavedNotificationTitle" xml:space="preserve"><value><![CDATA[Saved]]></value></data>
+  <data name="EmailSettings.SavedNotificationMessage" xml:space="preserve"><value><![CDATA[Email settings updated. Changes apply to the next email sent.]]></value></data>
+  <data name="EmailSettings.ErrorSavingSettingsTitle" xml:space="preserve"><value><![CDATA[Error saving settings]]></value></data>
+  <data name="EmailSettings.TestEmailSubject" xml:space="preserve"><value><![CDATA[Test email]]></value></data>
+  <data name="EmailSettings.TestEmailBody" xml:space="preserve"><value><![CDATA[This is a test email verifying the configured email settings.]]></value></data>
+  <data name="EmailSettings.TestEmailSentTitle" xml:space="preserve"><value><![CDATA[Test email sent]]></value></data>
+  <data name="EmailSettings.TestEmailSentMessage" xml:space="preserve">
+    <value><![CDATA[Sent to {0}.]]></value>
+    <comment>{0} is the test recipient's email address.</comment>
+  </data>
+  <data name="EmailSettings.TestEmailFailedTitle" xml:space="preserve"><value><![CDATA[Test email failed]]></value></data>
+
+  <!-- LoginFeaturesPage.razor -->
+  <data name="LoginFeatures.PageTitle" xml:space="preserve"><value><![CDATA[Login Features]]></value></data>
+  <data name="LoginFeatures.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / Login Features]]></value></data>
+  <data name="LoginFeatures.Subtitle" xml:space="preserve"><value><![CDATA[Turn self-service sign-up and the optional sign-in methods on or off. A disabled feature is hidden here and made unreachable by direct URL.]]></value></data>
+  <data name="LoginFeatures.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[These values come from the application's configuration baseline. Saving stores them in the database, which takes precedence from then on — no restart required.]]></value></data>
+  <data name="LoginFeatures.SelfServiceRegistrationLabel" xml:space="preserve"><value><![CDATA[Self-service registration]]></value></data>
+  <data name="LoginFeatures.SelfServiceRegistrationDescription" xml:space="preserve"><value><![CDATA[Lets visitors create their own account.]]></value></data>
+  <data name="LoginFeatures.TwoFactorLabel" xml:space="preserve"><value><![CDATA[Two-factor authentication]]></value></data>
+  <data name="LoginFeatures.TwoFactorDescription" xml:space="preserve"><value><![CDATA[Authenticator-app setup. Users already enrolled can still complete sign-in.]]></value></data>
+  <data name="LoginFeatures.PasskeysLabel" xml:space="preserve"><value><![CDATA[Passkeys]]></value></data>
+  <data name="LoginFeatures.PasskeysDescription" xml:space="preserve"><value><![CDATA[WebAuthn passkey registration and sign-in.]]></value></data>
+  <data name="LoginFeatures.SaveButton" xml:space="preserve"><value><![CDATA[Save changes]]></value></data>
+  <data name="LoginFeatures.SavingBusyText" xml:space="preserve"><value><![CDATA[Saving...]]></value></data>
+  <data name="LoginFeatures.SavedNotificationTitle" xml:space="preserve"><value><![CDATA[Saved]]></value></data>
+  <data name="LoginFeatures.SavedNotificationMessage" xml:space="preserve"><value><![CDATA[Login features updated. Changes apply to the next request.]]></value></data>
+  <data name="LoginFeatures.ErrorSavingSettingsTitle" xml:space="preserve"><value><![CDATA[Error saving settings]]></value></data>
 </root>
