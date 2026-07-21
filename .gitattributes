@@ -1,0 +1,15 @@
+# Normalize line endings: store text files with LF in the repository.
+* text=auto eol=lf
+
+# Explicit source/text types
+*.cs       text eol=lf
+*.razor    text eol=lf
+*.css      text eol=lf
+*.js       text eol=lf
+*.json     text eol=lf
+*.props    text eol=lf
+*.csproj   text eol=lf
+*.slnx     text eol=lf
+*.md       text eol=lf
+*.yml      text eol=lf
+*.config   text eol=lf
