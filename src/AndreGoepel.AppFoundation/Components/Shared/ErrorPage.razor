@@ -1,11 +1,12 @@
 @inject NavigationManager NavigationManager
+@inherits LocalizedComponentBase
 
 <AppPageTitle Title="@_copy.Title" />
 
 <div class="rz-p-4 rz-p-md-8">
     <EmptyState Icon="🚫︎" Title="@_copy.Title" Text="@_copy.Message">
         <Actions>
-            <RadzenButton Text="Go to home"
+            <RadzenButton Text="@T("Error.GoToHome")"
                           ButtonStyle="ButtonStyle.Primary"
                           Click=@(() => NavigationManager.NavigateTo("/")) />
         </Actions>
@@ -18,14 +19,12 @@
 
     private ErrorCopy _copy = default!;
 
-    private static readonly Dictionary<string, ErrorCopy> Copies = new()
-    {
-        ["404"] = new("Page not found", "The page you’re looking for doesn’t exist or has moved."),
-        ["403"] = new("Access denied", "You do not have permission to access this resource."),
-    };
-
     protected override void OnParametersSet() =>
-        _copy = Copies.GetValueOrDefault(Code, Copies["404"]);
+        _copy = Code switch
+        {
+            "403" => new ErrorCopy(T("Error.AccessDeniedTitle"), T("Error.AccessDeniedMessage")),
+            _ => new ErrorCopy(T("Error.NotFoundTitle"), T("Error.NotFoundMessage")),
+        };
 
     private record ErrorCopy(string Title, string Message);
 }

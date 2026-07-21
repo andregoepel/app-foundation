@@ -1,19 +1,19 @@
 @page "/dashboard"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 
-<AppPageTitle Title="Dashboard" Breadcrumb="Dashboard" />
+<AppPageTitle Title="@T("Home.PageTitle")" Breadcrumb="@T("Home.PageTitle")" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
-        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Dashboard</RadzenText>
+        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">@T("Home.PageTitle")</RadzenText>
 
         <RadzenCard>
             <RadzenStack Gap="0.5rem">
-                <RadzenText TextStyle="TextStyle.H6">Welcome!</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6">@T("Home.Welcome")</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-secondary-color);">
-                    You are signed in to the members area. Use the sidebar to navigate to your
-                    account settings or the administration area.
+                    @T("Home.Description")
                 </RadzenText>
             </RadzenStack>
         </RadzenCard>

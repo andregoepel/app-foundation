@@ -101,4 +101,26 @@
   <data name="Nav.LoginFeatures" xml:space="preserve"><value><![CDATA[Login features]]></value></data>
   <data name="Nav.EmailSettings" xml:space="preserve"><value><![CDATA[Email settings]]></value></data>
   <data name="Nav.Setup" xml:space="preserve"><value><![CDATA[Setup]]></value></data>
+
+  <!-- Home.razor -->
+  <data name="Home.PageTitle" xml:space="preserve"><value><![CDATA[Dashboard]]></value></data>
+  <data name="Home.Welcome" xml:space="preserve"><value><![CDATA[Welcome!]]></value></data>
+  <data name="Home.Description" xml:space="preserve"><value><![CDATA[You are signed in to the members area. Use the sidebar to navigate to your account settings or the administration area.]]></value></data>
+
+  <!-- Error.razor -->
+  <data name="Error.PageTitle" xml:space="preserve"><value><![CDATA[Error]]></value></data>
+  <data name="Error.Message" xml:space="preserve"><value><![CDATA[An error occurred while processing your request.]]></value></data>
+  <data name="Error.RequestIdLabel" xml:space="preserve"><value><![CDATA[Request ID:]]></value></data>
+  <data name="Error.DevModeTitle" xml:space="preserve"><value><![CDATA[Development mode]]></value></data>
+  <data name="Error.DevModeParagraph" xml:space="preserve">
+    <value><![CDATA[Swapping to the <strong>Development</strong> environment displays more detailed information about the error. It shouldn't be enabled for deployed applications, as it can leak sensitive information from exceptions to end users. For local debugging, set the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong> and restart the app.]]></value>
+    <comment>Rendered as HTML (MarkupString) — contains &lt;strong&gt; tags.</comment>
+  </data>
+
+  <!-- ErrorPage.razor (404/403) -->
+  <data name="Error.GoToHome" xml:space="preserve"><value><![CDATA[Go to home]]></value></data>
+  <data name="Error.NotFoundTitle" xml:space="preserve"><value><![CDATA[Page not found]]></value></data>
+  <data name="Error.NotFoundMessage" xml:space="preserve"><value><![CDATA[The page you're looking for doesn't exist or has moved.]]></value></data>
+  <data name="Error.AccessDeniedTitle" xml:space="preserve"><value><![CDATA[Access denied]]></value></data>
+  <data name="Error.AccessDeniedMessage" xml:space="preserve"><value><![CDATA[You do not have permission to access this resource.]]></value></data>
 </root>

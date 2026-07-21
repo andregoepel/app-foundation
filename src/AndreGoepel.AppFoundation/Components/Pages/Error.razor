@@ -1,34 +1,31 @@
 ﻿@page "/Error"
 @using System.Diagnostics
+@inherits LocalizedComponentBase
 
-<AppPageTitle Title="Error" />
+<AppPageTitle Title="@T("Error.PageTitle")" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
         <div>
-            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">Error</RadzenText>
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H1">@T("Error.PageTitle")</RadzenText>
             <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
-                An error occurred while processing your request.
+                @T("Error.Message")
             </RadzenText>
         </div>
 
         @if (ShowRequestId)
         {
             <RadzenText TextStyle="TextStyle.Body2">
-                <strong>Request ID:</strong> <code>@RequestId</code>
+                <strong>@T("Error.RequestIdLabel")</strong> <code>@RequestId</code>
             </RadzenText>
         }
 
         <RadzenCard>
             <RadzenStack Gap="0.75rem">
-                <RadzenText TextStyle="TextStyle.H6">Development mode</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6">@T("Error.DevModeTitle")</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">
-                    Swapping to the <strong>Development</strong> environment displays more detailed
-                    information about the error. It shouldn't be enabled for deployed applications, as
-                    it can leak sensitive information from exceptions to end users. For local debugging,
-                    set the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to
-                    <strong>Development</strong> and restart the app.
+                    @((MarkupString)T("Error.DevModeParagraph"))
                 </RadzenText>
             </RadzenStack>
         </RadzenCard>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AndreGoepel.AppFoundation.Components.Shared;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -45,6 +46,25 @@ public class ErrorPageTests : BunitContext
 
         // Assert
         Assert.Contains("Page not found", cut.Markup);
+    }
+
+    [Fact]
+    public void Render_German_With404_ShowsGermanNotFoundMessage()
+    {
+        var original = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
+        try
+        {
+            // Act
+            var cut = RenderError("404");
+
+            // Assert
+            Assert.Contains("Seite nicht gefunden", cut.Markup);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = original;
+        }
     }
 
     [Fact]
