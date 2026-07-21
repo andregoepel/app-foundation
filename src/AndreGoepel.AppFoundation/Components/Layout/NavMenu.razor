@@ -1,4 +1,5 @@
 @implements IDisposable
+@inherits LocalizedComponentBase
 
 @using AndreGoepel.Marten.Identity
 @using AndreGoepel.Marten.Identity.Blazor
@@ -12,7 +13,7 @@
 
 @if (SetupComplete)
 {
-    <NavLink class="ag-nav-item ag-home" href="@Layout.HomeUrl" Match="NavLinkMatch.All">⌂&nbsp;&nbsp;Home</NavLink>
+    <NavLink class="ag-nav-item ag-home" href="@Layout.HomeUrl" Match="NavLinkMatch.All">⌂&nbsp;&nbsp;@T("Nav.Home")</NavLink>
 
     @* Host-contributed entries. Contributed menus should render ag-nav-item /
        ag-nav-section markup to match the design shell. *@
@@ -23,40 +24,40 @@
 
     <AuthorizeView>
         <Authorized>
-            <div class="ag-nav-section">ACCOUNT</div>
+            <div class="ag-nav-section">@T("Nav.AccountSection")</div>
             <div class="ag-nav-group">
-                <NavLink class="ag-nav-item" href="Account/Manage/Profile">Profile</NavLink>
-                <NavLink class="ag-nav-item" href="Account/Manage/Email">Email</NavLink>
-                <NavLink class="ag-nav-item" href="Account/Manage/ChangePassword">Password</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/Profile">@T("Nav.Profile")</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/Email">@T("Nav.Email")</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/ChangePassword">@T("Nav.Password")</NavLink>
                 @if (twoFactorEnabled)
                 {
-                    <NavLink class="ag-nav-item" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
+                    <NavLink class="ag-nav-item" href="Account/Manage/TwoFactorAuthentication">@T("Nav.TwoFactorAuth")</NavLink>
                 }
                 @if (passkeyEnabled)
                 {
-                    <NavLink class="ag-nav-item" href="Account/Manage/Passkeys">Passkeys</NavLink>
+                    <NavLink class="ag-nav-item" href="Account/Manage/Passkeys">@T("Nav.Passkeys")</NavLink>
                 }
-                <NavLink class="ag-nav-item" href="Account/Manage/PersonalData">Personal data</NavLink>
+                <NavLink class="ag-nav-item" href="Account/Manage/PersonalData">@T("Nav.PersonalData")</NavLink>
             </div>
         </Authorized>
     </AuthorizeView>
 
     <AuthorizeView Roles="Administrator">
         <Authorized>
-            <div class="ag-nav-section">ADMINISTRATION</div>
+            <div class="ag-nav-section">@T("Nav.AdministrationSection")</div>
             <div class="ag-nav-group">
-                <NavLink class="ag-nav-item" href="Administration/UserCleanup">User cleanup</NavLink>
-                <NavLink class="ag-nav-item" href="Administration/Users">Users</NavLink>
-                <NavLink class="ag-nav-item" href="Administration/Roles">Roles</NavLink>
-                <NavLink class="ag-nav-item" href="Administration/LoginFeatures">Login features</NavLink>
-                <NavLink class="ag-nav-item" href="Administration/EmailSettings">Email settings</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/UserCleanup">@T("Nav.UserCleanup")</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/Users">@T("Nav.Users")</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/Roles">@T("Nav.Roles")</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/LoginFeatures">@T("Nav.LoginFeatures")</NavLink>
+                <NavLink class="ag-nav-item" href="Administration/EmailSettings">@T("Nav.EmailSettings")</NavLink>
             </div>
         </Authorized>
     </AuthorizeView>
 }
 else
 {
-    <NavLink class="ag-nav-item ag-home" href="Setup" Match="NavLinkMatch.All">Setup</NavLink>
+    <NavLink class="ag-nav-item ag-home" href="Setup" Match="NavLinkMatch.All">@T("Nav.Setup")</NavLink>
 }
 
 @code {
