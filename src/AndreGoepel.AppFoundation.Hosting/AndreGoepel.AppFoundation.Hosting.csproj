@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.Hosting</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.4.0</Version>
     <Description>One-call backend seam (AddAppFoundation / UseAppFoundation) wiring Marten, identity, Wolverine messaging, email, data protection, and the request pipeline for AndreGoepel.AppFoundation hosts.</Description>
     <PackageTags>appfoundation;aspnetcore;hosting;marten;wolverine</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
