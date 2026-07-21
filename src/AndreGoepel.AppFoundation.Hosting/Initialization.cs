@@ -262,6 +262,15 @@ public static class Initialization
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseHeaderPropagation();
+
+        // Resolves the request culture (cookie -> Accept-Language -> default) and maps the
+        // culture-switch endpoint LanguageSwitcher links to. Must run before anything that
+        // renders user-facing text — that includes the identity middlewares below, which
+        // redirect to localized pages, and MapRazorComponents (called by the host after this
+        // method returns), because a Blazor Server circuit takes its culture from the request
+        // that establishes it.
+        app.UseDesignBlazorLocalization();
+
         app.UseAntiforgery();
         app.UseAuthentication();
         app.UseAuthorization();
