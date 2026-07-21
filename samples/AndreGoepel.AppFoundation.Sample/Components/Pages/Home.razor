@@ -6,32 +6,32 @@
 
 @inject IQuerySession QuerySession
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<Strings> L
 
-<AppPageTitle Title="Home" Breadcrumb="Home" />
+<AppPageTitle Title="@L["Home.PageTitle"]" Breadcrumb="@L["Home.PageTitle"]" />
 
 <div class="rz-p-4 rz-p-md-8">
     <RadzenStack Gap="1.5rem" Style="max-width: 40rem; margin: 0 auto;">
 
-        <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">AppFoundation Sample</RadzenText>
+        <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1">@L["Home.Heading"]</RadzenText>
 
         <RadzenText TextStyle="TextStyle.Body1">
-            A minimal host that wires the AppFoundation packages. Use it to exercise the setup,
-            sign-in, and administration flows against a real PostgreSQL started by .NET Aspire.
+            @L["Home.Description"]
         </RadzenText>
 
         <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Wrap="FlexWrap.Wrap">
             @if (setupComplete)
             {
-                <RadzenButton Text="Dashboard"
+                <RadzenButton Text="@L["Home.DashboardButton"]"
                               Icon="dashboard"
                               Click="@(() => NavigationManager.NavigateTo("/dashboard"))" />
-                <RadzenButton Text="Sign in"
+                <RadzenButton Text="@L["Home.SignInButton"]"
                               ButtonStyle="ButtonStyle.Secondary"
                               Click="@(() => NavigationManager.NavigateTo("/Account/Login"))" />
             }
             else
             {
-                <RadzenButton Text="Run initial setup"
+                <RadzenButton Text="@L["Home.RunSetupButton"]"
                               Icon="install_desktop"
                               Click="@(() => NavigationManager.NavigateTo("/Setup"))" />
             }
