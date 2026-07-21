@@ -78,4 +78,27 @@
   <data name="Reconnect.ResumeFailedLine1" xml:space="preserve"><value><![CDATA[Failed to resume the session.]]></value></data>
   <data name="Reconnect.ResumeFailedLine2" xml:space="preserve"><value><![CDATA[Please reload the page.]]></value></data>
   <data name="Reconnect.Resume" xml:space="preserve"><value><![CDATA[Resume]]></value></data>
+
+  <!-- MainLayout -->
+  <data name="Shell.Profile" xml:space="preserve"><value><![CDATA[Profile]]></value></data>
+  <data name="Shell.LogOut" xml:space="preserve"><value><![CDATA[Log out]]></value></data>
+  <data name="Shell.UnhandledError" xml:space="preserve"><value><![CDATA[An unhandled error has occurred.]]></value></data>
+  <data name="Shell.Reload" xml:space="preserve"><value><![CDATA[Reload]]></value></data>
+
+  <!-- NavMenu -->
+  <data name="Nav.Home" xml:space="preserve"><value><![CDATA[Home]]></value></data>
+  <data name="Nav.AccountSection" xml:space="preserve"><value><![CDATA[ACCOUNT]]></value></data>
+  <data name="Nav.Profile" xml:space="preserve"><value><![CDATA[Profile]]></value></data>
+  <data name="Nav.Email" xml:space="preserve"><value><![CDATA[Email]]></value></data>
+  <data name="Nav.Password" xml:space="preserve"><value><![CDATA[Password]]></value></data>
+  <data name="Nav.TwoFactorAuth" xml:space="preserve"><value><![CDATA[Two-factor authentication]]></value></data>
+  <data name="Nav.Passkeys" xml:space="preserve"><value><![CDATA[Passkeys]]></value></data>
+  <data name="Nav.PersonalData" xml:space="preserve"><value><![CDATA[Personal data]]></value></data>
+  <data name="Nav.AdministrationSection" xml:space="preserve"><value><![CDATA[ADMINISTRATION]]></value></data>
+  <data name="Nav.UserCleanup" xml:space="preserve"><value><![CDATA[User cleanup]]></value></data>
+  <data name="Nav.Users" xml:space="preserve"><value><![CDATA[Users]]></value></data>
+  <data name="Nav.Roles" xml:space="preserve"><value><![CDATA[Roles]]></value></data>
+  <data name="Nav.LoginFeatures" xml:space="preserve"><value><![CDATA[Login features]]></value></data>
+  <data name="Nav.EmailSettings" xml:space="preserve"><value><![CDATA[Email settings]]></value></data>
+  <data name="Nav.Setup" xml:space="preserve"><value><![CDATA[Setup]]></value></data>
 </root>

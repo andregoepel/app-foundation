@@ -77,4 +77,27 @@
   <data name="Reconnect.ResumeFailedLine1" xml:space="preserve"><value><![CDATA[Sitzung konnte nicht fortgesetzt werden.]]></value></data>
   <data name="Reconnect.ResumeFailedLine2" xml:space="preserve"><value><![CDATA[Bitte die Seite neu laden.]]></value></data>
   <data name="Reconnect.Resume" xml:space="preserve"><value><![CDATA[Fortsetzen]]></value></data>
+
+  <!-- MainLayout -->
+  <data name="Shell.Profile" xml:space="preserve"><value><![CDATA[Profil]]></value></data>
+  <data name="Shell.LogOut" xml:space="preserve"><value><![CDATA[Abmelden]]></value></data>
+  <data name="Shell.UnhandledError" xml:space="preserve"><value><![CDATA[Ein unbehandelter Fehler ist aufgetreten.]]></value></data>
+  <data name="Shell.Reload" xml:space="preserve"><value><![CDATA[Neu laden]]></value></data>
+
+  <!-- NavMenu -->
+  <data name="Nav.Home" xml:space="preserve"><value><![CDATA[Start]]></value></data>
+  <data name="Nav.AccountSection" xml:space="preserve"><value><![CDATA[KONTO]]></value></data>
+  <data name="Nav.Profile" xml:space="preserve"><value><![CDATA[Profil]]></value></data>
+  <data name="Nav.Email" xml:space="preserve"><value><![CDATA[E-Mail]]></value></data>
+  <data name="Nav.Password" xml:space="preserve"><value><![CDATA[Passwort]]></value></data>
+  <data name="Nav.TwoFactorAuth" xml:space="preserve"><value><![CDATA[Zwei-Faktor-Authentifizierung]]></value></data>
+  <data name="Nav.Passkeys" xml:space="preserve"><value><![CDATA[Passkeys]]></value></data>
+  <data name="Nav.PersonalData" xml:space="preserve"><value><![CDATA[Persönliche Daten]]></value></data>
+  <data name="Nav.AdministrationSection" xml:space="preserve"><value><![CDATA[ADMINISTRATION]]></value></data>
+  <data name="Nav.UserCleanup" xml:space="preserve"><value><![CDATA[Benutzerbereinigung]]></value></data>
+  <data name="Nav.Users" xml:space="preserve"><value><![CDATA[Benutzer]]></value></data>
+  <data name="Nav.Roles" xml:space="preserve"><value><![CDATA[Rollen]]></value></data>
+  <data name="Nav.LoginFeatures" xml:space="preserve"><value><![CDATA[Login-Funktionen]]></value></data>
+  <data name="Nav.EmailSettings" xml:space="preserve"><value><![CDATA[E-Mail-Einstellungen]]></value></data>
+  <data name="Nav.Setup" xml:space="preserve"><value><![CDATA[Einrichtung]]></value></data>
 </root>
