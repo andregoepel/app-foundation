@@ -1,6 +1,7 @@
 @page "/Administration/EmailSettings"
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Administrator")]
+@inherits LocalizedComponentBase
 
 @using AndreGoepel.AppFoundation.MailService
 
@@ -8,18 +9,17 @@
 @inject IEmailSender EmailSender
 @inject NotificationService NotificationService
 
-<AppPageTitle Title="Email Settings" Breadcrumb="Administration / Email Settings" />
+<AppPageTitle Title="@T("EmailSettings.PageTitle")" Breadcrumb="@T("EmailSettings.Breadcrumb")" />
 
 <div class="rz-p-4 rz-p-md-6">
     <RadzenStack Gap="1.5rem">
 
-        <PageHeader Title="Email Settings" Subtitle="Outgoing SMTP configuration for system emails." />
+        <PageHeader Title="@T("EmailSettings.PageTitle")" Subtitle="@T("EmailSettings.Subtitle")" />
 
         @if (loadedFromConfiguration)
         {
             <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
-                These values come from the EmailSender configuration section. Saving stores them
-                in the database, which takes precedence from then on — no restart required.
+                @T("EmailSettings.ConfigFromCodeAlert")
             </RadzenAlert>
         }
 
@@ -28,40 +28,40 @@
                 <RadzenStack Gap="1.25rem">
 
                     <div class="ag-form-grid">
-                        <FormField Label="Sender name" For="SenderName">
+                        <FormField Label="@T("EmailSettings.SenderNameLabel")" For="SenderName">
                             <RadzenTextBox @bind-Value=@Input.SenderName Name="SenderName" Style="width:100%" />
-                            <RadzenRequiredValidator Component="SenderName" Text="Sender name is required" />
+                            <RadzenRequiredValidator Component="SenderName" Text="@T("EmailSettings.SenderNameRequired")" />
                         </FormField>
 
-                        <FormField Label="Sender email" For="SenderEmail">
+                        <FormField Label="@T("EmailSettings.SenderEmailLabel")" For="SenderEmail">
                             <RadzenTextBox @bind-Value=@Input.SenderEmail Name="SenderEmail" Style="width:100%" />
-                            <RadzenRequiredValidator Component="SenderEmail" Text="Sender email is required" />
-                            <RadzenEmailValidator Component="SenderEmail" Text="Invalid email address" />
+                            <RadzenRequiredValidator Component="SenderEmail" Text="@T("EmailSettings.SenderEmailRequired")" />
+                            <RadzenEmailValidator Component="SenderEmail" Text="@T("EmailSettings.SenderEmailInvalid")" />
                         </FormField>
 
-                        <FormField Label="SMTP server" For="Server">
+                        <FormField Label="@T("EmailSettings.ServerLabel")" For="Server">
                             <RadzenTextBox @bind-Value=@Input.Server Name="Server" Style="width:100%" />
-                            <RadzenRequiredValidator Component="Server" Text="Server is required" />
+                            <RadzenRequiredValidator Component="Server" Text="@T("EmailSettings.ServerRequired")" />
                         </FormField>
 
-                        <FormField Label="Port" For="Port">
+                        <FormField Label="@T("EmailSettings.PortLabel")" For="Port">
                             <RadzenNumeric TValue="int" @bind-Value=@Input.Port Name="Port" Min="1" Max="65535" Style="width:120px" />
                         </FormField>
 
-                        <FormField Label="Username" For="Username">
+                        <FormField Label="@T("EmailSettings.UsernameLabel")" For="Username">
                             <RadzenTextBox @bind-Value=@Input.Username Name="Username" Style="width:100%" />
-                            <RadzenRequiredValidator Component="Username" Text="Username is required" />
+                            <RadzenRequiredValidator Component="Username" Text="@T("EmailSettings.UsernameRequired")" />
                         </FormField>
 
-                        <FormField Label="Password" For="Password">
+                        <FormField Label="@T("EmailSettings.PasswordLabel")" For="Password">
                             <RadzenPassword @bind-Value=@Input.Password
                                             Name="Password"
-                                            Placeholder="@(hasPassword ? "Leave blank to keep current" : "")"
+                                            Placeholder="@(hasPassword ? T("EmailSettings.PasswordPlaceholder") : "")"
                                             autocomplete="new-password"
                                             Style="width:100%" />
                             @if (!hasPassword)
                             {
-                                <RadzenRequiredValidator Component="Password" Text="Password is required" />
+                                <RadzenRequiredValidator Component="Password" Text="@T("EmailSettings.PasswordRequired")" />
                             }
                         </FormField>
                     </div>
@@ -69,25 +69,25 @@
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem" AlignItems="AlignItems.Center">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.6rem">
                             <RadzenSwitch @bind-Value=@Input.UseSsl Name="UseSsl" />
-                            <RadzenLabel Text="Use SSL" Component="UseSsl" />
+                            <RadzenLabel Text="@T("EmailSettings.UseSslLabel")" Component="UseSsl" />
                         </RadzenStack>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.6rem">
                             <RadzenSwitch @bind-Value=@Input.Html Name="Html" />
-                            <RadzenLabel Text="HTML emails" Component="Html" />
+                            <RadzenLabel Text="@T("EmailSettings.HtmlEmailsLabel")" Component="Html" />
                         </RadzenStack>
                     </RadzenStack>
 
                     <div class="ag-card-actions">
                         <RadzenButton ButtonType="ButtonType.Button"
-                                      Text="Discard"
+                                      Text="@T("EmailSettings.DiscardButton")"
                                       ButtonStyle="ButtonStyle.Light"
                                       Click=@OnDiscard
                                       Disabled=@isSaving />
                         <RadzenButton ButtonType="ButtonType.Submit"
-                                      Text="Save changes"
+                                      Text="@T("EmailSettings.SaveButton")"
                                       ButtonStyle="ButtonStyle.Primary"
                                       IsBusy=@isSaving
-                                      BusyText="Saving..." />
+                                      BusyText="@T("EmailSettings.SavingBusyText")" />
                     </div>
 
                 </RadzenStack>
@@ -97,9 +97,9 @@
         <RadzenCard>
             <RadzenStack Gap="1rem">
                 <div>
-                    <RadzenText TextStyle="TextStyle.H6">Send test email</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H6">@T("EmailSettings.SendTestEmailTitle")</RadzenText>
                     <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-                        Uses the last saved settings.
+                        @T("EmailSettings.SendTestEmailCaption")
                     </RadzenText>
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
@@ -107,11 +107,11 @@
                                    Name="TestRecipient"
                                    Placeholder="recipient@example.com"
                                    Style="flex: 1;" />
-                    <RadzenButton Text="Send test"
+                    <RadzenButton Text="@T("EmailSettings.SendTestButton")"
                                   ButtonStyle="ButtonStyle.Light"
                                   Click=@OnSendTest
                                   IsBusy=@isSendingTest
-                                  BusyText="Sending..."
+                                  BusyText="@T("EmailSettings.SendingBusyText")"
                                   Disabled=@string.IsNullOrWhiteSpace(testRecipient) />
                 </RadzenStack>
             </RadzenStack>
@@ -174,13 +174,17 @@
             Input.Password = "";
             NotificationService.Notify(
                 NotificationSeverity.Success,
-                "Saved",
-                "Email settings updated. Changes apply to the next email sent."
+                T("EmailSettings.SavedNotificationTitle"),
+                T("EmailSettings.SavedNotificationMessage")
             );
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error saving settings", ex.Message);
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                T("EmailSettings.ErrorSavingSettingsTitle"),
+                ex.Message
+            );
         }
         finally
         {
@@ -195,18 +199,22 @@
         {
             await EmailSender.SendAsync(
                 testRecipient,
-                "Test email",
-                "This is a test email verifying the configured email settings."
+                T("EmailSettings.TestEmailSubject"),
+                T("EmailSettings.TestEmailBody")
             );
             NotificationService.Notify(
                 NotificationSeverity.Success,
-                "Test email sent",
-                $"Sent to {testRecipient}."
+                T("EmailSettings.TestEmailSentTitle"),
+                T("EmailSettings.TestEmailSentMessage", testRecipient)
             );
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Test email failed", ex.Message);
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                T("EmailSettings.TestEmailFailedTitle"),
+                ex.Message
+            );
         }
         finally
         {
