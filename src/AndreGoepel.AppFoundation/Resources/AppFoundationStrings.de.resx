@@ -100,4 +100,26 @@
   <data name="Nav.LoginFeatures" xml:space="preserve"><value><![CDATA[Login-Funktionen]]></value></data>
   <data name="Nav.EmailSettings" xml:space="preserve"><value><![CDATA[E-Mail-Einstellungen]]></value></data>
   <data name="Nav.Setup" xml:space="preserve"><value><![CDATA[Einrichtung]]></value></data>
+
+  <!-- Home.razor -->
+  <data name="Home.PageTitle" xml:space="preserve"><value><![CDATA[Dashboard]]></value></data>
+  <data name="Home.Welcome" xml:space="preserve"><value><![CDATA[Willkommen!]]></value></data>
+  <data name="Home.Description" xml:space="preserve"><value><![CDATA[Sie sind im Mitgliederbereich angemeldet. Nutzen Sie die Seitenleiste, um zu Ihren Kontoeinstellungen oder zum Administrationsbereich zu wechseln.]]></value></data>
+
+  <!-- Error.razor -->
+  <data name="Error.PageTitle" xml:space="preserve"><value><![CDATA[Fehler]]></value></data>
+  <data name="Error.Message" xml:space="preserve"><value><![CDATA[Bei der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten.]]></value></data>
+  <data name="Error.RequestIdLabel" xml:space="preserve"><value><![CDATA[Anfrage-ID:]]></value></data>
+  <data name="Error.DevModeTitle" xml:space="preserve"><value><![CDATA[Entwicklungsmodus]]></value></data>
+  <data name="Error.DevModeParagraph" xml:space="preserve">
+    <value><![CDATA[Der Wechsel zur Umgebung <strong>Development</strong> zeigt detailliertere Informationen zum aufgetretenen Fehler an. Sie sollte für veröffentlichte Anwendungen nicht aktiviert sein, da sie Endnutzern sensible Informationen aus Ausnahmen offenlegen kann. Aktivieren Sie für lokales Debugging die Umgebungsvariable <strong>ASPNETCORE_ENVIRONMENT</strong> auf <strong>Development</strong> und starten Sie die Anwendung neu.]]></value>
+    <comment>Wird als HTML (MarkupString) gerendert — enthält &lt;strong&gt;-Tags.</comment>
+  </data>
+
+  <!-- ErrorPage.razor (404/403) -->
+  <data name="Error.GoToHome" xml:space="preserve"><value><![CDATA[Zur Startseite]]></value></data>
+  <data name="Error.NotFoundTitle" xml:space="preserve"><value><![CDATA[Seite nicht gefunden]]></value></data>
+  <data name="Error.NotFoundMessage" xml:space="preserve"><value><![CDATA[Die gesuchte Seite existiert nicht oder wurde verschoben.]]></value></data>
+  <data name="Error.AccessDeniedTitle" xml:space="preserve"><value><![CDATA[Zugriff verweigert]]></value></data>
+  <data name="Error.AccessDeniedMessage" xml:space="preserve"><value><![CDATA[Sie haben keine Berechtigung, auf diese Ressource zuzugreifen.]]></value></data>
 </root>
