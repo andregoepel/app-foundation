@@ -26,8 +26,8 @@
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.20.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
-    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.1.0" />
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.4.0" />
+    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.2.1" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.5.0" />
   </ItemGroup>
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
@@ -46,7 +46,7 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.1.5" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.1.6" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />

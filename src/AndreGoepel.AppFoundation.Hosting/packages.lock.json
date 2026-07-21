@@ -4,16 +4,16 @@
     "net10.0": {
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.4.0, )",
-        "resolved": "1.4.0",
-        "contentHash": "TfC+AzVFleA41flArHJONe7uDBbQXAw7V+9lBd4ybY7AAsX9jj2Rq55Ir65z8ch+5e2WmFhGHu+ccndLG3bYcw==",
+        "requested": "[1.5.0, )",
+        "resolved": "1.5.0",
+        "contentHash": "b2GqiD9bNmn+QiyCxKvKHAb7xpTSoUXLhkIAeYI5NkV46l9i2gjVaEsy8rgaGXAwViYbhelTeHNDwdPeMvPzBg==",
         "dependencies": {
-          "AndreGoepel.Design.Blazor": "1.1.0",
-          "AndreGoepel.Marten.Identity": "1.4.0",
+          "AndreGoepel.Design.Blazor": "1.2.1",
+          "AndreGoepel.Marten.Identity": "1.5.0",
           "Marten": "9.16.0",
           "Marten.AspNetCore": "9.16.0",
           "Quartz.Extensions.Hosting": "3.18.2",
-          "Radzen.Blazor": "11.1.5"
+          "Radzen.Blazor": "11.1.6"
         }
       },
       "Marten": {
@@ -37,9 +37,9 @@
       },
       "Radzen.Blazor": {
         "type": "Direct",
-        "requested": "[11.1.5, )",
-        "resolved": "11.1.5",
-        "contentHash": "BIInbCL6KILYx9jkXeCX/gnblMVMI84kGTtgb4dY6sxFpRlClVakcPC8UrckuXg40TD7U4n+/WOSiwwoZV2Bpg=="
+        "requested": "[11.1.6, )",
+        "resolved": "11.1.6",
+        "contentHash": "Lue6gBxVcSN2SBs8R/ixMXv1iyLImONTzDTdPHzCpFzASaHLccoy6yXXPWU3EKe+mDBJjde9CS/e8juYBkxIOQ=="
       },
       "WolverineFx.Marten": {
         "type": "Direct",
@@ -63,10 +63,10 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.4.0",
-        "contentHash": "jb4yYq18xxBHqkEj23BSfn1CpZa+qJJLzUE8Defg4VVIBMY37kF15JaYDowDZr1taCrsS1Np+ZWuazt6ooVEuQ==",
+        "resolved": "1.5.0",
+        "contentHash": "ZG2YYABblYchHhgEqjqXy3DJId4QjOnrOQ8UMrGQhDNyHgYCpijVMx3NwdMMPMEkOmUH1wVlBnmh/TO1cySmMg==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.4.0",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.5.0",
           "Marten": "9.16.0",
           "Marten.AspNetCore": "9.16.0",
           "Quartz.Extensions.Hosting": "3.18.2"
@@ -74,8 +74,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.4.0",
-        "contentHash": "MXFFYS2/wpxJ+G3UBAaoJV9GAdGJyRGIU7NUdTx/H7lVRYfJj7CpDAKN4wnkktkjWDhKIU1QeNgLfANiZlCMqg=="
+        "resolved": "1.5.0",
+        "contentHash": "didewgqk4OGaFN0AotyMdrLS3kir81B7cwCyxB4d8iZlmHxRizTtR4ypETCxM1a17gV92J2k9u+edL6h4mEgcg=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
@@ -559,10 +559,10 @@
         "type": "Project",
         "dependencies": {
           "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
-          "AndreGoepel.Design.Blazor": "[1.1.0, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[1.4.0, )",
+          "AndreGoepel.Design.Blazor": "[1.2.1, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.5.0, )",
           "Marten": "[9.16.0, )",
-          "Radzen.Blazor": "[11.1.5, )",
+          "Radzen.Blazor": "[11.1.6, )",
           "WolverineFx.Marten": "[6.20.0, )"
         }
       },
@@ -588,11 +588,11 @@
       },
       "AndreGoepel.Design.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "hv/9YPUyf5pjxx2ASmN9Gdnc0l1EoBs0rmEFnHdnbqajGBLtGcoJlz0MjMvS8JCyllU52uv3heHcbdHeaipYDQ==",
+        "requested": "[1.2.1, )",
+        "resolved": "1.2.1",
+        "contentHash": "Ai5Ym4mHwo5BIcZTGpYXnSc3VQn73ZqcLtbcqtKNqKeVaCuMrcboj4+rbuAbAc7IEG9hLRH87VsNaq+6L+JNHQ==",
         "dependencies": {
-          "Radzen.Blazor": "11.1.5"
+          "Radzen.Blazor": "11.1.6"
         }
       },
       "MailKit": {
