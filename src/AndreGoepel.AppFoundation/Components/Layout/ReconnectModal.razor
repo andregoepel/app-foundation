@@ -1,4 +1,6 @@
-﻿<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
+﻿@inherits LocalizedComponentBase
+
+<script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
 
 <dialog id="components-reconnect-modal" data-nosnippet>
     <div class="components-reconnect-container">
@@ -7,25 +9,25 @@
             <div></div>
         </div>
         <p class="components-reconnect-first-attempt-visible">
-            Rejoining the server...
+            @T("Reconnect.Rejoining")
         </p>
         <p class="components-reconnect-repeated-attempt-visible">
-            Rejoin failed... trying again in <span id="components-seconds-to-next-attempt"></span> seconds.
+            @T("Reconnect.RejoinFailedPrefix") <span id="components-seconds-to-next-attempt"></span> @T("Reconnect.RejoinFailedSuffix")
         </p>
         <p class="components-reconnect-failed-visible">
-            Failed to rejoin.<br />Please retry or reload the page.
+            @T("Reconnect.FailedLine1")<br />@T("Reconnect.FailedLine2")
         </p>
         <button id="components-reconnect-button" class="components-reconnect-failed-visible">
-            Retry
+            @T("Reconnect.Retry")
         </button>
         <p class="components-pause-visible">
-            The session has been paused by the server.
+            @T("Reconnect.Paused")
         </p>
         <button id="components-resume-button" class="components-pause-visible">
-            Resume
+            @T("Reconnect.Resume")
         </button>
         <p class="components-resume-failed-visible">
-            Failed to resume the session.<br />Please reload the page.
+            @T("Reconnect.ResumeFailedLine1")<br />@T("Reconnect.ResumeFailedLine2")
         </p>
     </div>
 </dialog>

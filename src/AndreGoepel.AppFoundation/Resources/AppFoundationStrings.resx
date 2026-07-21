@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    English (neutral) UI strings for AndreGoepel.AppFoundation — the source of truth. Every
+    <value> is wrapped in CDATA so ampersands and inline HTML do not need manual escaping.
+    Keep AppFoundationStrings.de.resx in sync.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ReconnectModal (framework reconnect UI) -->
+  <data name="Reconnect.Rejoining" xml:space="preserve"><value><![CDATA[Rejoining the server...]]></value></data>
+  <data name="Reconnect.RejoinFailedPrefix" xml:space="preserve">
+    <value><![CDATA[Rejoin failed... trying again in]]></value>
+    <comment>Followed by a live seconds-remaining counter, then RejoinFailedSuffix.</comment>
+  </data>
+  <data name="Reconnect.RejoinFailedSuffix" xml:space="preserve"><value><![CDATA[seconds.]]></value></data>
+  <data name="Reconnect.FailedLine1" xml:space="preserve"><value><![CDATA[Failed to rejoin.]]></value></data>
+  <data name="Reconnect.FailedLine2" xml:space="preserve"><value><![CDATA[Please retry or reload the page.]]></value></data>
+  <data name="Reconnect.Retry" xml:space="preserve"><value><![CDATA[Retry]]></value></data>
+  <data name="Reconnect.Paused" xml:space="preserve"><value><![CDATA[The session has been paused by the server.]]></value></data>
+  <data name="Reconnect.ResumeFailedLine1" xml:space="preserve"><value><![CDATA[Failed to resume the session.]]></value></data>
+  <data name="Reconnect.ResumeFailedLine2" xml:space="preserve"><value><![CDATA[Please reload the page.]]></value></data>
+  <data name="Reconnect.Resume" xml:space="preserve"><value><![CDATA[Resume]]></value></data>
+</root>
