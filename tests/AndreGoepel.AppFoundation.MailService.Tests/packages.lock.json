@@ -364,9 +364,13 @@
           "xunit.v3.runner.common": "[3.2.2]"
         }
       },
+      "andregoepel.appfoundation.core": {
+        "type": "Project"
+      },
       "andregoepel.appfoundation.mailservice": {
         "type": "Project",
         "dependencies": {
+          "AndreGoepel.AppFoundation.Core": "[1.5.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.16.0, )",
           "WolverineFx.Marten": "[6.20.0, )"

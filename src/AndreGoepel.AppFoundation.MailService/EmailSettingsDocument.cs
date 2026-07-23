@@ -1,15 +1,15 @@
 namespace AndreGoepel.AppFoundation.MailService;
 
 /// <summary>
-/// Marten document holding the single email settings record. The SMTP password
-/// is stored DataProtection-protected (<see cref="ProtectedPassword"/>), never
+/// Marten document holding the single email settings record — a <see cref="SettingsDocument"/>
+/// subclass, so it shares a table with any other admin-configured settings record a consuming app
+/// registers the same way (see <c>AndreGoepel.AppFoundation.Hosting</c>'s <c>AddAppFoundation</c>).
+/// The SMTP password is stored DataProtection-protected (<see cref="ProtectedPassword"/>), never
 /// in plain text.
 /// </summary>
-public sealed class EmailSettingsDocument
+public sealed class EmailSettingsDocument : SettingsDocument
 {
     public const string DocumentId = "email-settings";
-
-    public string Id { get; init; } = DocumentId;
 
     public required string SenderName { get; init; }
 

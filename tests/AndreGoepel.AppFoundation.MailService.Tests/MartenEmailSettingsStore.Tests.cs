@@ -42,6 +42,7 @@ public class MartenEmailSettingsStoreTests
     private static EmailSettingsDocument Document() =>
         new()
         {
+            Id = EmailSettingsDocument.DocumentId,
             SenderName = "DB Sender",
             SenderEmail = "db@example.com",
             Server = "db.smtp.example.com",

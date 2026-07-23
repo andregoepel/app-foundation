@@ -113,6 +113,12 @@ public static class Initialization
                 marten
                     .Schema.For<DataProtectionKeyDocument>()
                     .DocumentAlias("dataprotectionkeydocument");
+
+                // Every admin-configured settings record shares one table (see
+                // SettingsDocument) instead of each type getting its own one-row table.
+                // Consuming apps register their own settings types as further subclasses
+                // the same way.
+                marten.Schema.For<SettingsDocument>().AddSubClass<EmailSettingsDocument>();
             })
             .IntegrateWithWolverine();
 
