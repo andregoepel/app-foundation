@@ -89,6 +89,7 @@ internal sealed class MartenEmailSettingsStore(
         session.Store(
             new EmailSettingsDocument
             {
+                Id = EmailSettingsDocument.DocumentId,
                 SenderName = settings.SenderName,
                 SenderEmail = settings.SenderEmail,
                 Server = settings.Server,

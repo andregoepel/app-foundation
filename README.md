@@ -295,6 +295,23 @@ deployment targets.
 network boundary. Splitting later is possible; splitting prematurely adds operational
 overhead before there's a scaling problem that justifies it.
 
+**Why a shared settings table?** Small, singleton, admin-configured records — SMTP settings
+today, whatever a host app adds tomorrow — would otherwise each get their own one-row Marten
+table. `SettingsDocument` (in `AndreGoepel.AppFoundation.MailService`, the lowest-level project
+both `AndreGoepel.AppFoundation` and `.Hosting` depend on) is an abstract base type; subclasses
+register via Marten's document-hierarchy support instead:
+
+```csharp
+marten.Schema.For<SettingsDocument>()
+    .AddSubClass<EmailSettingsDocument>()
+    .AddSubClass<YourOwnSettingsDocument>(); // host apps add their own the same way
+```
+
+All of them then share one physical table (a `mt_doc_type` discriminator column tells them
+apart), rather than the table count growing with every settings type a host app adds. This is
+purely a storage detail — `IEmailSettingsStore`/`IMailSettingsProvider` and the Email settings
+page are unaffected either way.
+
 ---
 
 ## License

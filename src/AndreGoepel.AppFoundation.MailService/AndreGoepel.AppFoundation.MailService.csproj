@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.MailService</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <Description>Email sending for AndreGoepel.AppFoundation: Wolverine message handler + MailKit SMTP sender with a durable Marten outbox.</Description>
     <PackageTags>appfoundation;email;mailkit;wolverine;smtp</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
