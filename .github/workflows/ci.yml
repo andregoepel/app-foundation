@@ -69,6 +69,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           for proj in \
+            src/AndreGoepel.AppFoundation.Core/AndreGoepel.AppFoundation.Core.csproj \
             src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj \
             src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj \
             src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj \
