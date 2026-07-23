@@ -31,4 +31,8 @@
     <PackageReference Include="Marten" />
     <PackageReference Include="WolverineFx.Marten" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.Core\AndreGoepel.AppFoundation.Core.csproj" />
+  </ItemGroup>
 </Project>

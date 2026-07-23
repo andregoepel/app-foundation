@@ -19,11 +19,12 @@ on top.
 | Package | Purpose |
 |---|---|
 | `AndreGoepel.AppFoundation` | Razor Class Library — the management frontend: layout, navigation, setup, dashboard, error pages. Brand/extend via `AppFoundationLayoutOptions`. |
-| `AndreGoepel.AppFoundation.Hosting` | **Umbrella backend seam** — `AddAppFoundation` / `UseAppFoundation`. Transitively pulls in the other three packages + `AndreGoepel.Marten.Identity.Blazor`. |
+| `AndreGoepel.AppFoundation.Hosting` | **Umbrella backend seam** — `AddAppFoundation` / `UseAppFoundation`. Transitively pulls in the other packages + `AndreGoepel.Marten.Identity.Blazor`. |
 | `AndreGoepel.AppFoundation.MailService` | Email via a Wolverine handler + MailKit SMTP, backed by a durable Marten outbox. |
 | `AndreGoepel.AppFoundation.ServiceDefaults` | .NET Aspire service defaults: OpenTelemetry, health checks, HTTP resilience, service discovery. |
+| `AndreGoepel.AppFoundation.Core` | Shared abstract base types and interfaces (e.g. `SettingsDocument`) with no framework or infrastructure dependencies of their own. |
 
-All four are published to NuGet with lockstep versioning. A host typically references
+All five are published to NuGet with lockstep versioning. A host typically references
 `AndreGoepel.AppFoundation.Hosting` (for the wiring) and `AndreGoepel.AppFoundation` (for
 the UI components it renders directly).
 
@@ -254,6 +255,7 @@ run the app with a role that has no DDL rights.
 ```
 src/
   AndreGoepel.AppFoundation/             # management-frontend RCL
+  AndreGoepel.AppFoundation.Core/        # shared abstract base types/interfaces, no dependencies
   AndreGoepel.AppFoundation.Hosting/     # umbrella backend seam
   AndreGoepel.AppFoundation.MailService/ # Wolverine + MailKit email
   AndreGoepel.AppFoundation.ServiceDefaults/
@@ -297,9 +299,9 @@ overhead before there's a scaling problem that justifies it.
 
 **Why a shared settings table?** Small, singleton, admin-configured records — SMTP settings
 today, whatever a host app adds tomorrow — would otherwise each get their own one-row Marten
-table. `SettingsDocument` (in `AndreGoepel.AppFoundation.MailService`, the lowest-level project
-both `AndreGoepel.AppFoundation` and `.Hosting` depend on) is an abstract base type; subclasses
-register via Marten's document-hierarchy support instead:
+table. `SettingsDocument` (in `AndreGoepel.AppFoundation.Core`, which has no dependencies of its
+own) is an abstract base type; subclasses register via Marten's document-hierarchy support
+instead:
 
 ```csharp
 marten.Schema.For<SettingsDocument>()

@@ -731,7 +731,7 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[1.5.0, )",
           "AndreGoepel.Design.Blazor": "[1.2.1, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.5.0, )",
           "Marten": "[9.16.0, )",
@@ -739,12 +739,15 @@
           "WolverineFx.Marten": "[6.20.0, )"
         }
       },
+      "andregoepel.appfoundation.core": {
+        "type": "Project"
+      },
       "andregoepel.appfoundation.hosting": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation": "[1.1.0, )",
-          "AndreGoepel.AppFoundation.MailService": "[1.1.0, )",
-          "AndreGoepel.AppFoundation.ServiceDefaults": "[1.1.0, )",
+          "AndreGoepel.AppFoundation": "[1.5.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[1.5.0, )",
+          "AndreGoepel.AppFoundation.ServiceDefaults": "[1.5.0, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.5.0, )",
           "Marten": "[9.16.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.10, )",
@@ -756,6 +759,7 @@
       "andregoepel.appfoundation.mailservice": {
         "type": "Project",
         "dependencies": {
+          "AndreGoepel.AppFoundation.Core": "[1.5.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.16.0, )",
           "WolverineFx.Marten": "[6.20.0, )"
