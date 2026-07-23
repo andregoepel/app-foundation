@@ -1,19 +1,17 @@
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Options;
 
 namespace AndreGoepel.AppFoundation.MailService;
 
 /// <summary>
-/// Database-first settings resolution: the persisted settings record wins;
-/// without one the <c>EmailSender</c> configuration section applies (bootstrap
-/// path — same behaviour as before database-backed settings existed).
+/// Database-only settings resolution: without a persisted record, sending fails loudly rather
+/// than silently — there is no configuration fallback, so the app starts with nothing configured
+/// until an administrator saves it on the Email settings page.
 /// </summary>
 // Public for the same Wolverine codegen reason as SmtpEmailSender: it is constructed
 // inside the generated MailMessage handler as SmtpEmailSender's dependency.
 public sealed class MailSettingsProvider(
     IDocumentStore store,
-    IOptions<MailConfiguration> fallback,
     IDataProtectionProvider dataProtectionProvider
 ) : IMailSettingsProvider
 {
@@ -26,7 +24,7 @@ public sealed class MailSettingsProvider(
         );
         if (document is null)
         {
-            return fallback.Value;
+            return new MailConfiguration();
         }
 
         var protector = dataProtectionProvider.CreateProtector(

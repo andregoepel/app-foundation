@@ -16,13 +16,6 @@
 
         <PageHeader Title="@T("EmailSettings.PageTitle")" Subtitle="@T("EmailSettings.Subtitle")" />
 
-        @if (loadedFromConfiguration)
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
-                @T("EmailSettings.ConfigFromCodeAlert")
-            </RadzenAlert>
-        }
-
         <RadzenCard>
             <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
                 <RadzenStack Gap="1.25rem">
@@ -123,7 +116,6 @@
 @code {
     private InputModel Input { get; set; } = new();
     private bool hasPassword;
-    private bool loadedFromConfiguration;
     private bool isSaving;
     private bool isSendingTest;
     private string testRecipient = "";
@@ -134,7 +126,6 @@
     {
         var settings = await SettingsStore.LoadAsync();
         hasPassword = settings.HasPassword;
-        loadedFromConfiguration = settings.FromConfiguration;
         Input = new InputModel
         {
             SenderName = settings.SenderName,
@@ -170,7 +161,6 @@
             );
 
             hasPassword = true;
-            loadedFromConfiguration = false;
             Input.Password = "";
             NotificationService.Notify(
                 NotificationSeverity.Success,

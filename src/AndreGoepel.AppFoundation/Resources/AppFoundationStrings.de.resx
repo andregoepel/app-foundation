@@ -127,7 +127,6 @@
   <data name="EmailSettings.PageTitle" xml:space="preserve"><value><![CDATA[E-Mail-Einstellungen]]></value></data>
   <data name="EmailSettings.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / E-Mail-Einstellungen]]></value></data>
   <data name="EmailSettings.Subtitle" xml:space="preserve"><value><![CDATA[Ausgehende SMTP-Konfiguration für System-E-Mails.]]></value></data>
-  <data name="EmailSettings.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[Diese Werte stammen aus dem EmailSender-Konfigurationsabschnitt. Beim Speichern werden sie in der Datenbank abgelegt, die ab dann Vorrang hat — kein Neustart erforderlich.]]></value></data>
   <data name="EmailSettings.SenderNameLabel" xml:space="preserve"><value><![CDATA[Absendername]]></value></data>
   <data name="EmailSettings.SenderNameRequired" xml:space="preserve"><value><![CDATA[Absendername ist erforderlich]]></value></data>
   <data name="EmailSettings.SenderEmailLabel" xml:space="preserve"><value><![CDATA[Absender-E-Mail]]></value></data>

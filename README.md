@@ -314,6 +314,14 @@ apart), rather than the table count growing with every settings type a host app 
 purely a storage detail — `IEmailSettingsStore`/`IMailSettingsProvider` and the Email settings
 page are unaffected either way.
 
+**Why no `EmailSender` configuration fallback?** Earlier versions seeded `MailConfiguration` from
+an `EmailSender` config section as a bootstrap path, used until the Email settings page was saved
+once. That fallback is gone: the app now starts with nothing configured, and an administrator
+must save SMTP settings on the Email settings page before any mail can send — no
+`appsettings.json` section, no environment variables, nothing to seed from. Existing hosts that
+relied on `EmailSender:*` need to configure the settings page after upgrading; nothing reads that
+section anymore.
+
 ---
 
 ## License

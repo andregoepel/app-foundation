@@ -22,7 +22,7 @@ public class EmailSettingsPageTests : BunitContext
         Services.AddSingleton(new NotificationService());
     }
 
-    private static EmailSettings Settings(bool fromConfiguration = false) =>
+    private static EmailSettings Settings() =>
         new()
         {
             SenderName = "Acme Mailer",
@@ -33,7 +33,6 @@ public class EmailSettingsPageTests : BunitContext
             Username = "acme-user",
             Html = true,
             HasPassword = true,
-            FromConfiguration = fromConfiguration,
         };
 
     [Fact]
@@ -49,32 +48,6 @@ public class EmailSettingsPageTests : BunitContext
         Assert.Contains("Acme Mailer", cut.Markup);
         Assert.Contains("smtp.acme.example", cut.Markup);
         Assert.Contains("acme-user", cut.Markup);
-    }
-
-    [Fact]
-    public void Render_FromConfiguration_ShowsBootstrapHint()
-    {
-        // Arrange
-        store.LoadAsync(Arg.Any<CancellationToken>()).Returns(Settings(fromConfiguration: true));
-
-        // Act
-        var cut = Render<EmailSettingsPage>();
-
-        // Assert
-        Assert.Contains("EmailSender configuration section", cut.Markup);
-    }
-
-    [Fact]
-    public void Render_FromDatabase_HidesBootstrapHint()
-    {
-        // Arrange
-        store.LoadAsync(Arg.Any<CancellationToken>()).Returns(Settings());
-
-        // Act
-        var cut = Render<EmailSettingsPage>();
-
-        // Assert
-        Assert.DoesNotContain("EmailSender configuration section", cut.Markup);
     }
 
     [Fact]

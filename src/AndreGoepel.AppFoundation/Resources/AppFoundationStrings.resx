@@ -128,7 +128,6 @@
   <data name="EmailSettings.PageTitle" xml:space="preserve"><value><![CDATA[Email Settings]]></value></data>
   <data name="EmailSettings.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / Email Settings]]></value></data>
   <data name="EmailSettings.Subtitle" xml:space="preserve"><value><![CDATA[Outgoing SMTP configuration for system emails.]]></value></data>
-  <data name="EmailSettings.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[These values come from the EmailSender configuration section. Saving stores them in the database, which takes precedence from then on — no restart required.]]></value></data>
   <data name="EmailSettings.SenderNameLabel" xml:space="preserve"><value><![CDATA[Sender name]]></value></data>
   <data name="EmailSettings.SenderNameRequired" xml:space="preserve"><value><![CDATA[Sender name is required]]></value></data>
   <data name="EmailSettings.SenderEmailLabel" xml:space="preserve"><value><![CDATA[Sender email]]></value></data>

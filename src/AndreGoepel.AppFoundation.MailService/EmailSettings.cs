@@ -20,12 +20,6 @@ public sealed record EmailSettings
 
     public bool Html { get; init; } = true;
 
-    /// <summary>Whether a password is available (stored or from configuration).</summary>
+    /// <summary>Whether a password is stored.</summary>
     public bool HasPassword { get; init; }
-
-    /// <summary>
-    /// <c>true</c> when the values come from the <c>EmailSender</c> configuration
-    /// section because no database record exists yet (bootstrap path).
-    /// </summary>
-    public bool FromConfiguration { get; init; }
 }
