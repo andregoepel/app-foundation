@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.ServiceDefaults</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <Description>Shared .NET Aspire service defaults for AndreGoepel.AppFoundation hosts: OpenTelemetry, health checks, HTTP resilience, and service discovery.</Description>
     <PackageTags>appfoundation;aspire;opentelemetry;servicedefaults</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
