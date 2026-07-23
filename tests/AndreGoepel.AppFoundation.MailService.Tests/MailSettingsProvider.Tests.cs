@@ -1,6 +1,5 @@
 using Marten;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
@@ -15,16 +14,6 @@ public class MailSettingsProviderTests
     {
         store.QuerySession().Returns(querySession);
     }
-
-    private static MailConfiguration FallbackConfiguration() =>
-        new()
-        {
-            SenderName = "Config Sender",
-            SenderEmail = "config@example.com",
-            Server = "config.smtp.example.com",
-            Username = "config-user",
-            Password = "config-pass",
-        };
 
     [Fact]
     public async Task GetAsync_WithDatabaseRecord_ReturnsItWithUnprotectedPassword()
@@ -50,11 +39,7 @@ public class MailSettingsProviderTests
                     Html = false,
                 }
             );
-        var provider = new MailSettingsProvider(
-            store,
-            Options.Create(FallbackConfiguration()),
-            dataProtection
-        );
+        var provider = new MailSettingsProvider(store, dataProtection);
 
         // Act
         var configuration = await provider.GetAsync();
@@ -67,20 +52,17 @@ public class MailSettingsProviderTests
     }
 
     [Fact]
-    public async Task GetAsync_WithoutRecord_ReturnsConfigurationFallback()
+    public async Task GetAsync_WithoutRecord_ReturnsBlankDefaults()
     {
         // Arrange
-        var provider = new MailSettingsProvider(
-            store,
-            Options.Create(FallbackConfiguration()),
-            dataProtection
-        );
+        var provider = new MailSettingsProvider(store, dataProtection);
 
         // Act
         var configuration = await provider.GetAsync();
 
         // Assert
-        Assert.Equal("Config Sender", configuration.SenderName);
-        Assert.Equal("config-pass", configuration.Password);
+        Assert.Equal("", configuration.SenderName);
+        Assert.Equal("", configuration.Server);
+        Assert.Equal(587, configuration.Port);
     }
 }
