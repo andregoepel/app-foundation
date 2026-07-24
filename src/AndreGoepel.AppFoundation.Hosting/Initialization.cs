@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.XmlEncryption;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +61,11 @@ public static class Initialization
         // Expose the resolved options to the request-pipeline side (UseAppFoundation),
         // which reads them to configure forwarded headers.
         builder.Services.AddSingleton(options);
+
+        // UseHsts() (below, in UseAppFoundation) reads its HstsOptions from DI, so the
+        // hardened default — 365-day max age, includeSubDomains, preload, replacing the
+        // framework's 30-day/no-subdomains/no-preload default — is registered here (#124).
+        builder.Services.AddHsts(hsts => ConfigureHsts(hsts, options));
 
         builder.AddServiceDefaults();
 
@@ -250,6 +257,17 @@ public static class Initialization
         {
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
             app.UseHsts();
+
+            // X-Content-Type-Options / Referrer-Policy / Permissions-Policy are absent
+            // from the framework's own defaults, so nothing else in the pipeline sets
+            // them (#124).
+            app.Use(
+                (context, next) =>
+                {
+                    ApplySecurityHeaders(context.Response.Headers, options);
+                    return next();
+                }
+            );
         }
 
         // Requests that match no endpoint at all (hard 404s) never reach the Blazor
@@ -417,5 +435,45 @@ public static class Initialization
         // proxy, arbitrary clients must not be able to spoof X-Forwarded-* headers.
 
         return forwardedOptions;
+    }
+
+    /// <summary>
+    /// Applies the foundation's hardened HSTS defaults — <see cref="HstsOptions.MaxAge"/>
+    /// of 365 days, <see cref="HstsOptions.IncludeSubDomains"/> and
+    /// <see cref="HstsOptions.Preload"/> both <c>true</c> — then lets
+    /// <see cref="AppFoundationOptions.ConfigureHsts"/> override them (#124).
+    /// </summary>
+    internal static void ConfigureHsts(HstsOptions hsts, AppFoundationOptions options)
+    {
+        hsts.MaxAge = TimeSpan.FromDays(365);
+        hsts.IncludeSubDomains = true;
+        hsts.Preload = true;
+
+        options.ConfigureHsts?.Invoke(hsts);
+    }
+
+    /// <summary>
+    /// Sets the security response headers the ASP.NET Core framework leaves absent by
+    /// default: <c>X-Content-Type-Options: nosniff</c> unconditionally, and
+    /// <c>Referrer-Policy</c> / <c>Permissions-Policy</c> from
+    /// <see cref="AppFoundationOptions"/> unless a host has cleared them to
+    /// <c>null</c>/empty (#124).
+    /// </summary>
+    internal static void ApplySecurityHeaders(
+        IHeaderDictionary headers,
+        AppFoundationOptions options
+    )
+    {
+        headers["X-Content-Type-Options"] = "nosniff";
+
+        if (options.ReferrerPolicy is { Length: > 0 } referrerPolicy)
+        {
+            headers["Referrer-Policy"] = referrerPolicy;
+        }
+
+        if (options.PermissionsPolicy is { Length: > 0 } permissionsPolicy)
+        {
+            headers["Permissions-Policy"] = permissionsPolicy;
+        }
     }
 }
