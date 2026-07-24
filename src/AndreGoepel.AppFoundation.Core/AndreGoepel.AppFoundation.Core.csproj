@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.Core</PackageId>
-    <Version>1.6.0</Version>
+    <Version>1.7.0</Version>
     <Description>Shared abstract base types and interfaces for AndreGoepel.AppFoundation packages, with no framework or infrastructure dependencies of their own.</Description>
     <PackageTags>appfoundation;core;abstractions</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
