@@ -8,17 +8,14 @@ namespace AndreGoepel.AppFoundation.MailService;
 public interface IEmailSettingsStore
 {
     /// <summary>
-    /// Returns the effective settings: the database record when present,
-    /// otherwise the <c>EmailSender</c> configuration section
-    /// (<see cref="EmailSettings.FromConfiguration"/> set), otherwise blank
-    /// defaults. The password is never included.
+    /// Returns the effective settings: the database record when present, otherwise blank
+    /// defaults (no configuration fallback). The password is never included.
     /// </summary>
     Task<EmailSettings> LoadAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Persists the settings. <paramref name="newPassword"/> replaces the stored
-    /// SMTP password; pass <c>null</c> or empty to keep the current one (falling
-    /// back to the configured password on first save).
+    /// SMTP password; pass <c>null</c> or empty to keep the current one.
     /// </summary>
     Task SaveAsync(
         EmailSettings settings,

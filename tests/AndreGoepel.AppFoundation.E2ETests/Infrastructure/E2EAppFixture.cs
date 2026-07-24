@@ -22,6 +22,7 @@ public sealed class E2EAppFixture : IAsyncLifetime
     private DistributedApplication? _app;
     private IPlaywright? _playwright;
     private IBrowser? _browser;
+    private Uri _mailHogSmtpEndpoint = default!;
 
     /// <summary>Base address of the sample web app, e.g. <c>https://localhost:1234/</c>.</summary>
     public string AppBaseUrl { get; private set; } = default!;
@@ -57,6 +58,7 @@ public sealed class E2EAppFixture : IAsyncLifetime
         AppBaseUrl = _app.GetEndpoint(WebResource, "https").ToString();
         MailHogApiUrl = _app.GetEndpoint(MailHogResource, "http").ToString();
         MailHog = new MailHogClient(MailHogApiUrl);
+        _mailHogSmtpEndpoint = _app.GetEndpoint(MailHogResource, "smtp");
 
         _playwright = await Playwright.CreateAsync();
         _browser = await _playwright.Chromium.LaunchAsync(
@@ -141,6 +143,58 @@ public sealed class E2EAppFixture : IAsyncLifetime
         finally
         {
             _provisionGate.Release();
+        }
+    }
+
+    private bool _emailConfigured;
+    private readonly SemaphoreSlim _emailConfigGate = new(1, 1);
+
+    /// <summary>
+    /// Saves MailHog's connection details on the real Email Settings admin page, exactly once per
+    /// app instance — the same way a real administrator would. Necessary because email settings are
+    /// database-only (no configuration fallback) and every E2E run starts from an empty database, so
+    /// nothing would be able to send mail otherwise.
+    /// </summary>
+    public async Task EnsureEmailConfiguredAsync()
+    {
+        if (_emailConfigured)
+        {
+            return;
+        }
+
+        await _emailConfigGate.WaitAsync();
+        try
+        {
+            if (_emailConfigured)
+            {
+                return;
+            }
+
+            await ProvisionAdminAsync();
+
+            await using var context = await NewContextAsync();
+            var page = await context.NewPageAsync();
+            await page.LoginAsync(TestData.AdminEmail, TestData.DefaultPassword);
+
+            await page.GotoAsync("/Administration/EmailSettings");
+            await page.FillFieldAsync("SenderName", "AppFoundation E2E");
+            await page.FillFieldAsync("SenderEmail", "e2e@appfoundation.local");
+            await page.FillFieldAsync("Server", _mailHogSmtpEndpoint.Host);
+            await page.FillFieldAsync("Port", _mailHogSmtpEndpoint.Port.ToString());
+            await page.FillFieldAsync("Username", "e2e");
+            // MailHog needs no credentials, but the field is required on first save.
+            await page.FillFieldAsync("Password", "e2e");
+            await page.ClickButtonAsync("Save changes");
+            await page.WaitForSelectorAsync(
+                "text=Saved",
+                new PageWaitForSelectorOptions { Timeout = 10_000 }
+            );
+
+            _emailConfigured = true;
+        }
+        finally
+        {
+            _emailConfigGate.Release();
         }
     }
 
