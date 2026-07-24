@@ -4,21 +4,21 @@
     "net10.0": {
       "AndreGoepel.Design.Blazor": {
         "type": "Direct",
-        "requested": "[1.3.0, )",
-        "resolved": "1.3.0",
-        "contentHash": "l5mkT8EFP2sJQAENeZSiPpdPxEZ5LDHP1GEE/Fw5V6bMzSyIzmQ/x13B3mNWMwXHE88zCWd0p7C9fTNOomiedQ==",
+        "requested": "[1.4.2, )",
+        "resolved": "1.4.2",
+        "contentHash": "57laKLfocolPOcRbBLP0GccM9k3T+grGAnlv/BpUmH9n1SnbxAqq6YEotTq5E9xThMq9WvuSGv/VUTB1B6Bdww==",
         "dependencies": {
-          "Radzen.Blazor": "11.1.6"
+          "Radzen.Blazor": "11.1.7"
         }
       },
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.6.0, )",
-        "resolved": "1.6.0",
-        "contentHash": "UXR6bVs72bwfxKvyMOwJG/9tkC/muHKj+rdrAVQs46n3K8UuUSjRR6bQXITVKpPGeyEIpEEvf5LaJoElaGobPA==",
+        "requested": "[1.7.0, )",
+        "resolved": "1.7.0",
+        "contentHash": "RXwBh7qH0oBmn5uZBxJ5mZMeyUBMbzR0bzToM9Z3a2cITIVRrc4rVpnqe5hr53h4JFJoTIsOe6aiYVTN3mz1fg==",
         "dependencies": {
-          "AndreGoepel.Design.Blazor": "1.3.0",
-          "AndreGoepel.Marten.Identity": "1.6.0",
+          "AndreGoepel.Design.Blazor": "1.4.2",
+          "AndreGoepel.Marten.Identity": "1.7.0",
           "Marten": "9.18.0",
           "Marten.AspNetCore": "9.18.0",
           "Quartz.Extensions.Hosting": "3.18.2",
@@ -56,10 +56,10 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.6.0",
-        "contentHash": "JNCkPl3ymt6vof5upqActQGR8NPnq9oVvVOVnahb/Hly8ujfvQbC6XMUC/EFioxJwUE3u089/urgDeOzghunsg==",
+        "resolved": "1.7.0",
+        "contentHash": "MRWIPOeSK9P7OcYldvHQ2cB4UFiFjODhb0glPNxlcGrH5zHeDmuuo9oSJZ+2EddipjuOOii+bRvMHswAuZfNVw==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.6.0",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.7.0",
           "Marten": "9.18.0",
           "Marten.AspNetCore": "9.18.0",
           "Quartz.Extensions.Hosting": "3.18.2"
@@ -67,8 +67,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.6.0",
-        "contentHash": "exUquq+Z1gWLhV9gT4D5jt7kUVQ+7kcmUjhrkdbj5xBCff6MRpi7/zBsXjzC0gV9Y9wlcquxfsCFZg2iEpxYOg=="
+        "resolved": "1.7.0",
+        "contentHash": "l0GdgiWkgZ8TeiwXKFZxSzgmt20wn141lecfL6FTG8ZVGFZHBGIX/mInLqOc6TomALiB4Fz42GKDQ5Jjp8KzAw=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",

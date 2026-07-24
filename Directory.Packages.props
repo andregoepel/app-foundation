@@ -26,8 +26,8 @@
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.21.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
-    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.3.0" />
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.6.0" />
+    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.4.2" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.7.0" />
   </ItemGroup>
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
