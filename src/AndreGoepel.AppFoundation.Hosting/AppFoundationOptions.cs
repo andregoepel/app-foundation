@@ -2,6 +2,7 @@ using AndreGoepel.Marten.Identity.Blazor;
 using JasperFx;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Wolverine;
 
 namespace AndreGoepel.AppFoundation.Hosting;
@@ -132,4 +133,29 @@ public sealed class AppFoundationOptions
     /// by direct URL via the identity feature gate wired in <c>UseAppFoundation</c>.
     /// </summary>
     public Action<MartenIdentityBlazorOptions>? ConfigureIdentity { get; set; }
+
+    /// <summary>
+    /// Optional extension point on the <see cref="HstsOptions"/>, invoked after the
+    /// foundation applies its own defaults (<see cref="HstsOptions.MaxAge"/> of 365
+    /// days, <see cref="HstsOptions.IncludeSubDomains"/> and
+    /// <see cref="HstsOptions.Preload"/> both <c>true</c> — stronger than the ASP.NET
+    /// Core framework default of a 30-day max age with neither flag set). Only applied
+    /// outside Development, alongside the rest of <c>UseAppFoundation</c>'s HSTS setup
+    /// (#124).
+    /// </summary>
+    public Action<HstsOptions>? ConfigureHsts { get; set; }
+
+    /// <summary>
+    /// Value of the <c>Referrer-Policy</c> header applied to every response outside
+    /// Development. Set to <c>null</c> or empty to omit the header. Defaults to
+    /// <c>strict-origin-when-cross-origin</c> (#124).
+    /// </summary>
+    public string? ReferrerPolicy { get; set; } = "strict-origin-when-cross-origin";
+
+    /// <summary>
+    /// Value of the <c>Permissions-Policy</c> header applied to every response outside
+    /// Development. Set to <c>null</c> or empty to omit the header. Defaults to
+    /// disabling camera, microphone, and geolocation access (#124).
+    /// </summary>
+    public string? PermissionsPolicy { get; set; } = "camera=(), microphone=(), geolocation=()";
 }
