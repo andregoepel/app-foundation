@@ -1,5 +1,7 @@
 using AndreGoepel.AppFoundation.Components.Pages;
 using Bunit;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Pages;
 
@@ -8,8 +10,11 @@ public class NotFoundTests : BunitContext
     [Fact]
     public void Render_ShowsNotFoundMessage()
     {
-        // Arrange
+        // Arrange — NotFound renders ErrorPage, which needs IHttpContextAccessor (#128).
         JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddSingleton<IHttpContextAccessor>(
+            new HttpContextAccessor { HttpContext = new DefaultHttpContext() }
+        );
 
         // Act
         var cut = Render<NotFound>();

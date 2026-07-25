@@ -1,4 +1,5 @@
 @inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
 @inherits AndreGoepel.AppFoundation.Components.LocalizedComponentBase
 
 <AppPageTitle Title="@_copy.Title" />
@@ -19,12 +20,23 @@
 
     private ErrorCopy _copy = default!;
 
-    protected override void OnParametersSet() =>
+    protected override void OnParametersSet()
+    {
         _copy = Code switch
         {
             "403" => new ErrorCopy(T("Error.AccessDeniedTitle"), T("Error.AccessDeniedMessage")),
             _ => new ErrorCopy(T("Error.NotFoundTitle"), T("Error.NotFoundMessage")),
         };
+
+        // Only takes effect during the static-SSR render of the first response for this
+        // page — once the interactive circuit takes over (or a host reaches this component
+        // via client-side navigation within an existing circuit), headers are already sent
+        // and HasStarted guards against writing to a closed response (#128).
+        if (HttpContextAccessor.HttpContext is { Response.HasStarted: false } context)
+        {
+            context.Response.StatusCode = Code == "403" ? 403 : 404;
+        }
+    }
 
     private record ErrorCopy(string Title, string Message);
 }
