@@ -38,6 +38,7 @@ the UI components it renders directly).
 | Backend | ASP.NET Core (.NET 10) |
 | Persistence | [Marten](https://martendb.io/) (PostgreSQL document + event store) |
 | Messaging / CQRS | [Wolverine](https://wolverine.netlify.app/) (durable outbox) |
+| Scheduling | [Quartz.NET](https://www.quartz-scheduler.net/) (PostgreSQL-persisted job store) |
 | Email | [MailKit](https://github.com/jstedfast/MailKit) |
 | Orchestration | [.NET Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/) |
 | Authentication | ASP.NET Core Identity, event-sourced ([marten-identity](https://github.com/andregoepel/marten-identity)) |
@@ -305,7 +306,30 @@ For multiple proxies (e.g. Cloudflare → nginx), also raise `ForwardLimit` via
 `AutoCreate.CreateOrUpdate` (additive only — never drops) elsewhere, so a code/database mismatch
 can't destroy data at runtime. For a least-privilege deployment, set `SchemaCreation = AutoCreate.None`
 and provision the schema out-of-band (a migration job / `db-apply`) with a privileged role, then
-run the app with a role that has no DDL rights.
+run the app with a role that has no DDL rights. Quartz's `qrtz_*` job-store tables follow the
+same posture — provisioned idempotently alongside Marten's schema, skipped under
+`AutoCreate.None` — see [Scheduled jobs](#scheduled-jobs).
+
+### Scheduled jobs
+
+`AddAppFoundation` configures Quartz.NET with a PostgreSQL-persisted job store (`qrtz_*`
+tables in the same database) instead of the in-memory default, so schedules and misfire state
+survive restarts. `AndreGoepel.Marten.Identity`'s deleted-user cleanup job is already
+registered this way; a host app hangs its own recurring jobs on the same scheduler by calling
+`services.AddQuartz(...)` again in its own `Program.cs` — `AddQuartz` calls merge, so this
+doesn't replace identity's registration:
+
+```csharp
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("DailyBriefing");
+    q.AddJob<DailyBriefingJob>(j => j.WithIdentity(jobKey));
+    q.AddTrigger(t => t.ForJob(jobKey).WithCronSchedule("0 0 6 * * ?"));
+});
+```
+
+Don't call `AddQuartzHostedService` again — `AddAppFoundation` already does, and a second call
+would run the scheduler twice.
 
 ---
 

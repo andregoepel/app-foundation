@@ -35,6 +35,30 @@
         "resolved": "10.0.10",
         "contentHash": "GM5C7GvNOMyemy6Bo7p/WuNtgOnBHityJ5oxEOyxHs0rOSIWrR3ixj1C29Oq+wotF2HqVSoVm26YJ6DhKwEiDA=="
       },
+      "Npgsql": {
+        "type": "Direct",
+        "requested": "[9.0.4, )",
+        "resolved": "9.0.4",
+        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
+      },
+      "Quartz.Extensions.Hosting": {
+        "type": "Direct",
+        "requested": "[3.18.2, )",
+        "resolved": "3.18.2",
+        "contentHash": "6uSMAm4FArjtVoxBjlkA+gHL1Eln2ngIOnRTrVrYxtSlM5PpLQd2aV+fc/OOwfwt+AyDm69HOAybEFqVvyyG2A==",
+        "dependencies": {
+          "Quartz.Extensions.DependencyInjection": "3.18.2"
+        }
+      },
+      "Quartz.Serialization.SystemTextJson": {
+        "type": "Direct",
+        "requested": "[3.18.2, )",
+        "resolved": "3.18.2",
+        "contentHash": "FZAV4mUwnl4yNSa73ZuQNvBOZeyuPTUW4M8Mxa0XAFHUwgHGEYmqOVSgaztAET+a/fUGNBzj0eEPW2pZMQPYuA==",
+        "dependencies": {
+          "Quartz": "3.18.2"
+        }
+      },
       "Radzen.Blazor": {
         "type": "Direct",
         "requested": "[11.1.7, )",
@@ -361,11 +385,6 @@
         "resolved": "4.0.1",
         "contentHash": "jegBasNndmG21G3BmT51suFDCIz/sLN81j+IxmkZ4iWoaDi8LygeHiyNnYbXz5OQh9nCRJFIx1+PJrlYi1Gc9Q=="
       },
-      "Npgsql": {
-        "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
-      },
       "Npgsql.NetTopologySuite": {
         "type": "Transitive",
         "resolved": "9.0.4",
@@ -558,7 +577,7 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.MailService": "[1.6.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[1.7.0, )",
           "AndreGoepel.Design.Blazor": "[1.4.2, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.7.0, )",
           "Marten": "[9.18.0, )",
@@ -572,7 +591,7 @@
       "andregoepel.appfoundation.mailservice": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.Core": "[1.6.0, )",
+          "AndreGoepel.AppFoundation.Core": "[1.7.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.18.0, )",
           "WolverineFx.Marten": "[6.21.0, )"
@@ -679,15 +698,6 @@
         "contentHash": "HyYenisDn/xdtyVXdjImsCl+RNC2gq01N0rvSR7tsYAylXR2sxX/YgMsyTajMXA27+r1vB7lNU8cWRhV0fwL+Q==",
         "dependencies": {
           "OpenTelemetry.Api": "[1.17.0, 2.0.0)"
-        }
-      },
-      "Quartz.Extensions.Hosting": {
-        "type": "CentralTransitive",
-        "requested": "[3.18.2, )",
-        "resolved": "3.18.2",
-        "contentHash": "6uSMAm4FArjtVoxBjlkA+gHL1Eln2ngIOnRTrVrYxtSlM5PpLQd2aV+fc/OOwfwt+AyDm69HOAybEFqVvyyG2A==",
-        "dependencies": {
-          "Quartz.Extensions.DependencyInjection": "3.18.2"
         }
       }
     }
