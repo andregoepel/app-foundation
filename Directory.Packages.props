@@ -28,8 +28,8 @@
     <PackageVersion Include="Npgsql" Version="9.0.4" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.21.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.21.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.22.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.22.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.4.2" />
