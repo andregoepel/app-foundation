@@ -18,12 +18,12 @@
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
   </ItemGroup>
   <ItemGroup Label="Marten">
-    <PackageVersion Include="Marten" Version="9.18.0" />
+    <PackageVersion Include="Marten" Version="9.19.0" />
     <PackageVersion Include="Marten.AspNetCore" Version="9.18.0" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.21.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.21.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.22.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.22.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.4.2" />
