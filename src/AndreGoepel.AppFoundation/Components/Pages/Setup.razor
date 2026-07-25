@@ -11,6 +11,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using global::Marten
 
+@inject IReadOnlyCollection<DefaultRole> DefaultRoles
 @inject IQuerySession QuerySession
 @inject UserManager<User> UserManager
 @inject RoleManager<Role> RoleManager
@@ -140,7 +141,8 @@
 
             Logger.LogInformation("Root admin {Email} created successfully", Input.Email);
 
-            // Create default roles if they don't exist.
+            // Create the configured default roles (AppFoundationOptions.DefaultRoles,
+            // #103) if they don't already exist. Empty unless a host opts in.
             //
             // RoleStore.CreateAsync is authorisation-gated and fails closed for an
             // unidentified caller (#41). Nobody is signed in yet at this point —
@@ -151,25 +153,19 @@
             // Administrator is not listed: UserStore.CreateAsync already creates it and
             // assigns it in the same transaction as the root user, so a root account
             // never depends on this flow.
-            var defaultRoles = new[]
-            {
-                (Roles.Member, false),
-                (Roles.User, false)
-            };
-
             using (Authorizer.BeginSystemScope())
             {
-                foreach (var (name, deletable) in defaultRoles)
+                foreach (var defaultRole in DefaultRoles)
                 {
-                    if (await RoleManager.RoleExistsAsync(name))
+                    if (await RoleManager.RoleExistsAsync(defaultRole.Name))
                     {
                         continue;
                     }
 
                     var role = new Role
                     {
-                        Name = name,
-                        Deletable = deletable,
+                        Name = defaultRole.Name,
+                        Deletable = defaultRole.Deletable,
                         CreatedBy = user.UserId,
                         ChangedBy = user.UserId
                     };
@@ -182,11 +178,15 @@
                         // the operator still ends up signed in.
                         var detail = string.Join(", ", roleResult.Errors.Select(e => e.Description));
 
-                        Logger.LogError("Error creating default role {Role}: {Detail}", name, detail);
+                        Logger.LogError(
+                            "Error creating default role {Role}: {Detail}",
+                            defaultRole.Name,
+                            detail
+                        );
 
                         NotificationService.Notify(
                             NotificationSeverity.Error,
-                            summary: $"Error creating role {name}",
+                            summary: $"Error creating role {defaultRole.Name}",
                             detail: detail
                         );
                     }

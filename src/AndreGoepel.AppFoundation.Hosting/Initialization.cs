@@ -58,9 +58,21 @@ public static class Initialization
         // values augment anything set in the configure callback.
         MergeForwardedHeaderConfiguration(builder.Configuration, options);
 
+        // Let hosts declare (or override) the first-run default-role ladder via
+        // configuration in addition to code — see AppFoundationOptions.DefaultRoles (#103).
+        MergeDefaultRolesConfiguration(builder.Configuration, options);
+
         // Expose the resolved options to the request-pipeline side (UseAppFoundation),
         // which reads them to configure forwarded headers.
         builder.Services.AddSingleton(options);
+
+        // Setup.razor (in AndreGoepel.AppFoundation, which this project depends on — not
+        // the other way around) can't reference AppFoundationOptions without a circular
+        // project reference, so the resolved default-role list is exposed separately,
+        // typed on the dependency-free DefaultRole record from AppFoundation.Core (#103).
+        builder.Services.AddSingleton<IReadOnlyCollection<DefaultRole>>(
+            options.DefaultRoles.ToList()
+        );
 
         // UseHsts() (below, in UseAppFoundation) reads its HstsOptions from DI, so the
         // hardened default — 365-day max age, includeSubDomains, preload, replacing the
@@ -397,6 +409,29 @@ public static class Initialization
                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
                 )
                 : [];
+        }
+    }
+
+    /// <summary>
+    /// Merges the first-run default-role ladder configured under
+    /// <c>AppFoundation:DefaultRoles</c> into <paramref name="options"/>, so a production
+    /// role list — unknown at build time — can be supplied at deploy time. Roles already
+    /// present in code (matched by name) are left as-is; config only adds new entries (#103).
+    /// </summary>
+    internal static void MergeDefaultRolesConfiguration(
+        IConfiguration configuration,
+        AppFoundationOptions options
+    )
+    {
+        var configuredRoles =
+            configuration.GetSection("AppFoundation:DefaultRoles").Get<List<DefaultRole>>() ?? [];
+
+        foreach (var role in configuredRoles)
+        {
+            if (options.DefaultRoles.All(existing => existing.Name != role.Name))
+            {
+                options.DefaultRoles.Add(role);
+            }
         }
     }
 

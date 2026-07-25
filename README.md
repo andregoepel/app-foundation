@@ -137,6 +137,7 @@ A PostgreSQL connection string is required, by default under
 | `DataProtectionApplicationDiscriminator` | `WolverineServiceName` | Isolates protected payloads from other apps sharing infrastructure |
 | `ConfigureDataProtection` | — | Callback on the DataProtection builder (Key Vault, cert rotation, …) |
 | `AllowUnprotectedKeyRing` | `false` | Accept an unencrypted key ring outside Development — see [Data protection keys](#data-protection-keys) |
+| `DefaultRoles` | *(empty)* | Roles seeded at first-run `/Setup` — see [Default roles](#default-roles-first-run-setup) |
 
 **`AppFoundationLayoutOptions`** (management shell branding):
 `BrandName`, `LogoPath`, `Copyright`, and `AdminMenu` (a Razor component type rendered as
@@ -164,6 +165,64 @@ secrets:
   ConnectionStrings__appfoundation-database:
     file: ./secrets/connectionstring   # chmod 600; or `external: true` under Swarm
 ```
+
+### Default roles (first-run setup)
+
+`AppFoundationOptions.DefaultRoles` is **empty by default** — the foundation no longer
+imposes an app-specific role ladder at `/Setup`. `Administrator` is unaffected; it's always
+created with the root user, independent of this list. Apps that used the old built-in
+`Member`/`User` roles opt back in explicitly:
+
+```csharp
+builder.AddAppFoundation(options =>
+{
+    options.DefaultRoles.Add(new DefaultRole(Roles.Member));
+    options.DefaultRoles.Add(new DefaultRole(Roles.User));
+});
+```
+
+Seeded roles default to `Deletable = true`, so an administrator can remove one later from
+Administration → Roles without special tooling — pass `new DefaultRole("Editor", Deletable: false)`
+for a role that must not be removable. Also bindable from configuration under
+`AppFoundation:DefaultRoles` (a config array of `{ "Name": ..., "Deletable": ... }` objects),
+merged with — and de-duplicated by name against — anything set in code.
+
+**Upgrading from a version that seeded `Member`/`User` non-deletable:** those roles can't be
+removed from the UI (the store refuses to delete a non-deletable role). Add the opt-in snippet
+above to keep them, or — if they're unused clutter — remove them directly in Postgres. Roles
+are event-sourced, so a manual delete must cover the projection, the event stream, and any
+assignments. **Verify table/column names against your deployed schema, back up first, and run
+inside a transaction:**
+
+```sql
+-- 0) Inspect first
+SELECT id, data->>'Name' AS name, data->>'Deletable' AS deletable
+FROM mt_doc_role
+WHERE data->>'Name' IN ('Member','User') AND (data->>'Deleted')::bool = false;
+
+BEGIN;
+-- 1) remove user -> role assignments referencing these roles
+DELETE FROM mt_doc_userroleassignment
+WHERE data->>'RoleGuid' IN (
+  SELECT data->>'RoleId' FROM mt_doc_role WHERE data->>'Name' IN ('Member','User'));
+
+-- 2) drop the event streams + events for those roles (role stream id == StreamId)
+WITH s AS (SELECT (data->>'StreamId')::uuid AS sid FROM mt_doc_role
+           WHERE data->>'Name' IN ('Member','User'))
+DELETE FROM mt_events  WHERE stream_id IN (SELECT sid FROM s);
+WITH s AS (SELECT (data->>'StreamId')::uuid AS sid FROM mt_doc_role
+           WHERE data->>'Name' IN ('Member','User'))
+DELETE FROM mt_streams WHERE id        IN (SELECT sid FROM s);
+
+-- 3) drop the projection docs
+DELETE FROM mt_doc_role WHERE data->>'Name' IN ('Member','User');
+COMMIT;
+```
+
+A projection rebuild (or clearing cached `user.Roles`) may be needed afterwards. An in-app
+cleanup action is tracked upstream in
+[marten-identity#112](https://github.com/andregoepel/marten-identity/issues/112) — until that
+lands, this manual procedure is the only way to remove already-seeded non-deletable roles.
 
 ---
 
@@ -313,6 +372,13 @@ All of them then share one physical table (a `mt_doc_type` discriminator column 
 apart), rather than the table count growing with every settings type a host app adds. This is
 purely a storage detail — `IEmailSettingsStore`/`IMailSettingsProvider` and the Email settings
 page are unaffected either way.
+
+**Why is `DefaultRoles` empty now?** Earlier versions hardcoded `/Setup` to seed `Member`
+and `User`, both non-deletable. Apps with their own role ladder (e.g. `Administrator` /
+`Editor` / `Viewer`) never used them, and being non-deletable meant they couldn't be removed
+from Administration → Roles either — just confusing clutter. The foundation now seeds nothing
+by default; see [Default roles](#default-roles-first-run-setup) for the opt-in and the cleanup
+path for already-seeded roles (#103).
 
 **Why no `EmailSender` configuration fallback?** Earlier versions seeded `MailConfiguration` from
 an `EmailSender` config section as a bootstrap path, used until the Email settings page was saved
