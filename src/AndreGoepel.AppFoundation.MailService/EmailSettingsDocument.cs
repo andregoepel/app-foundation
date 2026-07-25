@@ -1,3 +1,5 @@
+using AndreGoepel.Marten.Configuration;
+
 namespace AndreGoepel.AppFoundation.MailService;
 
 /// <summary>
@@ -7,9 +9,11 @@ namespace AndreGoepel.AppFoundation.MailService;
 /// The SMTP password is stored DataProtection-protected (<see cref="ProtectedPassword"/>), never
 /// in plain text.
 /// </summary>
-public sealed class EmailSettingsDocument : SettingsDocument
+public sealed class EmailSettingsDocument
+    : SettingsDocument,
+        ISettingsDocument<EmailSettingsDocument>
 {
-    public const string DocumentId = "email-settings";
+    public static string DocumentId => "email-settings";
 
     public required string SenderName { get; init; }
 

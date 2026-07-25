@@ -161,21 +161,4 @@
     <comment>{0} is the test recipient's email address.</comment>
   </data>
   <data name="EmailSettings.TestEmailFailedTitle" xml:space="preserve"><value><![CDATA[Test email failed]]></value></data>
-
-  <!-- LoginFeaturesPage.razor -->
-  <data name="LoginFeatures.PageTitle" xml:space="preserve"><value><![CDATA[Login Features]]></value></data>
-  <data name="LoginFeatures.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / Login Features]]></value></data>
-  <data name="LoginFeatures.Subtitle" xml:space="preserve"><value><![CDATA[Turn self-service sign-up and the optional sign-in methods on or off. A disabled feature is hidden here and made unreachable by direct URL.]]></value></data>
-  <data name="LoginFeatures.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[These values come from the application's configuration baseline. Saving stores them in the database, which takes precedence from then on — no restart required.]]></value></data>
-  <data name="LoginFeatures.SelfServiceRegistrationLabel" xml:space="preserve"><value><![CDATA[Self-service registration]]></value></data>
-  <data name="LoginFeatures.SelfServiceRegistrationDescription" xml:space="preserve"><value><![CDATA[Lets visitors create their own account.]]></value></data>
-  <data name="LoginFeatures.TwoFactorLabel" xml:space="preserve"><value><![CDATA[Two-factor authentication]]></value></data>
-  <data name="LoginFeatures.TwoFactorDescription" xml:space="preserve"><value><![CDATA[Authenticator-app setup. Users already enrolled can still complete sign-in.]]></value></data>
-  <data name="LoginFeatures.PasskeysLabel" xml:space="preserve"><value><![CDATA[Passkeys]]></value></data>
-  <data name="LoginFeatures.PasskeysDescription" xml:space="preserve"><value><![CDATA[WebAuthn passkey registration and sign-in.]]></value></data>
-  <data name="LoginFeatures.SaveButton" xml:space="preserve"><value><![CDATA[Save changes]]></value></data>
-  <data name="LoginFeatures.SavingBusyText" xml:space="preserve"><value><![CDATA[Saving...]]></value></data>
-  <data name="LoginFeatures.SavedNotificationTitle" xml:space="preserve"><value><![CDATA[Saved]]></value></data>
-  <data name="LoginFeatures.SavedNotificationMessage" xml:space="preserve"><value><![CDATA[Login features updated. Changes apply to the next request.]]></value></data>
-  <data name="LoginFeatures.ErrorSavingSettingsTitle" xml:space="preserve"><value><![CDATA[Error saving settings]]></value></data>
 </root>

@@ -22,7 +22,7 @@ on top.
 | `AndreGoepel.AppFoundation.Hosting` | **Umbrella backend seam** — `AddAppFoundation` / `UseAppFoundation`. Transitively pulls in the other packages + `AndreGoepel.Marten.Identity.Blazor`. |
 | `AndreGoepel.AppFoundation.MailService` | Email via a Wolverine handler + MailKit SMTP, backed by a durable Marten outbox. |
 | `AndreGoepel.AppFoundation.ServiceDefaults` | .NET Aspire service defaults: OpenTelemetry, health checks, HTTP resilience, service discovery. |
-| `AndreGoepel.AppFoundation.Core` | Shared abstract base types and interfaces (e.g. `SettingsDocument`) with no framework or infrastructure dependencies of their own. |
+| `AndreGoepel.AppFoundation.Core` | Shared abstract base types and interfaces (e.g. `DefaultRole`) with no framework or infrastructure dependencies of their own. |
 
 All five are published to NuGet with lockstep versioning. A host typically references
 `AndreGoepel.AppFoundation.Hosting` (for the wiring) and `AndreGoepel.AppFoundation` (for
@@ -382,14 +382,13 @@ overhead before there's a scaling problem that justifies it.
 
 **Why a shared settings table?** Small, singleton, admin-configured records — SMTP settings
 today, whatever a host app adds tomorrow — would otherwise each get their own one-row Marten
-table. `SettingsDocument` (in `AndreGoepel.AppFoundation.Core`, which has no dependencies of its
-own) is an abstract base type; subclasses register via Marten's document-hierarchy support
-instead:
+table. [`AndreGoepel.Marten.Configuration`](https://github.com/andregoepel/marten-configuration)
+provides the shared `SettingsDocument` abstract base type and `ISettingsStore`; subclasses
+register via `AddSettingsDocument<T>()` instead:
 
 ```csharp
-marten.Schema.For<SettingsDocument>()
-    .AddSubClass<EmailSettingsDocument>()
-    .AddSubClass<YourOwnSettingsDocument>(); // host apps add their own the same way
+marten.AddSettingsDocument<EmailSettingsDocument>();
+marten.AddSettingsDocument<YourOwnSettingsDocument>(); // host apps add their own the same way
 ```
 
 All of them then share one physical table (a `mt_doc_type` discriminator column tells them

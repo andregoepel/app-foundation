@@ -1,4 +1,4 @@
-using Marten;
+using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace AndreGoepel.AppFoundation.MailService;
@@ -11,17 +11,13 @@ namespace AndreGoepel.AppFoundation.MailService;
 // Public for the same Wolverine codegen reason as SmtpEmailSender: it is constructed
 // inside the generated MailMessage handler as SmtpEmailSender's dependency.
 public sealed class MailSettingsProvider(
-    IDocumentStore store,
+    ISettingsStore store,
     IDataProtectionProvider dataProtectionProvider
 ) : IMailSettingsProvider
 {
     public async Task<MailConfiguration> GetAsync(CancellationToken cancellationToken = default)
     {
-        await using var session = store.QuerySession();
-        var document = await session.LoadAsync<EmailSettingsDocument>(
-            EmailSettingsDocument.DocumentId,
-            cancellationToken
-        );
+        var document = await store.LoadAsync<EmailSettingsDocument>(cancellationToken);
         if (document is null)
         {
             return new MailConfiguration();

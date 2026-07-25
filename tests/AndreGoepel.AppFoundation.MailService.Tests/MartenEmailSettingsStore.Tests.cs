@@ -1,4 +1,4 @@
-using Marten;
+using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using NSubstitute;
 
@@ -6,23 +6,14 @@ namespace AndreGoepel.AppFoundation.MailService.Tests;
 
 public class MartenEmailSettingsStoreTests
 {
-    private readonly IDocumentStore store = Substitute.For<IDocumentStore>();
-    private readonly IDocumentSession session = Substitute.For<IDocumentSession>();
-    private readonly IQuerySession querySession = Substitute.For<IQuerySession>();
+    private readonly ISettingsStore store = Substitute.For<ISettingsStore>();
     private readonly EphemeralDataProtectionProvider dataProtection = new();
-
-    public MartenEmailSettingsStoreTests()
-    {
-        store.LightweightSession().Returns(session);
-        store.QuerySession().Returns(querySession);
-    }
 
     private MartenEmailSettingsStore BuildStore() => new(store, dataProtection);
 
     private static EmailSettingsDocument Document() =>
         new()
         {
-            Id = EmailSettingsDocument.DocumentId,
             SenderName = "DB Sender",
             SenderEmail = "db@example.com",
             Server = "db.smtp.example.com",
@@ -37,12 +28,7 @@ public class MartenEmailSettingsStoreTests
     public async Task LoadAsync_WithDatabaseRecord_ReturnsItWithoutPassword()
     {
         // Arrange
-        querySession
-            .LoadAsync<EmailSettingsDocument>(
-                EmailSettingsDocument.DocumentId,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(Document());
+        store.LoadAsync<EmailSettingsDocument>(Arg.Any<CancellationToken>()).Returns(Document());
 
         // Act
         var settings = await BuildStore().LoadAsync();
@@ -71,7 +57,10 @@ public class MartenEmailSettingsStoreTests
         // Arrange
         var emailStore = BuildStore();
         EmailSettingsDocument? stored = null;
-        session.Store(Arg.Do<EmailSettingsDocument[]>(documents => stored = documents.Single()));
+        store.SaveAsync(
+            Arg.Do<EmailSettingsDocument>(document => stored = document),
+            Arg.Any<CancellationToken>()
+        );
 
         // Act
         await emailStore.SaveAsync(
@@ -94,7 +83,9 @@ public class MartenEmailSettingsStoreTests
                 .CreateProtector(MartenEmailSettingsStore.ProtectorPurpose)
                 .Unprotect(stored.ProtectedPassword)
         );
-        await session.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await store
+            .Received(1)
+            .SaveAsync(Arg.Any<EmailSettingsDocument>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -102,14 +93,12 @@ public class MartenEmailSettingsStoreTests
     {
         // Arrange
         var existing = Document();
-        session
-            .LoadAsync<EmailSettingsDocument>(
-                EmailSettingsDocument.DocumentId,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(existing);
+        store.LoadAsync<EmailSettingsDocument>(Arg.Any<CancellationToken>()).Returns(existing);
         EmailSettingsDocument? stored = null;
-        session.Store(Arg.Do<EmailSettingsDocument[]>(documents => stored = documents.Single()));
+        store.SaveAsync(
+            Arg.Do<EmailSettingsDocument>(document => stored = document),
+            Arg.Any<CancellationToken>()
+        );
 
         // Act
         await BuildStore()

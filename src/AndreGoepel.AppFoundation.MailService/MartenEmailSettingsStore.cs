@@ -1,10 +1,10 @@
-using Marten;
+using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace AndreGoepel.AppFoundation.MailService;
 
 internal sealed class MartenEmailSettingsStore(
-    IDocumentStore store,
+    ISettingsStore store,
     IDataProtectionProvider dataProtectionProvider
 ) : IEmailSettingsStore
 {
@@ -12,11 +12,7 @@ internal sealed class MartenEmailSettingsStore(
 
     public async Task<EmailSettings> LoadAsync(CancellationToken cancellationToken = default)
     {
-        await using var session = store.QuerySession();
-        var document = await session.LoadAsync<EmailSettingsDocument>(
-            EmailSettingsDocument.DocumentId,
-            cancellationToken
-        );
+        var document = await store.LoadAsync<EmailSettingsDocument>(cancellationToken);
         return document is not null
             ? new EmailSettings
             {
@@ -38,11 +34,7 @@ internal sealed class MartenEmailSettingsStore(
         CancellationToken cancellationToken = default
     )
     {
-        await using var session = store.LightweightSession();
-        var existing = await session.LoadAsync<EmailSettingsDocument>(
-            EmailSettingsDocument.DocumentId,
-            cancellationToken
-        );
+        var existing = await store.LoadAsync<EmailSettingsDocument>(cancellationToken);
 
         var protector = dataProtectionProvider.CreateProtector(ProtectorPurpose);
         string protectedPassword;
@@ -59,10 +51,9 @@ internal sealed class MartenEmailSettingsStore(
             throw new InvalidOperationException("An SMTP password is required for the first save.");
         }
 
-        session.Store(
+        await store.SaveAsync(
             new EmailSettingsDocument
             {
-                Id = EmailSettingsDocument.DocumentId,
                 SenderName = settings.SenderName,
                 SenderEmail = settings.SenderEmail,
                 Server = settings.Server,
@@ -71,8 +62,8 @@ internal sealed class MartenEmailSettingsStore(
                 Username = settings.Username,
                 ProtectedPassword = protectedPassword,
                 Html = settings.Html,
-            }
+            },
+            cancellationToken
         );
-        await session.SaveChangesAsync(cancellationToken);
     }
 }

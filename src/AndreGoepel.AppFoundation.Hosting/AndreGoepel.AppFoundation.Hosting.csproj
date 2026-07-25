@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.Hosting</PackageId>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <Description>One-call backend seam (AddAppFoundation / UseAppFoundation) wiring Marten, identity, Wolverine messaging, email, data protection, and the request pipeline for AndreGoepel.AppFoundation hosts.</Description>
     <PackageTags>appfoundation;aspnetcore;hosting;marten;wolverine</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -39,6 +39,7 @@
     <PackageReference Include="Marten" />
     <PackageReference Include="Radzen.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
+    <PackageReference Include="AndreGoepel.Marten.Configuration" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Quartz.Serialization.SystemTextJson" />
@@ -46,6 +47,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.AppFoundation\AndreGoepel.AppFoundation.csproj" />
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.Core\AndreGoepel.AppFoundation.Core.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.MailService\AndreGoepel.AppFoundation.MailService.csproj" />
     <ProjectReference Include="..\AndreGoepel.AppFoundation.ServiceDefaults\AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </ItemGroup>
