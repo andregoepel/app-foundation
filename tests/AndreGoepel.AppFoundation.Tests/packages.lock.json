@@ -4,12 +4,13 @@
     "net10.0": {
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "Direct",
-        "requested": "[1.7.0, )",
-        "resolved": "1.7.0",
-        "contentHash": "RXwBh7qH0oBmn5uZBxJ5mZMeyUBMbzR0bzToM9Z3a2cITIVRrc4rVpnqe5hr53h4JFJoTIsOe6aiYVTN3mz1fg==",
+        "requested": "[1.8.0, )",
+        "resolved": "1.8.0",
+        "contentHash": "iE3wLvZxcAYIAxITrHrIUAnWPH1PvCB9DR7Kivi2TcQAfjjCyKm7VuJxfdttpV+UNoP8vx7dxMzPHkvGD9Wf5A==",
         "dependencies": {
           "AndreGoepel.Design.Blazor": "1.4.2",
-          "AndreGoepel.Marten.Identity": "1.7.0",
+          "AndreGoepel.Marten.Configuration": "1.0.0",
+          "AndreGoepel.Marten.Identity": "1.8.0",
           "Marten": "9.18.0",
           "Marten.AspNetCore": "9.18.0",
           "Quartz.Extensions.Hosting": "3.18.2",
@@ -71,10 +72,11 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "1.7.0",
-        "contentHash": "MRWIPOeSK9P7OcYldvHQ2cB4UFiFjODhb0glPNxlcGrH5zHeDmuuo9oSJZ+2EddipjuOOii+bRvMHswAuZfNVw==",
+        "resolved": "1.8.0",
+        "contentHash": "jeSG9hVsb2SiDtlh9UqbeuM+zDp70B4VugjSmcLxYBQQTiD9LBIat4DYU2p1+P1pImEN7s/gqLJHUPmyQB7pew==",
         "dependencies": {
-          "AndreGoepel.Marten.Identity.Abstractions": "1.7.0",
+          "AndreGoepel.Marten.Configuration": "1.0.0",
+          "AndreGoepel.Marten.Identity.Abstractions": "1.8.0",
           "Marten": "9.18.0",
           "Marten.AspNetCore": "9.18.0",
           "Quartz.Extensions.Hosting": "3.18.2"
@@ -82,8 +84,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.7.0",
-        "contentHash": "l0GdgiWkgZ8TeiwXKFZxSzgmt20wn141lecfL6FTG8ZVGFZHBGIX/mInLqOc6TomALiB4Fz42GKDQ5Jjp8KzAw=="
+        "resolved": "1.8.0",
+        "contentHash": "9CowuME5v+QGti5+b99zzJ2iJGz3XmvDU2os0I0IDkBkepWzpTj7BgpI1GwScrb2Mekmib9j3Pm/sVAEWFb8Qw=="
       },
       "AngleSharp.Css": {
         "type": "Transitive",
@@ -143,8 +145,8 @@
       },
       "JasperFx": {
         "type": "Transitive",
-        "resolved": "2.34.0",
-        "contentHash": "Gz4X/TqINK1PRua8xDJL9kjVRiaO6Am9/HF/QW6ukQm37VwNo+48eEs1Gp08Ytsqbxm4l8ExjXDZgSqf961nNQ==",
+        "resolved": "2.35.0",
+        "contentHash": "+UzKoGkAtfuxfAIPvGjtfjF8gV7mjLE1bfbPPkcHvuVEeemFJtTuXYiR2qxJCO4TiBTxRzuWG6CmIy9PoaKh8Q==",
         "dependencies": {
           "FastExpressionCompiler": "5.4.1",
           "ImTools": "4.0.0",
@@ -155,10 +157,10 @@
       },
       "JasperFx.Events": {
         "type": "Transitive",
-        "resolved": "2.34.0",
-        "contentHash": "zhoYyoMK76o9JFuaOJI1J+MuOFsEKnsk8BAjXBhAYGt9i8mwYaw8WuKJAjqqmO6UormfrNlQcrKaHdyhrwoBBw==",
+        "resolved": "2.35.0",
+        "contentHash": "L1HYGPOwsSne/B4nEeUu4eM0VFWgH6WFNbUc6aol4bfknbxl6NRhpvA25vXKgWCG4dfqeUSjUewjI26RkC31tw==",
         "dependencies": {
-          "JasperFx": "2.34.0"
+          "JasperFx": "2.35.0"
         }
       },
       "JasperFx.RuntimeCompiler": {
@@ -731,10 +733,11 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.MailService": "[1.6.0, )",
+          "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[1.8.0, )",
           "AndreGoepel.Design.Blazor": "[1.4.2, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[1.7.0, )",
-          "Marten": "[9.18.0, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
+          "Marten": "[9.19.0, )",
           "Radzen.Blazor": "[11.1.7, )",
           "WolverineFx.Marten": "[6.21.0, )"
         }
@@ -745,11 +748,13 @@
       "andregoepel.appfoundation.hosting": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation": "[1.6.0, )",
-          "AndreGoepel.AppFoundation.MailService": "[1.6.0, )",
-          "AndreGoepel.AppFoundation.ServiceDefaults": "[1.6.0, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[1.7.0, )",
-          "Marten": "[9.18.0, )",
+          "AndreGoepel.AppFoundation": "[1.8.0, )",
+          "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[1.8.0, )",
+          "AndreGoepel.AppFoundation.ServiceDefaults": "[1.8.0, )",
+          "AndreGoepel.Marten.Configuration": "[1.0.1, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
+          "Marten": "[9.19.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.10, )",
           "Radzen.Blazor": "[11.1.7, )",
           "WolverineFx.Marten": "[6.21.0, )",
@@ -759,9 +764,9 @@
       "andregoepel.appfoundation.mailservice": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.Core": "[1.6.0, )",
+          "AndreGoepel.Marten.Configuration": "[1.0.1, )",
           "MailKit": "[4.17.0, )",
-          "Marten": "[9.18.0, )",
+          "Marten": "[9.19.0, )",
           "WolverineFx.Marten": "[6.21.0, )"
         }
       },
@@ -786,6 +791,15 @@
           "Radzen.Blazor": "11.1.7"
         }
       },
+      "AndreGoepel.Marten.Configuration": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.1, )",
+        "resolved": "1.0.1",
+        "contentHash": "K/lZ0YfJ6+9u851HX1o89Y8TPNVwBd8SSqzh9KIWLgYf3/j6w2yL7RTBtAKlPUtTyTTIf2Vuh+Jsz1hREEEyOw==",
+        "dependencies": {
+          "Marten": "9.19.0"
+        }
+      },
       "AngleSharp": {
         "type": "CentralTransitive",
         "requested": "[1.5.2, )",
@@ -803,12 +817,12 @@
       },
       "Marten": {
         "type": "CentralTransitive",
-        "requested": "[9.18.0, )",
-        "resolved": "9.18.0",
-        "contentHash": "RK8wE0aZwKQHoQ2xEx0oCSSOnzNsQObpiBT40xET5y8fOauj+rUJ9tLjaUy2stBVKerFx36tGmed+/bVkPmWFQ==",
+        "requested": "[9.19.0, )",
+        "resolved": "9.19.0",
+        "contentHash": "4QLFDZ53Rv6pqc25G2ay210H+G5aqbBn/+aMC/t6XBpU5aE1LORKH1RBh8a4SLt0ZZrGBz839W8UQamjBt3tNA==",
         "dependencies": {
-          "JasperFx": "2.34.0",
-          "JasperFx.Events": "2.34.0",
+          "JasperFx": "2.35.0",
+          "JasperFx.Events": "2.35.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
           "Weasel.Postgresql": "9.17.0",
           "Weasel.Storage": "9.17.0"
@@ -816,11 +830,11 @@
       },
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[9.18.0, )",
-        "resolved": "9.18.0",
-        "contentHash": "6XJJ7N3BWfTniBlMs5Xv7QL2P7gA1Mkth4kx1wBL7d3QRRNpwZk5xYewtgJyqbeI0Vwj/8XuncA6Ay0VcP+wxQ==",
+        "requested": "[9.19.0, )",
+        "resolved": "9.19.0",
+        "contentHash": "A9/5T+UfZ4QK7kS/1VQi58h/32K2OnetDXiyKEx7hNHqEdjniGosG+20mEKQvvicex9qIRy+6eprd52a6zdeyg==",
         "dependencies": {
-          "Marten": "9.18.0"
+          "Marten": "9.19.0"
         }
       },
       "Microsoft.AspNetCore.HeaderPropagation": {

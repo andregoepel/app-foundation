@@ -13,7 +13,7 @@ public class InitializerExtensionTests
         var builder = WebApplication.CreateBuilder();
         // SmtpEmailSender depends on the settings provider, which needs Marten
         // and DataProtection — supplied by AddAppFoundation in a real host.
-        builder.Services.AddSingleton(Substitute.For<Marten.IDocumentStore>());
+        builder.Services.AddSingleton(Substitute.For<global::Marten.IDocumentStore>());
         builder.Services.AddDataProtection();
 
         // Act
