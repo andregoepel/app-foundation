@@ -1,3 +1,4 @@
+using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 using AndreGoepel.AppFoundation.Hosting;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -22,11 +23,19 @@ namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 /// itself be an AppHost-SDK project, which this test project isn't. Instead this reuses the
 /// exact mechanism <see cref="E2EAppFixture"/> already proves works — booting the real
 /// sample AppHost — and only uses its Postgres resource's connection string; the "web" and
-/// "mailhog" resources that come along for the ride are unused here. A separate
-/// <see cref="IAsyncLifetime"/> from <see cref="E2EAppFixture"/> (not part of its collection)
-/// since this needs its own throwaway app graph — the shared fixture's Postgres has other
-/// tests' data on it by the time any single test runs.
+/// "mailhog" resources that come along for the ride are unused here.
+/// <para>
+/// Uses its own <see cref="IAsyncLifetime"/> rather than injecting <see cref="E2EAppFixture"/>
+/// — it needs its own throwaway app graph, since the shared fixture's Postgres has other
+/// tests' data on it by the time any single test runs. Still joins the shared "e2e"
+/// <see cref="E2ECollection"/> (without consuming its fixture) purely so xUnit runs it
+/// sequentially against the rest of the E2E suite instead of in parallel: two full
+/// Aspire/Docker/Postgres graphs running concurrently on a CI runner caused unrelated
+/// Playwright navigations elsewhere in the suite to flake with network errors under the
+/// combined resource pressure.
+/// </para>
 /// </summary>
+[Collection(E2ECollection.Name)]
 public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
 {
     private const string DatabaseResourceName = "appfoundation-database";
