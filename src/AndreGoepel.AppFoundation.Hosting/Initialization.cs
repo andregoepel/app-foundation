@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Design.Blazor;
+using AndreGoepel.Marten.Configuration;
 using AndreGoepel.Marten.Identity;
 using AndreGoepel.Marten.Identity.Blazor;
 using AndreGoepel.Marten.Identity.Blazor.Features;
@@ -93,11 +94,6 @@ public static class Initialization
         });
         builder.Services.AddMartenIdentityCleanup();
 
-        // Database-backed feature flags: an administrator can toggle registration / 2FA /
-        // passkeys at runtime, overriding the ConfigureIdentity baseline. Registered after
-        // AddMartenIdentityBlazor so this provider replaces its options-only default.
-        builder.Services.AddAppFoundationIdentityFeatures();
-
         var connectionString =
             builder.Configuration.GetConnectionString(options.DatabaseConnectionName)
             ?? throw new InvalidOperationException(
@@ -134,10 +130,10 @@ public static class Initialization
                     .DocumentAlias("dataprotectionkeydocument");
 
                 // Every admin-configured settings record shares one table (see
-                // SettingsDocument) instead of each type getting its own one-row table.
-                // Consuming apps register their own settings types as further subclasses
-                // the same way.
-                marten.Schema.For<SettingsDocument>().AddSubClass<EmailSettingsDocument>();
+                // AndreGoepel.Marten.Configuration's SettingsDocument) instead of each type
+                // getting its own one-row table. Consuming apps register their own settings
+                // types the same way, via AddSettingsDocument<T>().
+                marten.AddSettingsDocument<EmailSettingsDocument>();
             })
             .IntegrateWithWolverine();
 

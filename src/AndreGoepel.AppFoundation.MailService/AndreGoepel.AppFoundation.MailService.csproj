@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.MailService</PackageId>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <Description>Email sending for AndreGoepel.AppFoundation: Wolverine message handler + MailKit SMTP sender with a durable Marten outbox.</Description>
     <PackageTags>appfoundation;email;mailkit;wolverine;smtp</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -30,9 +30,6 @@
     <PackageReference Include="MailKit" />
     <PackageReference Include="Marten" />
     <PackageReference Include="WolverineFx.Marten" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AndreGoepel.AppFoundation.Core\AndreGoepel.AppFoundation.Core.csproj" />
+    <PackageReference Include="AndreGoepel.Marten.Configuration" />
   </ItemGroup>
 </Project>

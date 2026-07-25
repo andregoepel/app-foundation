@@ -1,4 +1,4 @@
-using Marten;
+using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using NSubstitute;
 
@@ -6,29 +6,19 @@ namespace AndreGoepel.AppFoundation.MailService.Tests;
 
 public class MailSettingsProviderTests
 {
-    private readonly IDocumentStore store = Substitute.For<IDocumentStore>();
-    private readonly IQuerySession querySession = Substitute.For<IQuerySession>();
+    private readonly ISettingsStore store = Substitute.For<ISettingsStore>();
     private readonly EphemeralDataProtectionProvider dataProtection = new();
-
-    public MailSettingsProviderTests()
-    {
-        store.QuerySession().Returns(querySession);
-    }
 
     [Fact]
     public async Task GetAsync_WithDatabaseRecord_ReturnsItWithUnprotectedPassword()
     {
         // Arrange
         var protector = dataProtection.CreateProtector(MartenEmailSettingsStore.ProtectorPurpose);
-        querySession
-            .LoadAsync<EmailSettingsDocument>(
-                EmailSettingsDocument.DocumentId,
-                Arg.Any<CancellationToken>()
-            )
+        store
+            .LoadAsync<EmailSettingsDocument>(Arg.Any<CancellationToken>())
             .Returns(
                 new EmailSettingsDocument
                 {
-                    Id = EmailSettingsDocument.DocumentId,
                     SenderName = "DB Sender",
                     SenderEmail = "db@example.com",
                     Server = "db.smtp.example.com",

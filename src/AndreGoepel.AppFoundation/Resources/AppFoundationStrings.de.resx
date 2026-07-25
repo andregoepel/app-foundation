@@ -160,21 +160,4 @@
     <comment>{0} ist die E-Mail-Adresse des Testempfängers.</comment>
   </data>
   <data name="EmailSettings.TestEmailFailedTitle" xml:space="preserve"><value><![CDATA[Test-E-Mail fehlgeschlagen]]></value></data>
-
-  <!-- LoginFeaturesPage.razor -->
-  <data name="LoginFeatures.PageTitle" xml:space="preserve"><value><![CDATA[Login-Funktionen]]></value></data>
-  <data name="LoginFeatures.Breadcrumb" xml:space="preserve"><value><![CDATA[Administration / Login-Funktionen]]></value></data>
-  <data name="LoginFeatures.Subtitle" xml:space="preserve"><value><![CDATA[Selbstregistrierung und die optionalen Anmeldemethoden ein- oder ausschalten. Eine deaktivierte Funktion wird hier ausgeblendet und ist über eine direkte URL nicht mehr erreichbar.]]></value></data>
-  <data name="LoginFeatures.ConfigFromCodeAlert" xml:space="preserve"><value><![CDATA[Diese Werte stammen aus der Konfigurationsbasis der Anwendung. Beim Speichern werden sie in der Datenbank abgelegt, die ab dann Vorrang hat — kein Neustart erforderlich.]]></value></data>
-  <data name="LoginFeatures.SelfServiceRegistrationLabel" xml:space="preserve"><value><![CDATA[Selbstregistrierung]]></value></data>
-  <data name="LoginFeatures.SelfServiceRegistrationDescription" xml:space="preserve"><value><![CDATA[Ermöglicht Besuchern, ein eigenes Konto anzulegen.]]></value></data>
-  <data name="LoginFeatures.TwoFactorLabel" xml:space="preserve"><value><![CDATA[Zwei-Faktor-Authentifizierung]]></value></data>
-  <data name="LoginFeatures.TwoFactorDescription" xml:space="preserve"><value><![CDATA[Einrichtung einer Authenticator-App. Bereits registrierte Benutzer können sich weiterhin anmelden.]]></value></data>
-  <data name="LoginFeatures.PasskeysLabel" xml:space="preserve"><value><![CDATA[Passkeys]]></value></data>
-  <data name="LoginFeatures.PasskeysDescription" xml:space="preserve"><value><![CDATA[WebAuthn-Passkey-Registrierung und -Anmeldung.]]></value></data>
-  <data name="LoginFeatures.SaveButton" xml:space="preserve"><value><![CDATA[Änderungen speichern]]></value></data>
-  <data name="LoginFeatures.SavingBusyText" xml:space="preserve"><value><![CDATA[Wird gespeichert …]]></value></data>
-  <data name="LoginFeatures.SavedNotificationTitle" xml:space="preserve"><value><![CDATA[Gespeichert]]></value></data>
-  <data name="LoginFeatures.SavedNotificationMessage" xml:space="preserve"><value><![CDATA[Login-Funktionen aktualisiert. Änderungen gelten für die nächste Anfrage.]]></value></data>
-  <data name="LoginFeatures.ErrorSavingSettingsTitle" xml:space="preserve"><value><![CDATA[Fehler beim Speichern der Einstellungen]]></value></data>
 </root>
