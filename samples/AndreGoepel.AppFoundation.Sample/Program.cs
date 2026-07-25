@@ -2,6 +2,7 @@ using AndreGoepel.AppFoundation;
 using AndreGoepel.AppFoundation.Hosting;
 using AndreGoepel.AppFoundation.Sample.Components;
 using AndreGoepel.Marten.Identity.Blazor.Components.Account;
+using AndreGoepel.Marten.Identity.Roles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,10 +10,18 @@ var builder = WebApplication.CreateBuilder(args);
 // shared request pipeline. The connection string named "appfoundation-database" is
 // supplied by the Aspire AppHost (or Docker secrets in production).
 builder.AddAppFoundation(options =>
+{
     // Self-service registration is off by default (#49); the sample opts in — the same
     // way a real host would — so the E2E suite can exercise the registration flows.
-    options.ConfigureIdentity = identity => identity.EnableUserRegistration = true
-);
+    options.ConfigureIdentity = identity => identity.EnableUserRegistration = true;
+
+    // DefaultRoles is empty by default (#103) — the foundation no longer imposes an
+    // app-specific role ladder. The sample opts back into the pre-#103 Member/User
+    // roles to demonstrate the setting and keep the E2E setup smoke test meaningful; a
+    // real host declares whatever ladder it actually uses (or none at all).
+    options.DefaultRoles.Add(new DefaultRole(Roles.Member));
+    options.DefaultRoles.Add(new DefaultRole(Roles.User));
+});
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 

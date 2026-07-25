@@ -158,4 +158,20 @@ public sealed class AppFoundationOptions
     /// disabling camera, microphone, and geolocation access (#124).
     /// </summary>
     public string? PermissionsPolicy { get; set; } = "camera=(), microphone=(), geolocation=()";
+
+    /// <summary>
+    /// Roles seeded at first-run setup (<c>/Setup</c>), alongside the root administrator
+    /// account. Empty by default — the foundation no longer imposes an app-specific role
+    /// ladder; each consuming app declares the roles it needs, e.g.
+    /// <c>options.DefaultRoles.Add(new(Roles.Member)); options.DefaultRoles.Add(new(Roles.User));</c>
+    /// to restore the pre-#103 defaults. <c>Administrator</c> is never listed here — it is
+    /// always created with the root user by <c>UserStore.CreateAsync</c>, independent of
+    /// this list.
+    /// <para>
+    /// Also bindable from configuration under <c>AppFoundation:DefaultRoles</c> (a
+    /// configuration array of <c>{ "Name": ..., "Deletable": ... }</c> objects), merged
+    /// with — and de-duplicated by name against — anything set here in code (#103).
+    /// </para>
+    /// </summary>
+    public IList<DefaultRole> DefaultRoles { get; } = new List<DefaultRole>();
 }

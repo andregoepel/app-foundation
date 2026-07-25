@@ -26,9 +26,11 @@ public sealed class SmokeTests(E2EAppFixture fixture) : E2ETestBase(fixture)
     [Fact]
     public async Task Setup_CreatesDefaultRoles_MemberAndUser()
     {
-        // Arrange — Setup creates the default roles while nobody is signed in yet, so the
-        // writes only land inside the authorizer's system scope. Without it the role store
-        // fails closed and the roles silently never appear (#89).
+        // Arrange — Member/User are the sample host's configured AppFoundationOptions.
+        // DefaultRoles (#103; empty unless a host opts in — see Program.cs). Setup creates
+        // them while nobody is signed in yet, so the writes only land inside the
+        // authorizer's system scope. Without it the role store fails closed and the roles
+        // silently never appear (#89).
         await LoginAsAdminAsync();
 
         // Act
