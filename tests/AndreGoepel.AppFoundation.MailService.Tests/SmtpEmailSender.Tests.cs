@@ -2,7 +2,7 @@ using MimeKit;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
 
-public class SmtpEmailSenderTests
+public sealed class SmtpEmailSenderTests
 {
     private static MailConfiguration Config(bool html = true) =>
         new()

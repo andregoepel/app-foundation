@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class AddAppFoundationIdentityTests
+public sealed class AddAppFoundationIdentityTests
 {
     [Fact]
     public void AddAppFoundation_ConfigureIdentity_FlowsToBlazorOptions()

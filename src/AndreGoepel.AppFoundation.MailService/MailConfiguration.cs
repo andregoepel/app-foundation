@@ -1,6 +1,6 @@
 namespace AndreGoepel.AppFoundation.MailService;
 
-public record MailConfiguration
+public sealed record MailConfiguration
 {
     public string SenderName { get; init; } = "";
 

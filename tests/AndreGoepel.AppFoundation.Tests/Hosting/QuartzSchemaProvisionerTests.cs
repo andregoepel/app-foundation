@@ -3,7 +3,7 @@ using JasperFx;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class QuartzSchemaProvisionerTests
+public sealed class QuartzSchemaProvisionerTests
 {
     private static readonly string[] ExpectedTables =
     [

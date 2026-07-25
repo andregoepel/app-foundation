@@ -9,7 +9,7 @@ using Radzen;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Administration;
 
-public class EmailSettingsPageTests : BunitContext
+public sealed class EmailSettingsPageTests : BunitContext
 {
     private readonly IEmailSettingsStore store = Substitute.For<IEmailSettingsStore>();
     private readonly IEmailSender emailSender = Substitute.For<IEmailSender>();

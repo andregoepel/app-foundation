@@ -7,7 +7,7 @@ using Quartz;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class AddAppFoundationQuartzTests
+public sealed class AddAppFoundationQuartzTests
 {
     [Fact]
     public void AddAppFoundation_ConfiguresPersistentPostgresJobStore()

@@ -5,7 +5,7 @@ using Wolverine;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
 
-public class SendEmailMessageHandlerTests
+public sealed class SendEmailMessageHandlerTests
 {
     [Fact]
     public async Task Handle_LocalOrigin_ForwardsAllFieldsToEmailSender()
@@ -17,12 +17,13 @@ public class SendEmailMessageHandlerTests
             NullLogger<SendEmailMessageHandler>.Instance
         );
         var message = new MailMessage("bob@example.com", "Hello", "World");
+        using var cts = new CancellationTokenSource();
 
         // Act
-        await handler.Handle(message, LocalEnvelope(message));
+        await handler.Handle(message, LocalEnvelope(message), cts.Token);
 
         // Assert
-        await sender.Received(1).SendAsync("bob@example.com", "Hello", "World");
+        await sender.Received(1).SendAsync("bob@example.com", "Hello", "World", cts.Token);
     }
 
     [Fact]
@@ -37,7 +38,7 @@ public class SendEmailMessageHandlerTests
         var message = new MailMessage("a@b.com", "s", "b");
 
         // Act
-        await handler.Handle(message, LocalEnvelope(message));
+        await handler.Handle(message, LocalEnvelope(message), CancellationToken.None);
 
         // Assert
         await sender.ReceivedWithAnyArgs(1).SendAsync(default!, default!, default!);
@@ -56,7 +57,7 @@ public class SendEmailMessageHandlerTests
         var external = new Envelope(message) { Destination = new Uri("rabbitmq://queue/mail") };
 
         // Act
-        await handler.Handle(message, external);
+        await handler.Handle(message, external, CancellationToken.None);
 
         // Assert — nothing was sent.
         await sender.DidNotReceiveWithAnyArgs().SendAsync(default!, default!, default!);

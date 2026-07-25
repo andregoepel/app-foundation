@@ -7,7 +7,7 @@ using Wolverine.Runtime.Handlers;
 namespace AndreGoepel.AppFoundation.MailService;
 
 [WolverineHandler]
-public class SendEmailMessageHandler(
+public sealed class SendEmailMessageHandler(
     IEmailSender EmailSender,
     ILogger<SendEmailMessageHandler> Logger
 )
@@ -30,13 +30,14 @@ public class SendEmailMessageHandler(
             )
             .Then.Discard();
 
-    public async Task Handle(MailMessage message, Envelope envelope)
+    public async Task Handle(
+        MailMessage message,
+        Envelope envelope,
+        CancellationToken cancellationToken
+    )
     {
-        // MailMessage is an internal, in-process contract. Refuse to act on one that
-        // arrived over an external transport, so a consumer that (accidentally) exposes
-        // this message type on an untrusted transport cannot turn it into an
-        // arbitrary-email / phishing primitive (#57). Messages published in-process are
-        // routed to a local:// queue; anything else is dropped.
+        // MailMessage is an internal, in-process contract; refuse to act on one that arrived over an external
+        // transport, so an accidental exposure can't be turned into an arbitrary-email/phishing primitive (#57).
         if (!IsLocalOrigin(envelope.Destination))
         {
             Logger.LogWarning(
@@ -47,15 +48,16 @@ public class SendEmailMessageHandler(
             return;
         }
 
-        await EmailSender.SendAsync(message.Recipient, message.Subject, message.Body);
+        await EmailSender.SendAsync(
+            message.Recipient,
+            message.Subject,
+            message.Body,
+            cancellationToken
+        );
     }
 
-    /// <summary>
-    /// A MailMessage is trusted only when published in-process: Wolverine routes such
-    /// messages to a <c>local://</c> queue, whereas an external transport carries its
-    /// own scheme. A null destination (e.g. direct in-process invocation) is treated as
-    /// local so the normal send path is never blocked.
-    /// </summary>
+    // Trusted only when published in-process (routed to a local:// queue); a null destination (direct in-process
+    // invocation) is treated as local so the normal send path is never blocked.
     internal static bool IsLocalOrigin(Uri? destination) =>
         destination is null || destination.Scheme == "local";
 }

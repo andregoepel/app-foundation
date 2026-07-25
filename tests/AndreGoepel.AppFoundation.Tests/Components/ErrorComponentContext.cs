@@ -28,7 +28,7 @@ public abstract class ErrorComponentContext : BunitContext
                 return new ValueTask<TValue>((TValue)state!);
             }
 
-            return new ValueTask<TValue>(default(TValue)!);
+            return new ValueTask<TValue>(result: default!);
         }
 
         public ValueTask<TValue> InvokeAsync<TValue>(

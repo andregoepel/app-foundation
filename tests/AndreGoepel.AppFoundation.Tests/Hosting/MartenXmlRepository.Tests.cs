@@ -5,7 +5,7 @@ using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class MartenXmlRepositoryTests
+public sealed class MartenXmlRepositoryTests
 {
     [Fact]
     public void ToDocument_WithFriendlyName_UsesFriendlyNameAsId()

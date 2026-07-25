@@ -5,13 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.AppFoundation.Hosting.DataProtection;
 
-/// <summary>
-/// Stores DataProtection key ring entries as Marten documents. The document store
-/// is resolved lazily so the repository can be wired into
-/// <c>KeyManagementOptions</c> before Marten itself is built.
-/// <see cref="IXmlRepository"/> is a synchronous contract, so the async Marten
-/// calls are blocked on — key ring reads/writes are rare, startup-time operations.
-/// </summary>
+// The document store is resolved lazily so this can be wired into KeyManagementOptions before Marten is built.
+// IXmlRepository is synchronous, so the async Marten calls are blocked on — key ring I/O is rare and startup-time.
 internal sealed class MartenXmlRepository(IServiceProvider services) : IXmlRepository
 {
     public IReadOnlyCollection<XElement> GetAllElements()

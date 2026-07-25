@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class SecurityHeadersTests
+public sealed class SecurityHeadersTests
 {
     [Fact]
     public void ConfigureHsts_Defaults_HardensBeyondFrameworkDefault()

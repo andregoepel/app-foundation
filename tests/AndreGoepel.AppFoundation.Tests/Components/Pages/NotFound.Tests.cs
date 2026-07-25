@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Pages;
 
-public class NotFoundTests : BunitContext
+public sealed class NotFoundTests : BunitContext
 {
     [Fact]
     public void Render_ShowsNotFoundMessage()

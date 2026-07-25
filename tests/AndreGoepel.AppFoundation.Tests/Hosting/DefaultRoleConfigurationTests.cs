@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class DefaultRoleConfigurationTests
+public sealed class DefaultRoleConfigurationTests
 {
     [Fact]
     public void Merge_ArrayForm_BindsEachRole()

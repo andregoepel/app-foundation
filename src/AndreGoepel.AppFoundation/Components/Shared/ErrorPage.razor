@@ -28,10 +28,7 @@
             _ => new ErrorCopy(T("Error.NotFoundTitle"), T("Error.NotFoundMessage")),
         };
 
-        // Only takes effect during the static-SSR render of the first response for this
-        // page — once the interactive circuit takes over (or a host reaches this component
-        // via client-side navigation within an existing circuit), headers are already sent
-        // and HasStarted guards against writing to a closed response (#128).
+        // No-op once headers are already sent (interactive circuit / client-side navigation) (#128).
         if (HttpContextAccessor.HttpContext is { Response.HasStarted: false } context)
         {
             context.Response.StatusCode = Code == "403" ? 403 : 404;
