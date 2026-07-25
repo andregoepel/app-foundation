@@ -469,11 +469,6 @@
         "resolved": "4.0.1",
         "contentHash": "jegBasNndmG21G3BmT51suFDCIz/sLN81j+IxmkZ4iWoaDi8LygeHiyNnYbXz5OQh9nCRJFIx1+PJrlYi1Gc9Q=="
       },
-      "Npgsql": {
-        "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
-      },
       "Npgsql.NetTopologySuite": {
         "type": "Transitive",
         "resolved": "9.0.4",
@@ -756,6 +751,9 @@
           "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
           "Marten": "[9.19.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.10, )",
+          "Npgsql": "[9.0.4, )",
+          "Quartz.Extensions.Hosting": "[3.18.2, )",
+          "Quartz.Serialization.SystemTextJson": "[3.18.2, )",
           "Radzen.Blazor": "[11.1.7, )",
           "WolverineFx.Marten": "[6.21.0, )",
           "WolverineFx.RuntimeCompilation": "[6.21.0, )"
@@ -862,6 +860,12 @@
           "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.8.0"
         }
       },
+      "Npgsql": {
+        "type": "CentralTransitive",
+        "requested": "[9.0.4, )",
+        "resolved": "9.0.4",
+        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
+      },
       "OpenTelemetry.Exporter.OpenTelemetryProtocol": {
         "type": "CentralTransitive",
         "requested": "[1.17.0, )",
@@ -914,6 +918,15 @@
         "contentHash": "6uSMAm4FArjtVoxBjlkA+gHL1Eln2ngIOnRTrVrYxtSlM5PpLQd2aV+fc/OOwfwt+AyDm69HOAybEFqVvyyG2A==",
         "dependencies": {
           "Quartz.Extensions.DependencyInjection": "3.18.2"
+        }
+      },
+      "Quartz.Serialization.SystemTextJson": {
+        "type": "CentralTransitive",
+        "requested": "[3.18.2, )",
+        "resolved": "3.18.2",
+        "contentHash": "FZAV4mUwnl4yNSa73ZuQNvBOZeyuPTUW4M8Mxa0XAFHUwgHGEYmqOVSgaztAET+a/fUGNBzj0eEPW2pZMQPYuA==",
+        "dependencies": {
+          "Quartz": "3.18.2"
         }
       },
       "Radzen.Blazor": {

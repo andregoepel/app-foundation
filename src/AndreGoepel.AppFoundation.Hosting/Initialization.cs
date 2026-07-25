@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
+using AndreGoepel.AppFoundation.Hosting.Quartz;
 using AndreGoepel.AppFoundation.MailService;
 using AndreGoepel.Design.Blazor;
 using AndreGoepel.Marten.Configuration;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Quartz;
 using Radzen;
 using Wolverine;
 using Wolverine.Marten;
@@ -100,6 +102,50 @@ public static class Initialization
                 $"Connection string '{options.DatabaseConnectionName}' not found."
             );
 
+        // Never let the running app drop/rewrite schema to match code: default to
+        // additive-only (CreateOrUpdate) outside Development, keeping the permissive All
+        // only for the local inner loop. A host can override — e.g. AutoCreate.None for a
+        // least-privilege role with schema applied out-of-band (#53). Shared with Quartz's
+        // qrtz_ provisioning below, so both follow the same posture.
+        var schemaCreation =
+            options.SchemaCreation
+            ?? (builder.Environment.IsDevelopment() ? AutoCreate.All : AutoCreate.CreateOrUpdate);
+
+        // AddMartenIdentityCleanup() (above) already called services.AddQuartz(...) to
+        // register its cleanup job/trigger on the default in-memory RAMJobStore — schedules
+        // and misfire state don't survive restarts. This second AddQuartz call merges into
+        // the same QuartzOptions and layers a PostgreSQL-backed persistent store on top, so
+        // identity's job registration keeps working unchanged while gaining durability, and
+        // host apps can hang their own recurring jobs on the same scheduler via their own
+        // AddQuartz call (#129). This call only configures the store — it must not
+        // re-register jobs/triggers or call AddQuartzHostedService a second time. Pure
+        // configuration, no I/O — the qrtz_ schema is provisioned separately in
+        // UseAppFoundation (see QuartzSchemaProvisioner), not here: AddAppFoundation must
+        // stay side-effect-free against the connection string, the same as AddMarten below,
+        // so it can be exercised in tests with a connection string that never actually
+        // resolves.
+        builder.Services.AddQuartz(quartz =>
+        {
+            quartz.UsePersistentStore(store =>
+            {
+                store.UsePostgres(connectionString);
+
+                // Postgres folds unquoted identifiers to lowercase; the vendored schema
+                // creates lowercase qrtz_* tables, so the prefix must be set explicitly —
+                // Quartz's own default ("QRTZ_") would 404 every query.
+                store.SetProperty("quartz.jobStore.tablePrefix", "qrtz_");
+
+                // Quartz's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
+                // which throws on .NET 8+ (removed for security reasons) — required, not
+                // optional, for a persistent store to work at all here.
+                store.UseSystemTextJsonSerializer();
+
+                // Clustering intentionally not enabled (single instance) — out of scope
+                // per #129; PerformSchemaValidation is left at Quartz's own default (true),
+                // a free fail-fast if provisioning above was skipped or failed.
+            });
+        });
+
         builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
         builder
@@ -109,18 +155,7 @@ public static class Initialization
 
                 marten.InitializeIdentity();
 
-                // Never let the running app drop/rewrite schema to match code: default
-                // to additive-only (CreateOrUpdate) outside Development, keeping the
-                // permissive All only for the local inner loop. A host can override —
-                // e.g. AutoCreate.None for a least-privilege role with schema applied
-                // out-of-band (#53).
-                marten.AutoCreateSchemaObjects =
-                    options.SchemaCreation
-                    ?? (
-                        builder.Environment.IsDevelopment()
-                            ? AutoCreate.All
-                            : AutoCreate.CreateOrUpdate
-                    );
+                marten.AutoCreateSchemaObjects = schemaCreation;
 
                 // The alias (and thus the table name) is part of the storage
                 // contract — hosts that persisted key ring entries with an
@@ -226,6 +261,27 @@ public static class Initialization
         app.MapDefaultEndpoints();
 
         var options = app.Services.GetRequiredService<AppFoundationOptions>();
+
+        // Idempotently provision Quartz's qrtz_ tables — mirrors Marten's own schema-creation
+        // posture (skipped under AutoCreate.None, for out-of-band-provisioned deployments),
+        // and must run here rather than in AddAppFoundation: it's the one real database
+        // side effect this seam owns, and AddAppFoundation stays side-effect-free against
+        // the connection string so it can be exercised in tests without a reachable
+        // database. Runs before app.Run() starts Quartz's own hosted service, which queries
+        // these tables as soon as it starts (#129).
+        var connectionString =
+            app.Configuration.GetConnectionString(options.DatabaseConnectionName)
+            ?? throw new InvalidOperationException(
+                $"Connection string '{options.DatabaseConnectionName}' not found."
+            );
+        var schemaCreation =
+            options.SchemaCreation
+            ?? (app.Environment.IsDevelopment() ? AutoCreate.All : AutoCreate.CreateOrUpdate);
+
+        if (QuartzSchemaProvisioner.ShouldProvision(schemaCreation))
+        {
+            QuartzSchemaProvisioner.Provision(connectionString);
+        }
 
         // Fail closed if the key ring would be persisted unencrypted in a non-local
         // environment: the keys live in the same Postgres as the data they protect,

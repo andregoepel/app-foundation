@@ -67,6 +67,7 @@ usually `AndreGoepel.AppFoundation` directly because it renders the UI component
 | Web / UI | ASP.NET Core, Blazor (Interactive Server), Radzen Blazor |
 | Data / events | Marten (PostgreSQL document + event store) |
 | Messaging | Wolverine (Marten-backed durable outbox) |
+| Scheduling | Quartz.NET (PostgreSQL-persisted job store) |
 | Email | MailKit |
 | Identity | ASP.NET Core Identity, event-sourced (marten-identity) |
 | Observability | OpenTelemetry (traces, metrics, logs) |
@@ -87,21 +88,51 @@ In order:
 1. Build `AppFoundationOptions` from the optional `configure` delegate.
 2. **Secrets** — `AddKeyPerFile(options.SecretsDirectory, optional: true)` (from 1.1.0; see §7).
 3. `AddServiceDefaults()` (§6).
-4. `AddMartenIdentity()` / `AddMartenIdentityBlazor()` / `AddMartenIdentityCleanup()`.
-5. Resolve the connection string (`options.DatabaseConnectionName`, throws if missing).
-6. Register `IEmailSender<TUser>` → `IdentityEmailSender` (§5).
-7. `AddMarten(...)` with `InitializeIdentity()` + `AutoCreate.All`, `IntegrateWithWolverine()`.
-8. Memory cache, `IHttpContextAccessor`, Radzen `NotificationService`.
-9. `UseWolverine(...)` — durable inbox/outbox on all endpoints, handler discovery of the MailService assembly, service name `options.WolverineServiceName`.
-10. `AddEmailService()` (§5), DataProtection with a Marten-persisted key ring and optional
+4. `AddMartenIdentity()` / `AddMartenIdentityBlazor()` / `AddMartenIdentityCleanup()` — the
+   latter also calls `AddQuartz(...)` + `AddQuartzHostedService(...)` to schedule identity's
+   deleted-user cleanup job (see "Scheduling" below).
+5. Resolve the connection string (`options.DatabaseConnectionName`, throws if missing) and
+   the resolved `AutoCreate` schema-creation mode (`options.SchemaCreation`, or
+   `All`/`CreateOrUpdate` by environment — see §7).
+6. A second `AddQuartz(...)` call layers a PostgreSQL persistent job store onto the same
+   `QuartzOptions` (merges with step 4's registration) — see "Scheduling" below.
+7. Register `IEmailSender<TUser>` → `IdentityEmailSender` (§5).
+8. `AddMarten(...)` with `InitializeIdentity()` and `AutoCreateSchemaObjects` set to step 5's
+   resolved mode, `IntegrateWithWolverine()`.
+9. Memory cache, `IHttpContextAccessor`, Radzen `NotificationService`.
+10. `UseWolverine(...)` — durable inbox/outbox on all endpoints, handler discovery of the MailService assembly, service name `options.WolverineServiceName`.
+11. `AddEmailService()` (§5), DataProtection with a Marten-persisted key ring and optional
     certificate encryption at rest (§7), `AddRadzenComponents()`, `AddHeaderPropagation()`.
 
 ### `UseAppFoundation(this WebApplication)`
 
-The shared request pipeline: `MapDefaultEndpoints()`, forwarded headers (`X-Forwarded-For`/`-Proto`,
+Idempotently provisions Quartz's `qrtz_*` schema (see "Scheduling" below), then the shared
+request pipeline: `MapDefaultEndpoints()`, forwarded headers (`X-Forwarded-For`/`-Proto`,
 known proxies/networks cleared), exception handler + HSTS (non-development), HTTPS redirection,
 static files, header propagation, antiforgery, authentication, authorization, then
 `UseMartenIdentityMiddleware()`.
+
+### Scheduling (Quartz, from #129)
+
+`AddQuartz` is called twice — once inside `AddMartenIdentityCleanup()` (registers identity's
+`DeletedUserCleanup` job/trigger), once in `AddAppFoundation` itself (configures the store).
+Multiple `AddQuartz` calls merge into one `QuartzOptions`, so this works without a special
+extension point; a host app hangs its own jobs/triggers on the same scheduler by calling
+`services.AddQuartz(...)` again in its own `Program.cs` — never a second
+`AddQuartzHostedService`.
+
+The store is `UsePersistentStore` against the same PostgreSQL database Marten uses:
+`UsePostgres(connectionString)`, table prefix explicitly `"qrtz_"` (Postgres folds unquoted
+identifiers to lowercase; Quartz's own default is `"QRTZ_"`), and
+`UseSystemTextJsonSerializer()` — required, not just preferred: Quartz's default
+(`BinaryObjectSerializer`) uses `BinaryFormatter`, unusable on .NET 8+.
+
+`QuartzSchemaProvisioner` (`src/AndreGoepel.AppFoundation.Hosting/Quartz/`) idempotently runs
+a vendored, `IF NOT EXISTS`-adapted copy of Quartz's official `tables_postgres.sql` via raw
+Npgsql — mirroring Marten's own schema posture, it's skipped under
+`AutoCreate.None`. Runs in `UseAppFoundation` (not `AddAppFoundation`), so `AddAppFoundation`
+stays side-effect-free against the connection string, matching `AddMarten`, and so it runs
+before Quartz's own hosted service starts and queries these tables.
 
 ### What the host keeps
 

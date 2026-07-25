@@ -26,6 +26,12 @@
     <InternalsVisibleTo Include="AndreGoepel.AppFoundation.Tests" />
   </ItemGroup>
 
+  <!-- Vendored Quartz PostgreSQL job-store DDL, executed at startup by
+       QuartzSchemaProvisioner (#129). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Quartz\qrtz_tables_postgres.sql" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="WolverineFx.Marten" />
@@ -34,6 +40,9 @@
     <PackageReference Include="Radzen.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Configuration" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
+    <PackageReference Include="Quartz.Serialization.SystemTextJson" />
   </ItemGroup>
 
   <ItemGroup>

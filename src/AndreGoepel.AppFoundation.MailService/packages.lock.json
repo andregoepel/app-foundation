@@ -134,11 +134,6 @@
         "resolved": "4.0.1",
         "contentHash": "jegBasNndmG21G3BmT51suFDCIz/sLN81j+IxmkZ4iWoaDi8LygeHiyNnYbXz5OQh9nCRJFIx1+PJrlYi1Gc9Q=="
       },
-      "Npgsql": {
-        "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
-      },
       "Npgsql.NetTopologySuite": {
         "type": "Transitive",
         "resolved": "9.0.4",
@@ -229,6 +224,12 @@
           "Weasel.Core": "9.18.1",
           "WolverineFx": "6.21.0"
         }
+      },
+      "Npgsql": {
+        "type": "CentralTransitive",
+        "requested": "[9.0.4, )",
+        "resolved": "9.0.4",
+        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
       }
     }
   }
