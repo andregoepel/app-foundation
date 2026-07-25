@@ -138,7 +138,6 @@
         };
     }
 
-    // Discard: reload the persisted settings, dropping any unsaved edits.
     private Task OnDiscard() => LoadSettingsAsync();
 
     private async Task OnValidSubmit(InputModel model)

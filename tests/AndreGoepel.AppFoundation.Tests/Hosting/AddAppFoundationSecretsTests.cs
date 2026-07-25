@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class AddAppFoundationSecretsTests
+public sealed class AddAppFoundationSecretsTests
 {
     [Fact]
     public void AddAppFoundation_ReadsConnectionStringFromSecretsDirectory()

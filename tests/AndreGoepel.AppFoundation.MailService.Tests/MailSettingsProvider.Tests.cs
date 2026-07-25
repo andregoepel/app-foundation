@@ -4,7 +4,7 @@ using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
 
-public class MailSettingsProviderTests
+public sealed class MailSettingsProviderTests
 {
     private readonly ISettingsStore store = Substitute.For<ISettingsStore>();
     private readonly EphemeralDataProtectionProvider dataProtection = new();

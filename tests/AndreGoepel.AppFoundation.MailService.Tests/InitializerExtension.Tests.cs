@@ -4,7 +4,7 @@ using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.MailService.Tests;
 
-public class InitializerExtensionTests
+public sealed class InitializerExtensionTests
 {
     [Fact]
     public void AddEmailService_RegistersIEmailSender_AsSmtpEmailSender()

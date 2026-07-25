@@ -18,7 +18,7 @@ namespace AndreGoepel.AppFoundation.Tests.Components.Pages;
 /// in. Setup.razor's actual page path is covered end-to-end by the E2E suite's
 /// ProvisionAdminAsync, which submits real (valid) data through the live, compiled form.
 /// </summary>
-public class SetupValidatorConversionTests : BunitContext
+public sealed class SetupValidatorConversionTests : BunitContext
 {
     public SetupValidatorConversionTests()
     {
@@ -28,6 +28,7 @@ public class SetupValidatorConversionTests : BunitContext
     [Fact]
     public void InvalidModel_DoesNotInvokeSubmit()
     {
+        // Arrange
         var submitted = false;
         var model = new ProbeModel { Password = "abc", ConfirmPassword = "xyz" };
 
@@ -40,14 +41,17 @@ public class SetupValidatorConversionTests : BunitContext
                 .Add(f => f.ChildContent, ValidatorOnly)
         );
 
+        // Act
         cut.Find("form").Submit();
 
+        // Assert
         Assert.False(submitted);
     }
 
     [Fact]
     public void ValidModel_InvokesSubmit()
     {
+        // Arrange
         var submitted = false;
         var model = new ProbeModel { Password = "abcdefghijkl", ConfirmPassword = "abcdefghijkl" };
 
@@ -60,8 +64,10 @@ public class SetupValidatorConversionTests : BunitContext
                 .Add(f => f.ChildContent, ValidatorOnly)
         );
 
+        // Act
         cut.Find("form").Submit();
 
+        // Assert
         Assert.True(submitted);
     }
 

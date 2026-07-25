@@ -2,7 +2,7 @@ using AndreGoepel.AppFoundation;
 
 namespace AndreGoepel.AppFoundation.Tests;
 
-public class AppFoundationLayoutOptionsTests
+public sealed class AppFoundationLayoutOptionsTests
 {
     private sealed class SampleMenu { }
 

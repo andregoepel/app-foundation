@@ -68,10 +68,7 @@
 
     private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
 
-    // MainLayout must inherit LayoutComponentBase (for @Body), so it can't also inherit
-    // LocalizedComponentBase — resolve through IServiceProvider directly instead, same
-    // reasoning as LocalizedComponentBase itself (tolerates a host that never registered
-    // localization).
+    // Can't inherit LocalizedComponentBase too (already inherits LayoutComponentBase for @Body).
     private string T(string key) => Services.AppFoundationText(key);
 
     protected override async Task OnInitializedAsync()
@@ -96,7 +93,6 @@
         NavigationManager.NavigateTo("/Account/SignOutAndRedirect", forceLoad: true);
     }
 
-    // Two-letter avatar initials derived from the account name / email local part.
     private static string Initials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))

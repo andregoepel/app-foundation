@@ -46,40 +46,28 @@ public static class Initialization
         var options = new AppFoundationOptions();
         configure?.Invoke(options);
 
-        // Load Docker/Kubernetes secrets (key-per-file) so sensitive configuration —
-        // e.g. the connection string — can be supplied as files under the secrets
-        // directory instead of plaintext environment variables. No-op when the
-        // directory is absent (optional: true), so local development is unaffected.
+        // Docker/Kubernetes secrets (key-per-file); no-op when the directory is absent (e.g. local dev).
         if (!string.IsNullOrWhiteSpace(options.SecretsDirectory))
         {
             builder.Configuration.AddKeyPerFile(options.SecretsDirectory, optional: true);
         }
 
-        // Let hosts declare trusted reverse proxies via configuration (environment
-        // variables / .env / appsettings) in addition to code, so production proxy
-        // CIDRs — unknown at build time — can be supplied at deploy time. Config
-        // values augment anything set in the configure callback.
+        // Production proxy CIDRs (unknown at build time) can be supplied via config, augmenting code.
         MergeForwardedHeaderConfiguration(builder.Configuration, options);
 
-        // Let hosts declare (or override) the first-run default-role ladder via
-        // configuration in addition to code — see AppFoundationOptions.DefaultRoles (#103).
+        // First-run default-role ladder can also be supplied via config (#103).
         MergeDefaultRolesConfiguration(builder.Configuration, options);
 
-        // Expose the resolved options to the request-pipeline side (UseAppFoundation),
-        // which reads them to configure forwarded headers.
+        // Read by UseAppFoundation to configure forwarded headers.
         builder.Services.AddSingleton(options);
 
-        // Setup.razor (in AndreGoepel.AppFoundation, which this project depends on — not
-        // the other way around) can't reference AppFoundationOptions without a circular
-        // project reference, so the resolved default-role list is exposed separately,
-        // typed on the dependency-free DefaultRole record from AppFoundation.Core (#103).
+        // Setup.razor (in AndreGoepel.AppFoundation) can't reference AppFoundationOptions without a circular
+        // project reference, so the resolved roles are exposed via the dependency-free DefaultRole record (#103).
         builder.Services.AddSingleton<IReadOnlyCollection<DefaultRole>>(
             options.DefaultRoles.ToList()
         );
 
-        // UseHsts() (below, in UseAppFoundation) reads its HstsOptions from DI, so the
-        // hardened default — 365-day max age, includeSubDomains, preload, replacing the
-        // framework's 30-day/no-subdomains/no-preload default — is registered here (#124).
+        // Hardened HSTS default (365-day max age, includeSubDomains, preload) replacing the framework's own (#124).
         builder.Services.AddHsts(hsts => ConfigureHsts(hsts, options));
 
         builder.AddServiceDefaults();
@@ -87,10 +75,7 @@ public static class Initialization
         builder.Services.AddMartenIdentity();
         builder.Services.AddMartenIdentityBlazor(identity =>
         {
-            // AppFoundation default: self-service registration is off unless a host opts
-            // in (#49) — two-factor and passkeys stay on. Applied before the host's
-            // callback so it can override, and an administrator can still toggle any flag
-            // at runtime on the Login Features page.
+            // AppFoundation default: self-service registration off unless a host opts in; 2FA/passkeys stay on (#49).
             identity.EnableUserRegistration = false;
             options.ConfigureIdentity?.Invoke(identity);
         });
@@ -102,47 +87,27 @@ public static class Initialization
                 $"Connection string '{options.DatabaseConnectionName}' not found."
             );
 
-        // Never let the running app drop/rewrite schema to match code: default to
-        // additive-only (CreateOrUpdate) outside Development, keeping the permissive All
-        // only for the local inner loop. A host can override — e.g. AutoCreate.None for a
-        // least-privilege role with schema applied out-of-band (#53). Shared with Quartz's
-        // qrtz_ provisioning below, so both follow the same posture.
+        // Default to additive-only (CreateOrUpdate) outside Development; a host can override, e.g. AutoCreate.None
+        // for a least-privilege role with schema applied out-of-band. Shared with Quartz's provisioning below (#53).
         var schemaCreation =
             options.SchemaCreation
             ?? (builder.Environment.IsDevelopment() ? AutoCreate.All : AutoCreate.CreateOrUpdate);
 
-        // AddMartenIdentityCleanup() (above) already called services.AddQuartz(...) to
-        // register its cleanup job/trigger on the default in-memory RAMJobStore — schedules
-        // and misfire state don't survive restarts. This second AddQuartz call merges into
-        // the same QuartzOptions and layers a PostgreSQL-backed persistent store on top, so
-        // identity's job registration keeps working unchanged while gaining durability, and
-        // host apps can hang their own recurring jobs on the same scheduler via their own
-        // AddQuartz call (#129). This call only configures the store — it must not
-        // re-register jobs/triggers or call AddQuartzHostedService a second time. Pure
-        // configuration, no I/O — the qrtz_ schema is provisioned separately in
-        // UseAppFoundation (see QuartzSchemaProvisioner), not here: AddAppFoundation must
-        // stay side-effect-free against the connection string, the same as AddMarten below,
-        // so it can be exercised in tests with a connection string that never actually
-        // resolves.
+        // Merges into the same QuartzOptions as AddMartenIdentityCleanup's own AddQuartz call, layering a
+        // Postgres-backed persistent store on top of its RAMJobStore registration. Configuration only — no I/O,
+        // no re-registering jobs — so AddAppFoundation stays testable without a reachable database; the qrtz_
+        // schema itself is provisioned later in UseAppFoundation (#129).
         builder.Services.AddQuartz(quartz =>
         {
             quartz.UsePersistentStore(store =>
             {
                 store.UsePostgres(connectionString);
 
-                // Postgres folds unquoted identifiers to lowercase; the vendored schema
-                // creates lowercase qrtz_* tables, so the prefix must be set explicitly —
-                // Quartz's own default ("QRTZ_") would 404 every query.
+                // Postgres folds unquoted identifiers to lowercase; Quartz's own default ("QRTZ_") would 404.
                 store.SetProperty("quartz.jobStore.tablePrefix", "qrtz_");
 
-                // Quartz's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
-                // which throws on .NET 8+ (removed for security reasons) — required, not
-                // optional, for a persistent store to work at all here.
+                // Quartz's default BinaryObjectSerializer uses BinaryFormatter, removed in .NET 8+.
                 store.UseSystemTextJsonSerializer();
-
-                // Clustering intentionally not enabled (single instance) — out of scope
-                // per #129; PerformSchemaValidation is left at Quartz's own default (true),
-                // a free fail-fast if provisioning above was skipped or failed.
             });
         });
 
@@ -157,17 +122,14 @@ public static class Initialization
 
                 marten.AutoCreateSchemaObjects = schemaCreation;
 
-                // The alias (and thus the table name) is part of the storage
-                // contract — hosts that persisted key ring entries with an
-                // identically-shaped document keep their keys on upgrade.
+                // The alias (and table name) is part of the storage contract — existing key ring rows must
+                // resolve under the same name on upgrade.
                 marten
                     .Schema.For<DataProtectionKeyDocument>()
                     .DocumentAlias("dataprotectionkeydocument");
 
-                // Every admin-configured settings record shares one table (see
-                // AndreGoepel.Marten.Configuration's SettingsDocument) instead of each type
-                // getting its own one-row table. Consuming apps register their own settings
-                // types the same way, via AddSettingsDocument<T>().
+                // Every admin-configured settings record shares one table; consuming apps register their own
+                // via AddSettingsDocument<T>().
                 marten.AddSettingsDocument<EmailSettingsDocument>();
             })
             .IntegrateWithWolverine();
@@ -186,9 +148,7 @@ public static class Initialization
 
             wolverine.Discovery.IncludeAssembly(typeof(SendEmailMessageHandler).Assembly);
 
-            // Consuming apps contribute Wolverine setup here — the host owns the
-            // one allowed UseWolverine call. Typically opting handler assemblies
-            // into discovery. Runs inside the UseWolverine lambda so it is applied
+            // The host owns the one allowed UseWolverine call; this runs inside it so config is applied
             // deterministically before handler discovery.
             options.ConfigureWolverine?.Invoke(wolverine);
         });
@@ -199,11 +159,8 @@ public static class Initialization
 
         builder.Services.AddRadzenComponents();
 
-        // AddMartenIdentityBlazor (above) already seeds DesignBlazorOptions.BrandName from
-        // MartenIdentityBlazorOptions.ApplicationName. Registering our own Configure here —
-        // after that call — runs later in the options pipeline and wins, so the dashboard,
-        // login, and account pages all share one brand sourced from the host's
-        // AppFoundationLayoutOptions.BrandName instead of two independently configured names.
+        // AddMartenIdentityBlazor already seeds DesignBlazorOptions.BrandName from ApplicationName; configuring
+        // here runs later and wins, so dashboard/login/account pages share AppFoundationLayoutOptions.BrandName.
         builder
             .Services.AddDesignBlazor()
             .AddOptions<DesignBlazorOptions>()
@@ -216,14 +173,8 @@ public static class Initialization
         return builder;
     }
 
-    /// <summary>
-    /// DataProtection with a durable key ring: keys are persisted in Postgres via
-    /// Marten (surviving container rebuilds) and — when a certificate is
-    /// configured — encrypted at rest, so a database dump alone cannot decrypt
-    /// <c>IDataProtector</c>-protected payloads. Without
-    /// <c>DataProtection:CertificatePath</c> (e.g. local development) keys are
-    /// stored unencrypted and ASP.NET Core logs its at-rest warning.
-    /// </summary>
+    // Keys persist in Postgres via Marten and are encrypted at rest when a certificate is configured; without
+    // DataProtection:CertificatePath (e.g. local dev) keys are stored unencrypted and ASP.NET Core logs a warning.
     private static void AddDataProtection(
         WebApplicationBuilder builder,
         AppFoundationOptions options
@@ -262,13 +213,8 @@ public static class Initialization
 
         var options = app.Services.GetRequiredService<AppFoundationOptions>();
 
-        // Idempotently provision Quartz's qrtz_ tables — mirrors Marten's own schema-creation
-        // posture (skipped under AutoCreate.None, for out-of-band-provisioned deployments),
-        // and must run here rather than in AddAppFoundation: it's the one real database
-        // side effect this seam owns, and AddAppFoundation stays side-effect-free against
-        // the connection string so it can be exercised in tests without a reachable
-        // database. Runs before app.Run() starts Quartz's own hosted service, which queries
-        // these tables as soon as it starts (#129).
+        // Idempotent qrtz_ provisioning must happen here, not in AddAppFoundation, which stays side-effect-free
+        // against the connection string so it's testable without a reachable database (#129).
         var connectionString =
             app.Configuration.GetConnectionString(options.DatabaseConnectionName)
             ?? throw new InvalidOperationException(
@@ -283,9 +229,6 @@ public static class Initialization
             QuartzSchemaProvisioner.Provision(connectionString);
         }
 
-        // Fail closed if the key ring would be persisted unencrypted in a non-local
-        // environment: the keys live in the same Postgres as the data they protect,
-        // so a database dump must not also yield the keys (#54).
         EnsureKeyRingProtected(
             app.Environment.IsDevelopment(),
             options.AllowUnprotectedKeyRing,
@@ -322,9 +265,6 @@ public static class Initialization
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
             app.UseHsts();
 
-            // X-Content-Type-Options / Referrer-Policy / Permissions-Policy are absent
-            // from the framework's own defaults, so nothing else in the pipeline sets
-            // them (#124).
             app.Use(
                 (context, next) =>
                 {
@@ -334,13 +274,9 @@ public static class Initialization
             );
         }
 
-        // Requests that match no endpoint at all (hard 404s) never reach the Blazor
-        // router, so re-execute them against the designed not-found page, passing the
-        // original status code so 403s render their own copy. Interactive navigations
-        // to unknown routes are handled by the Router's NotFoundPage. The re-execution
-        // needs its own DI scope: when the original request already rendered a Razor
-        // component (e.g. a host page that set a 4xx status), re-rendering in the same
-        // scope throws "'RemoteNavigationManager' already initialized".
+        // 404s that match no endpoint never reach the Blazor router, so re-execute them against /not-found; needs
+        // its own DI scope because re-rendering in the original scope throws on an already-initialized
+        // RemoteNavigationManager.
         app.UseStatusCodePagesWithReExecute(
             "/not-found",
             "?code={0}",
@@ -351,12 +287,8 @@ public static class Initialization
         app.UseStaticFiles();
         app.UseHeaderPropagation();
 
-        // Resolves the request culture (cookie -> Accept-Language -> default) and maps the
-        // culture-switch endpoint LanguageSwitcher links to. Must run before anything that
-        // renders user-facing text — that includes the identity middlewares below, which
-        // redirect to localized pages, and MapRazorComponents (called by the host after this
-        // method returns), because a Blazor Server circuit takes its culture from the request
-        // that establishes it.
+        // Must run before anything that renders user-facing text — identity middleware below, and
+        // MapRazorComponents — since a Blazor Server circuit takes its culture from the request that creates it.
         app.UseDesignBlazorLocalization();
 
         app.UseAntiforgery();
@@ -365,30 +297,14 @@ public static class Initialization
 
         app.UseMartenIdentityMiddleware();
 
-        // Enforce the identity feature flags (registration / 2FA / passkeys) at the
-        // request level: a disabled feature's pages and endpoints are unreachable by
-        // direct URL, not merely hidden in the nav menu.
+        // Disabled identity features (registration/2FA/passkeys) are unreachable by direct URL, not just hidden.
         app.UseMartenIdentityFeatureGate();
 
         return app;
     }
 
-    /// <summary>
-    /// Builds the forwarded-headers trust configuration. Honors <c>X-Forwarded-For</c>
-    /// and <c>X-Forwarded-Proto</c>, but only from trusted origins: the configured
-    /// proxy networks/proxies when supplied; otherwise every origin in Development
-    /// (local convenience) and only the framework default (loopback) elsewhere, so
-    /// arbitrary clients cannot spoof the client IP or scheme in production (#51).
-    /// </summary>
-    /// <summary>
-    /// Throws when the DataProtection key ring would be stored without at-rest
-    /// encryption outside Development, unless the host has explicitly accepted that
-    /// via <see cref="AppFoundationOptions.AllowUnprotectedKeyRing"/>.
-    /// <paramref name="xmlEncryptor"/> is the resolved
-    /// <see cref="KeyManagementOptions.XmlEncryptor"/>: non-<c>null</c> whenever key
-    /// encryption is configured (certificate, Key Vault, KMS, …), so this reflects the
-    /// actual end state regardless of how protection was wired.
-    /// </summary>
+    // Throws unless the key ring is encrypted (or AllowUnprotectedKeyRing is set) outside Development — a DB
+    // dump must not also yield the keys protecting the SMTP password, login tokens, and auth cookies (#54).
     internal static void EnsureKeyRingProtected(
         bool isDevelopment,
         bool allowUnprotectedKeyRing,
@@ -411,14 +327,8 @@ public static class Initialization
         );
     }
 
-    /// <summary>
-    /// Merges reverse-proxy trust configured under <c>AppFoundation:KnownProxyNetworks</c>
-    /// and <c>AppFoundation:KnownProxies</c> into <paramref name="options"/>. Each key
-    /// accepts either a delimited scalar (<c>"172.28.0.0/16, 10.0.0.0/8"</c> — friendly
-    /// for a single environment variable / <c>.env</c>) or a configuration array, so the
-    /// production proxy CIDRs can be supplied at deploy time without a code change.
-    /// Values augment (and de-duplicate against) any set in code.
-    /// </summary>
+    // Merges AppFoundation:KnownProxyNetworks/KnownProxies from config (delimited scalar or array) into options,
+    // augmenting whatever's set in code.
     internal static void MergeForwardedHeaderConfiguration(
         IConfiguration configuration,
         AppFoundationOptions options
@@ -452,9 +362,8 @@ public static class Initialization
                     .Select(value => value!.Trim());
             }
 
-            // Scalar / delimited form (a single environment variable / .env entry).
-            // Split on comma/semicolon/whitespace only — never ':' — so IPv6 CIDRs
-            // such as fd00::/8 stay intact.
+            // Scalar/delimited form (single env var/.env entry); split on comma/semicolon/whitespace only,
+            // never ':', so IPv6 CIDRs like fd00::/8 stay intact.
             return section.Value is { Length: > 0 } scalar
                 ? scalar.Split(
                     [',', ';', ' ', '\t', '\r', '\n'],
@@ -464,12 +373,8 @@ public static class Initialization
         }
     }
 
-    /// <summary>
-    /// Merges the first-run default-role ladder configured under
-    /// <c>AppFoundation:DefaultRoles</c> into <paramref name="options"/>, so a production
-    /// role list — unknown at build time — can be supplied at deploy time. Roles already
-    /// present in code (matched by name) are left as-is; config only adds new entries (#103).
-    /// </summary>
+    // Merges AppFoundation:DefaultRoles from config into options.DefaultRoles; roles already present by name
+    // are left as-is (#103).
     internal static void MergeDefaultRolesConfiguration(
         IConfiguration configuration,
         AppFoundationOptions options
@@ -487,6 +392,8 @@ public static class Initialization
         }
     }
 
+    // Trusts X-Forwarded-For/Proto only from configured proxies, or any origin in Development; otherwise keeps
+    // the framework's loopback-only default so arbitrary clients can't spoof the client IP/scheme (#51).
     internal static ForwardedHeadersOptions BuildForwardedHeadersOptions(
         AppFoundationOptions options,
         bool isDevelopment
@@ -499,7 +406,6 @@ public static class Initialization
 
         if (options.KnownProxyNetworks.Count > 0 || options.KnownProxies.Count > 0)
         {
-            // Trust exactly the configured reverse proxies — and nothing else.
             forwardedOptions.KnownIPNetworks.Clear();
             forwardedOptions.KnownProxies.Clear();
             foreach (var network in options.KnownProxyNetworks)
@@ -513,23 +419,14 @@ public static class Initialization
         }
         else if (isDevelopment)
         {
-            // Local development: no proxy in front, so accept forwarded headers from
-            // any origin for convenience.
             forwardedOptions.KnownIPNetworks.Clear();
             forwardedOptions.KnownProxies.Clear();
         }
-        // Otherwise keep the framework defaults (loopback only): without a configured
-        // proxy, arbitrary clients must not be able to spoof X-Forwarded-* headers.
 
         return forwardedOptions;
     }
 
-    /// <summary>
-    /// Applies the foundation's hardened HSTS defaults — <see cref="HstsOptions.MaxAge"/>
-    /// of 365 days, <see cref="HstsOptions.IncludeSubDomains"/> and
-    /// <see cref="HstsOptions.Preload"/> both <c>true</c> — then lets
-    /// <see cref="AppFoundationOptions.ConfigureHsts"/> override them (#124).
-    /// </summary>
+    // Hardened HSTS defaults (365-day max age, includeSubDomains, preload) before the host's own override (#124).
     internal static void ConfigureHsts(HstsOptions hsts, AppFoundationOptions options)
     {
         hsts.MaxAge = TimeSpan.FromDays(365);
@@ -539,13 +436,8 @@ public static class Initialization
         options.ConfigureHsts?.Invoke(hsts);
     }
 
-    /// <summary>
-    /// Sets the security response headers the ASP.NET Core framework leaves absent by
-    /// default: <c>X-Content-Type-Options: nosniff</c> unconditionally, and
-    /// <c>Referrer-Policy</c> / <c>Permissions-Policy</c> from
-    /// <see cref="AppFoundationOptions"/> unless a host has cleared them to
-    /// <c>null</c>/empty (#124).
-    /// </summary>
+    // Sets security headers the framework leaves absent by default; Referrer-Policy/Permissions-Policy only
+    // when configured, not cleared to null (#124).
     internal static void ApplySecurityHeaders(
         IHeaderDictionary headers,
         AppFoundationOptions options

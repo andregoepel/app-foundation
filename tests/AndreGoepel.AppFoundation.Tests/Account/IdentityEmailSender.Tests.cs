@@ -6,7 +6,7 @@ using Wolverine;
 
 namespace AndreGoepel.AppFoundation.Tests.Account;
 
-public class IdentityEmailSenderTests
+public sealed class IdentityEmailSenderTests
 {
     private static User AnyUser() => new() { UserName = "alice@example.com" };
 

@@ -9,7 +9,7 @@ namespace AndreGoepel.AppFoundation.MailService.Tests;
 // in the durable store. The two controls are framework-driven (a Wolverine attribute
 // and the Configure convention), so these guard that they stay present and correctly
 // shaped — a silent removal would re-open the issue without any compile error.
-public class MailMessageDurabilityTests
+public sealed class MailMessageDurabilityTests
 {
     [Fact]
     public void MailMessage_IsCappedWithDeliverWithin()

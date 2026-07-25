@@ -5,33 +5,19 @@ using Microsoft.Extensions.Localization;
 
 namespace AndreGoepel.AppFoundation.Resources;
 
-/// <summary>
-/// Resolves the AppFoundation UI's strings, tolerating a host that has not registered
-/// localization.
-/// </summary>
-/// <remarks>
-/// Pages must not <c>@inject IStringLocalizer&lt;AppFoundationStrings&gt;</c> directly: that
-/// is a required injection, so rendering a page throws on any host — or bUnit test — that
-/// never called <c>AddAppFoundation</c>. This library ships routable pages that consuming
-/// apps render in their own tests, so the failure would land in code the consumer never
-/// touched. Same reasoning, and same shape, as <c>IdentityTextExtensions</c> in
-/// AndreGoepel.Marten.Identity.Blazor and <c>DesignTextExtensions</c> in
-/// AndreGoepel.Design.Blazor.
-/// </remarks>
+// Resolves the AppFoundation UI's strings, tolerating a host that hasn't registered localization: a required
+// IStringLocalizer<AppFoundationStrings> injection would throw on any host (or bUnit test) that never called
+// AddAppFoundation, since this library's routable pages render in consumers' own tests (same shape as
+// IdentityTextExtensions in AndreGoepel.Marten.Identity.Blazor and DesignTextExtensions in AndreGoepel.Design.Blazor).
 internal static class AppFoundationTextExtensions
 {
-    // Same base name the IStringLocalizer path uses, so both routes read one resx pair and
-    // no English text is duplicated in code.
+    // Same base name the IStringLocalizer path uses, so both routes read one resx pair.
     private static readonly ResourceManager Fallback = new(
         typeof(AppFoundationStrings).FullName!,
         typeof(AppFoundationStrings).Assembly
     );
 
-    /// <summary>
-    /// Looks <paramref name="key"/> up for the current UI culture. Prefers a registered
-    /// <see cref="IStringLocalizer{T}"/> so a host can substitute one; otherwise reads the
-    /// embedded resources directly.
-    /// </summary>
+    // Prefers a registered IStringLocalizer<T> so a host can substitute one; otherwise reads embedded resources.
     internal static string AppFoundationText(this IServiceProvider services, string key)
     {
         if (services.GetService<IStringLocalizer<AppFoundationStrings>>() is { } localizer)
@@ -43,12 +29,11 @@ internal static class AppFoundationTextExtensions
             }
         }
 
-        // CurrentUICulture is what request localization sets per request, so the fallback
-        // stays culture-aware without any DI involvement.
+        // CurrentUICulture is set per request, so the fallback stays culture-aware without DI.
         return Fallback.GetString(key, CultureInfo.CurrentUICulture) ?? key;
     }
 
-    /// <inheritdoc cref="AppFoundationText(IServiceProvider, string)"/>
+    // Same as above, with format arguments applied via string.Format.
     internal static string AppFoundationText(
         this IServiceProvider services,
         string key,

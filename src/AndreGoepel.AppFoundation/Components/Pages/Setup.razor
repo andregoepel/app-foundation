@@ -94,7 +94,6 @@
     private async Task OnValidSubmit(InputModel model)
     {
         isProcessing = true;
-        StateHasChanged();
 
         try
         {
@@ -242,7 +241,6 @@
         finally
         {
             isProcessing = false;
-            StateHasChanged();
         }
     }
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class ForwardedHeaderConfigurationTests
+public sealed class ForwardedHeaderConfigurationTests
 {
     [Fact]
     public void Merge_DelimitedScalar_SplitsIntoEntries()

@@ -8,7 +8,7 @@ using Radzen;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Administration;
 
-public class EmailSettingsPageLocalizationTests : BunitContext
+public sealed class EmailSettingsPageLocalizationTests : BunitContext
 {
     private readonly IEmailSettingsStore store = Substitute.For<IEmailSettingsStore>();
     private readonly IEmailSender emailSender = Substitute.For<IEmailSender>();
@@ -37,12 +37,15 @@ public class EmailSettingsPageLocalizationTests : BunitContext
     [Fact]
     public void Render_German_ShowsGermanCopy()
     {
+        // Arrange
         var original = CultureInfo.CurrentUICulture;
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
         try
         {
+            // Act
             var cut = Render<EmailSettingsPage>();
 
+            // Assert
             Assert.Contains("E-Mail-Einstellungen", cut.Markup);
             Assert.Contains("Absendername", cut.Markup);
             Assert.Contains("Änderungen speichern", cut.Markup);

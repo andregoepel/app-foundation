@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class AddAppFoundationSchemaCreationTests
+public sealed class AddAppFoundationSchemaCreationTests
 {
     [Fact]
     public void AddAppFoundation_NonDevelopmentEnvironment_UsesCreateOrUpdate()

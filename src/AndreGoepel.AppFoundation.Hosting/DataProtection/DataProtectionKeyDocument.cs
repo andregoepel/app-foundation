@@ -13,7 +13,7 @@ namespace AndreGoepel.AppFoundation.Hosting.DataProtection;
 /// finance-app) keep their key ring on upgrade. Renaming this type or its
 /// properties requires a data migration.
 /// </remarks>
-public sealed class DataProtectionKeyDocument
+public sealed record DataProtectionKeyDocument
 {
     public required string Id { get; init; }
 

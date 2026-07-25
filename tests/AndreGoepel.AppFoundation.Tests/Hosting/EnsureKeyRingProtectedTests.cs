@@ -4,7 +4,7 @@ using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class EnsureKeyRingProtectedTests
+public sealed class EnsureKeyRingProtectedTests
 {
     [Fact]
     public void NonDevelopment_WithoutEncryptor_NotAllowed_Throws()

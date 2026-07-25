@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Shared;
 
-public class ErrorPageTests : BunitContext
+public sealed class ErrorPageTests : BunitContext
 {
     private NavigationManager Nav => Services.GetRequiredService<NavigationManager>();
 

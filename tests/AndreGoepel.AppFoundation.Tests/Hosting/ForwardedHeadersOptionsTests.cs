@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class ForwardedHeadersOptionsTests
+public sealed class ForwardedHeadersOptionsTests
 {
     [Fact]
     public void Build_AlwaysHonorsForwardedForAndProto()

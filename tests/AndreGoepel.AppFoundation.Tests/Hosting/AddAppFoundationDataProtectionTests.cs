@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
-public class AddAppFoundationDataProtectionTests
+public sealed class AddAppFoundationDataProtectionTests
 {
     [Fact]
     public void AddAppFoundation_PersistsKeyRingViaMartenRepository()

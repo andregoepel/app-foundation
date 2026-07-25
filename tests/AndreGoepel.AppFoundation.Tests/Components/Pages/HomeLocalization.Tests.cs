@@ -4,13 +4,15 @@ using Bunit;
 
 namespace AndreGoepel.AppFoundation.Tests.Components.Pages;
 
-public class HomeLocalizationTests : BunitContext
+public sealed class HomeLocalizationTests : BunitContext
 {
     [Fact]
     public void Render_English_ShowsEnglishCopy()
     {
+        // Arrange / Act
         var cut = Render<Home>();
 
+        // Assert
         Assert.Contains("Dashboard", cut.Markup);
         Assert.Contains("Welcome!", cut.Markup);
     }
@@ -18,12 +20,15 @@ public class HomeLocalizationTests : BunitContext
     [Fact]
     public void Render_German_ShowsGermanCopy()
     {
+        // Arrange
         var original = CultureInfo.CurrentUICulture;
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
         try
         {
+            // Act
             var cut = Render<Home>();
 
+            // Assert
             Assert.Contains("Willkommen!", cut.Markup);
         }
         finally

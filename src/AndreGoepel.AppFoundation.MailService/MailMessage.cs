@@ -10,13 +10,8 @@ namespace AndreGoepel.AppFoundation.MailService;
 /// token-bearing row in the durable store (#55).
 /// </summary>
 [DeliverWithin(DeliveryWindowSeconds)]
-public record MailMessage(string Recipient, string Subject, string Body)
+public sealed record MailMessage(string Recipient, string Subject, string Body)
 {
-    /// <summary>
-    /// Maximum time a queued email may wait for delivery before Wolverine discards it.
-    /// One hour is far beyond normal (sub-second) delivery, so it never affects the
-    /// happy path — it only sheds messages stuck across an outage, whose token is
-    /// likely expired anyway.
-    /// </summary>
+    // One hour is far beyond normal delivery, so it only sheds messages stuck across an outage.
     internal const int DeliveryWindowSeconds = 3600;
 }
