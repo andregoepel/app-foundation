@@ -113,26 +113,33 @@ public static class Initialization
 
         builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 
-        builder
-            .Services.AddMarten(marten =>
-            {
-                marten.Connection(connectionString);
+        var martenConfiguration = builder.Services.AddMarten(marten =>
+        {
+            marten.Connection(connectionString);
 
-                marten.InitializeIdentity();
+            marten.InitializeIdentity();
 
-                marten.AutoCreateSchemaObjects = schemaCreation;
+            marten.AutoCreateSchemaObjects = schemaCreation;
 
-                // The alias (and table name) is part of the storage contract — existing key ring rows must
-                // resolve under the same name on upgrade.
-                marten
-                    .Schema.For<DataProtectionKeyDocument>()
-                    .DocumentAlias("dataprotectionkeydocument");
+            // The alias (and table name) is part of the storage contract — existing key ring rows must
+            // resolve under the same name on upgrade.
+            marten
+                .Schema.For<DataProtectionKeyDocument>()
+                .DocumentAlias("dataprotectionkeydocument");
 
-                // Every admin-configured settings record shares one table; consuming apps register their own
-                // via AddSettingsDocument<T>().
-                marten.AddSettingsDocument<EmailSettingsDocument>();
-            })
-            .IntegrateWithWolverine();
+            // Every admin-configured settings record shares one table; consuming apps register their own
+            // via AddSettingsDocument<T>().
+            marten.AddSettingsDocument<EmailSettingsDocument>();
+        });
+
+        // Off by default (no behavior change for existing consumers); a host opts in via
+        // AppFoundationOptions.EnableAsyncDaemon when it has async projections/subscriptions to run.
+        if (options.EnableAsyncDaemon)
+        {
+            martenConfiguration.AddAsyncDaemon(options.AsyncDaemonMode);
+        }
+
+        martenConfiguration.IntegrateWithWolverine();
 
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpContextAccessor();
