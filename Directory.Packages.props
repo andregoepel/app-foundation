@@ -36,6 +36,7 @@
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.0" />
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.6.0" />
     <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.8.0" />
+    <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.0.0" />
     <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.1.0" />
     <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.0.0" />
   </ItemGroup>
