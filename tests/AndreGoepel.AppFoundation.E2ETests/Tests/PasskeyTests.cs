@@ -3,26 +3,14 @@ using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 
 /// <summary>
-/// Covers the WebAuthn/passkey journeys using a Chromium CDP virtual authenticator that
-/// auto-satisfies user presence/verification, so create/get ceremonies complete headlessly.
+/// Covers the full passkey loop — register a credential, sign out, then sign back in with it —
+/// through this app's sample host, using a Chromium CDP virtual authenticator that
+/// auto-satisfies user presence/verification so the WebAuthn ceremonies complete headlessly.
+/// Passkey management (rename, list) is marten-identity's own authoritative E2E coverage, not
+/// re-tested here (#150).
 /// </summary>
-public sealed class PasskeyTests(E2EAppFixture fixture) : E2ETestBase(fixture)
+public sealed class PasskeyTests(AppFoundationE2EAppFixture fixture) : E2ETestBase(fixture)
 {
-    [Fact]
-    public async Task RegisterPasskey_ThenRename_AppearsInList()
-    {
-        // Arrange
-        await CreateConfirmedUserAndLoginAsync();
-        await VirtualAuthenticator.EnableAsync(Context, Page);
-
-        // Act
-        await RegisterPasskeyAsync("My Test Key");
-
-        // Assert — the named passkey shows up in the management grid.
-        await Page.AssertOnPathAsync("Account/Manage/Passkeys");
-        await Expect(Page.GetByText("My Test Key")).ToBeVisibleAsync();
-    }
-
     [Fact]
     public async Task RegisterPasskey_ThenLoginWithPasskey_Succeeds()
     {
@@ -62,7 +50,7 @@ public sealed class PasskeyTests(E2EAppFixture fixture) : E2ETestBase(fixture)
     private async Task<string> CreateConfirmedUserAndLoginAsync()
     {
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.ClearMailAsync();
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)

@@ -1,73 +1,21 @@
+using AndreGoepel.Testing.E2E;
+
 namespace AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 
 /// <summary>
-/// Base class for every E2E test: one fresh browser context + page per test (so cookies never leak
-/// between tests) plus the common account flows expressed as intent-revealing helpers.
+/// Thin non-generic wrapper over <see cref="AndreGoepel.Testing.E2E.E2ETestBase{TFixture}"/>
+/// closed over <see cref="AppFoundationE2EAppFixture"/>, so <c>: E2ETestBase(fixture)</c> doesn't
+/// need the closed generic name spelled out on every test class. Also ensures MailHog is
+/// configured on the real Email Settings admin page before any test runs — email settings are
+/// database-only, and every E2E run starts from an empty database, so nothing could send mail
+/// otherwise.
 /// </summary>
-[Collection(E2ECollection.Name)]
-public abstract class E2ETestBase(E2EAppFixture fixture) : IAsyncLifetime
+public abstract class E2ETestBase(AppFoundationE2EAppFixture fixture)
+    : AndreGoepel.Testing.E2E.E2ETestBase<AppFoundationE2EAppFixture>(fixture)
 {
-    protected E2EAppFixture Fixture { get; } = fixture;
-    protected IBrowserContext Context { get; private set; } = default!;
-    protected IPage Page { get; private set; } = default!;
-
-    public async ValueTask InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
-        // Idempotent after the first test: email settings are database-only, and every run starts
-        // from an empty database, so nothing could send mail without this.
         await Fixture.EnsureEmailConfiguredAsync();
-
-        Context = await Fixture.NewContextAsync();
-        Page = await Context.NewPageAsync();
+        await base.InitializeAsync();
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        await Context.DisposeAsync();
-    }
-
-    #region Account flows
-
-    /// <summary>Logs the current page's session in via the real cookie-login flow.</summary>
-    protected Task LoginAsync(string email, string password, IPage? page = null) =>
-        (page ?? Page).LoginAsync(email, password);
-
-    /// <summary>Ensures the root admin exists, then logs this page in as that admin.</summary>
-    protected async Task LoginAsAdminAsync(IPage? page = null)
-    {
-        await Fixture.ProvisionAdminAsync();
-        await LoginAsync(TestData.AdminEmail, TestData.DefaultPassword, page);
-    }
-
-    /// <summary>Registers a new user and returns the generated email; the account still needs confirmation.</summary>
-    protected async Task<string> RegisterAsync(string? email = null, string? password = null)
-    {
-        email ??= TestData.NewEmail();
-        password ??= TestData.DefaultPassword;
-
-        await Page.GotoAsync("/Account/Register");
-        await Page.WaitForBlazorAsync();
-        await Page.FillFieldAsync("Email", email);
-        await Page.FillFieldAsync("NewPassword", password);
-        await Page.FillFieldAsync("ConfirmPassword", password);
-        await Page.ClickButtonAsync("Register");
-        return email;
-    }
-
-    /// <summary>Reads the confirmation link MailHog captured and follows it to activate the account.</summary>
-    protected async Task ConfirmEmailAsync(string email)
-    {
-        var link = await Fixture.MailHog.WaitForLinkAsync(email, "Account/ConfirmEmail");
-        await Page.GotoAsync(link);
-        await Page.WaitForBlazorAsync();
-    }
-
-    /// <summary>Signs the current session out through the app's sign-out endpoint.</summary>
-    protected async Task LogoutAsync(IPage? page = null)
-    {
-        page ??= Page;
-        await page.GotoAsync("/Account/SignOutAndRedirect");
-    }
-
-    #endregion
 }
