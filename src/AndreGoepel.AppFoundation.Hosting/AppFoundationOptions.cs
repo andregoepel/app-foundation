@@ -1,5 +1,6 @@
 using AndreGoepel.Marten.Identity.Blazor;
 using JasperFx;
+using JasperFx.Events.Daemon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -174,4 +175,24 @@ public sealed class AppFoundationOptions
     /// </para>
     /// </summary>
     public IList<DefaultRole> DefaultRoles { get; } = new List<DefaultRole>();
+
+    /// <summary>
+    /// Opt in to Marten's async daemon, which runs async projections and subscriptions
+    /// in-process via a hosted service. Off by default so existing consumers see no
+    /// behavior change. A host with async-only projections/subscriptions (or that wants
+    /// Marten's built-in daemon instead of hand-rolling its own <c>IHostedService</c>
+    /// around <c>IDocumentStore.BuildProjectionDaemonAsync</c>) sets this to
+    /// <c>true</c>; see also <see cref="AsyncDaemonMode"/>.
+    /// </summary>
+    public bool EnableAsyncDaemon { get; set; }
+
+    /// <summary>
+    /// Daemon mode used when <see cref="EnableAsyncDaemon"/> is <c>true</c>, forwarded to
+    /// Marten's <c>AddAsyncDaemon</c>. Defaults to <see cref="DaemonMode.Solo"/> — the
+    /// right choice for a single running instance of the host; a host that runs multiple
+    /// instances and wants leader election for the daemon should set this to
+    /// <see cref="DaemonMode.HotCold"/> instead. Has no effect unless
+    /// <see cref="EnableAsyncDaemon"/> is <c>true</c>.
+    /// </summary>
+    public DaemonMode AsyncDaemonMode { get; set; } = DaemonMode.Solo;
 }
