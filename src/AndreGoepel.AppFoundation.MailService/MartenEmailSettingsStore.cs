@@ -38,16 +38,11 @@ internal sealed class MartenEmailSettingsStore(
         var existing = await store.LoadAsync<EmailSettingsDocument>(cancellationToken);
 
         var protector = dataProtectionProvider.CreateProtector(ProtectorPurpose);
-        string protectedPassword;
-        if (!string.IsNullOrEmpty(newPassword))
-        {
-            protectedPassword = protector.Protect(newPassword);
-        }
-        else if (existing is not null)
-        {
-            protectedPassword = existing.ProtectedPassword;
-        }
-        else
+        var protectedPassword = protector.ProtectOrKeepExisting(
+            newPassword,
+            existing?.ProtectedPassword
+        );
+        if (protectedPassword is null)
         {
             return Result.Fail("An SMTP password is required for the first save.");
         }

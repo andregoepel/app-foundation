@@ -10,9 +10,9 @@
       },
       "AndreGoepel.Marten.Configuration": {
         "type": "Direct",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "K/lZ0YfJ6+9u851HX1o89Y8TPNVwBd8SSqzh9KIWLgYf3/j6w2yL7RTBtAKlPUtTyTTIf2Vuh+Jsz1hREEEyOw==",
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "oz/8HU0TJ5efluVfz5d17BESg03G46DqYhuM0GXTuSNgeqxr/k7OYvJZl2pbw4IT8ffuDLj7Mwgo8xjiWJdyZA==",
         "dependencies": {
           "Marten": "9.19.0"
         }
