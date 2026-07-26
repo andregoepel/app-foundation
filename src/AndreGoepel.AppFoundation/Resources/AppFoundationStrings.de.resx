@@ -63,21 +63,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- ReconnectModal -->
-  <data name="Reconnect.Rejoining" xml:space="preserve"><value><![CDATA[Verbindung zum Server wird wiederhergestellt …]]></value></data>
-  <data name="Reconnect.RejoinFailedPrefix" xml:space="preserve">
-    <value><![CDATA[Wiederverbinden fehlgeschlagen … neuer Versuch in]]></value>
-    <comment>Gefolgt von einem live aktualisierten Sekunden-Countdown, dann RejoinFailedSuffix.</comment>
-  </data>
-  <data name="Reconnect.RejoinFailedSuffix" xml:space="preserve"><value><![CDATA[Sekunden.]]></value></data>
-  <data name="Reconnect.FailedLine1" xml:space="preserve"><value><![CDATA[Wiederverbinden nicht möglich.]]></value></data>
-  <data name="Reconnect.FailedLine2" xml:space="preserve"><value><![CDATA[Bitte erneut versuchen oder die Seite neu laden.]]></value></data>
-  <data name="Reconnect.Retry" xml:space="preserve"><value><![CDATA[Erneut versuchen]]></value></data>
-  <data name="Reconnect.Paused" xml:space="preserve"><value><![CDATA[Die Sitzung wurde vom Server pausiert.]]></value></data>
-  <data name="Reconnect.ResumeFailedLine1" xml:space="preserve"><value><![CDATA[Sitzung konnte nicht fortgesetzt werden.]]></value></data>
-  <data name="Reconnect.ResumeFailedLine2" xml:space="preserve"><value><![CDATA[Bitte die Seite neu laden.]]></value></data>
-  <data name="Reconnect.Resume" xml:space="preserve"><value><![CDATA[Fortsetzen]]></value></data>
-
   <!-- MainLayout -->
   <data name="Shell.Profile" xml:space="preserve"><value><![CDATA[Profil]]></value></data>
   <data name="Shell.LogOut" xml:space="preserve"><value><![CDATA[Abmelden]]></value></data>
