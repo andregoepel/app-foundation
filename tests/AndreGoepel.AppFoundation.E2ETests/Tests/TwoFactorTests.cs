@@ -3,11 +3,11 @@ using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 
 /// <summary>
-/// Covers the TOTP two-factor lifecycle: enabling via authenticator, logging in with a generated code,
-/// logging in with a recovery code, and disabling. Each test uses its own user so enabling 2FA never
-/// affects the shared admin account.
+/// Covers the TOTP two-factor loop — enable via authenticator, then a fresh login is challenged
+/// and cleared with a generated code — through this app's sample host. Recovery-code login and
+/// disabling 2FA are marten-identity's own authoritative E2E coverage, not re-tested here (#150).
 /// </summary>
-public sealed class TwoFactorTests(E2EAppFixture fixture) : E2ETestBase(fixture)
+public sealed class TwoFactorTests(AppFoundationE2EAppFixture fixture) : E2ETestBase(fixture)
 {
     [Fact]
     public async Task Enable2fa_ThenLogin_RequiresAuthenticatorCode()
@@ -32,51 +32,6 @@ public sealed class TwoFactorTests(E2EAppFixture fixture) : E2ETestBase(fixture)
         );
     }
 
-    [Fact]
-    public async Task Enable2fa_ThenLoginWithRecoveryCode_Succeeds()
-    {
-        // Arrange
-        var (email, _, recoveryCodes) = await CreateUserWithTwoFactorAsync();
-        Assert.NotEmpty(recoveryCodes);
-
-        // Act
-        await LogoutAsync();
-        await LoginAsync(email, TestData.DefaultPassword);
-        await Page.AssertOnPathAsync("Account/LoginWith2fa");
-        await Page.WaitForBlazorAsync();
-        await Page.ClickLinkAsync("Use a recovery code instead");
-        await Page.AssertOnPathAsync("Account/LoginWithRecoveryCode");
-        await Page.WaitForBlazorAsync();
-        await Page.FillFieldAsync("RecoveryCode", recoveryCodes[0]);
-        await Page.ClickButtonAsync("Log in");
-
-        // Assert
-        await Page.WaitForURLAsync(url =>
-            !new Uri(url).AbsolutePath.StartsWith(
-                "/Account/Login",
-                StringComparison.OrdinalIgnoreCase
-            )
-        );
-    }
-
-    [Fact]
-    public async Task Disable2fa_RemovesTheChallenge()
-    {
-        // Arrange
-        var (email, _, _) = await CreateUserWithTwoFactorAsync();
-
-        // Act — disable, then log in fresh.
-        await Page.GotoAsync("/Account/Manage/Disable2fa");
-        await Page.WaitForBlazorAsync();
-        await Page.ClickButtonAsync("Disable 2FA");
-        await Page.AssertOnPathAsync("Account/Manage/TwoFactorAuthentication");
-        await LogoutAsync();
-        await LoginAsync(email, TestData.DefaultPassword);
-
-        // Assert — login completes without a 2FA challenge.
-        Assert.DoesNotContain("LoginWith2fa", Page.Url, StringComparison.OrdinalIgnoreCase);
-    }
-
     #region Helpers
 
     /// <summary>Registers &amp; confirms a user, logs them in, enables TOTP 2FA, and returns its secrets.</summary>
@@ -87,7 +42,7 @@ public sealed class TwoFactorTests(E2EAppFixture fixture) : E2ETestBase(fixture)
     )> CreateUserWithTwoFactorAsync()
     {
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.ClearMailAsync();
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)
