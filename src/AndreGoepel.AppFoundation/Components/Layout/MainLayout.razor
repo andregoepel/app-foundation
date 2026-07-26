@@ -1,7 +1,9 @@
 @using Radzen
 @using Radzen.Blazor
+@using System.Resources
 @using Microsoft.AspNetCore.Components.Authorization
 @using AndreGoepel.AppFoundation.Resources
+@using AndreGoepel.Design.Blazor.Resources
 @inherits LayoutComponentBase
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -68,8 +70,15 @@
 
     private AppFoundationLayoutOptions Layout => LayoutOptions.Value;
 
-    // Can't inherit LocalizedComponentBase too (already inherits LayoutComponentBase for @Body).
-    private string T(string key) => Services.AppFoundationText(key);
+    // Can't inherit AppFoundationLocalizedComponentBase too (already inherits LayoutComponentBase
+    // for @Body), so call the generic AndreGoepel.Design.Blazor extension directly. Same
+    // marker/fallback convention every LocalizedComponentBase<TMarker> closure follows.
+    private static readonly ResourceManager TextFallback = new(
+        typeof(AppFoundationStrings).FullName!,
+        typeof(AppFoundationStrings).Assembly
+    );
+
+    private string T(string key) => Services.LocalizedText<AppFoundationStrings>(key, TextFallback);
 
     protected override async Task OnInitializedAsync()
     {
