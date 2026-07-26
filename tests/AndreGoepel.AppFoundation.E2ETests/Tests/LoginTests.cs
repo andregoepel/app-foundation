@@ -29,7 +29,7 @@ public sealed class LoginTests(E2EAppFixture fixture) : E2ETestBase(fixture)
     {
         // Arrange — a confirmed user (lockout only applies once sign-in is otherwise allowed).
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)

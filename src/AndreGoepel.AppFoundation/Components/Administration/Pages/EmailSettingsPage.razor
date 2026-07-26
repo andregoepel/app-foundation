@@ -175,7 +175,7 @@
                 NotificationService.Notify(
                     NotificationSeverity.Error,
                     T("EmailSettings.ErrorSavingSettingsTitle"),
-                    result.Error
+                    result.Error ?? ""
                 );
             }
         }

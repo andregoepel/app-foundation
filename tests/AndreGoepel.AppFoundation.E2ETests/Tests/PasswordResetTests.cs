@@ -10,7 +10,7 @@ public sealed class PasswordResetTests(E2EAppFixture fixture) : E2ETestBase(fixt
     {
         // Arrange — a confirmed user we can safely change (never the shared admin).
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)
@@ -18,14 +18,18 @@ public sealed class PasswordResetTests(E2EAppFixture fixture) : E2ETestBase(fixt
         await ConfirmEmailAsync(email);
 
         // Act — request the reset, follow the emailed link, set a new password.
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
         await Page.GotoAsync("/Account/ForgotPassword");
         await Page.WaitForBlazorAsync();
         await Page.FillFieldAsync("Email", email);
         await Page.ClickButtonAsync("Reset password");
         await Page.AssertOnPathAsync("Account/ForgotPasswordConfirmation");
 
-        var resetLink = await Fixture.MailHog.WaitForLinkAsync(email, "Account/ResetPassword");
+        var resetLink = await Fixture.MailHog.WaitForLinkAsync(
+            email,
+            "Account/ResetPassword",
+            ct: TestContext.Current.CancellationToken
+        );
         await Page.GotoAsync(resetLink);
         await Page.WaitForBlazorAsync();
         await Page.FillFieldAsync("Email", email);

@@ -69,7 +69,8 @@ public sealed class MartenXmlRepositoryTests
             .Received(1)
             .Store(
                 Arg.Is<DataProtectionKeyDocument[]>(documents =>
-                    documents.Length == 1
+                    documents != null
+                    && documents.Length == 1
                     && documents[0].Id == "key-abc"
                     && documents[0].Xml == element.ToString(SaveOptions.DisableFormatting)
                 )

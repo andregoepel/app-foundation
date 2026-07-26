@@ -13,5 +13,10 @@
     <!-- Generate and honour packages.lock.json so restores are reproducible and
          tamper-evident; CI restores in locked mode to fail on any drift. -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Low/moderate NuGet audit findings stay visible as warnings instead of
+         breaking every build when a new CVE is published; NU1903/NU1904
+         (high/critical) remain errors. -->
+    <WarningsNotAsErrors>NU1901;NU1902</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>

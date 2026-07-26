@@ -44,7 +44,7 @@ public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fix
     {
         // Arrange — a confirmed non-admin user.
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)
