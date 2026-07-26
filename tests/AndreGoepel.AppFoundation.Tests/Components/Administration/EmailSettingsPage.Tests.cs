@@ -1,6 +1,6 @@
 using AndreGoepel.AppFoundation.Components.Administration.Pages;
-using AndreGoepel.AppFoundation.Core;
 using AndreGoepel.AppFoundation.MailService;
+using AndreGoepel.Core;
 using Bunit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
