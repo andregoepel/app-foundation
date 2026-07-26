@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AndreGoepel.AppFoundation.Tests" />
+    <InternalsVisibleTo Include="AndreGoepel.AppFoundation.IntegrationTests" />
   </ItemGroup>
 
   <!-- Vendored Quartz PostgreSQL job-store DDL, executed at startup by

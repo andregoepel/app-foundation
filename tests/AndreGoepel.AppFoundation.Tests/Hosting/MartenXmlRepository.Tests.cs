@@ -1,10 +1,14 @@
 using System.Xml.Linq;
 using AndreGoepel.AppFoundation.Hosting.DataProtection;
-using Marten;
-using NSubstitute;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
+/// <summary>
+/// Pure, I/O-free conversion logic only. The real Marten round trip (<c>StoreElement</c> /
+/// <c>GetAllElements</c> against Postgres) lives in <c>AndreGoepel.AppFoundation.IntegrationTests</c>
+/// — see <c>MartenXmlRepositoryTests</c> there — which superseded the NSubstitute-mocked version
+/// of that coverage that used to live in this file.
+/// </summary>
 public sealed class MartenXmlRepositoryTests
 {
     [Fact]
@@ -47,34 +51,5 @@ public sealed class MartenXmlRepositoryTests
         // Assert
         Assert.Equal(2, elements.Count);
         Assert.Equal(["1", "2"], elements.Select(e => e.Attribute("id")!.Value));
-    }
-
-    [Fact]
-    public void StoreElement_PersistsDocumentAndSavesSession()
-    {
-        // Arrange
-        var session = Substitute.For<IDocumentSession>();
-        var store = Substitute.For<IDocumentStore>();
-        store.LightweightSession().Returns(session);
-        var services = Substitute.For<IServiceProvider>();
-        services.GetService(typeof(IDocumentStore)).Returns(store);
-        var repository = new MartenXmlRepository(services);
-        var element = new XElement("key", new XAttribute("id", "abc"));
-
-        // Act
-        repository.StoreElement(element, "key-abc");
-
-        // Assert
-        session
-            .Received(1)
-            .Store(
-                Arg.Is<DataProtectionKeyDocument[]>(documents =>
-                    documents != null
-                    && documents.Length == 1
-                    && documents[0].Id == "key-abc"
-                    && documents[0].Xml == element.ToString(SaveOptions.DisableFormatting)
-                )
-            );
-        session.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
