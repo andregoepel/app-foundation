@@ -248,6 +248,11 @@
           "Microsoft.JSInterop": "10.0.10"
         }
       },
+      "Microsoft.AspNetCore.DataProtection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.0.10",
+        "contentHash": "q2RNx0N/qrsU+JgbPE78I9pu5ekwguitAFVoeE1NCgxtkUTguvf7oTzBnn42zSQxuugJ4fmj0RSarob8Rvorrg=="
+      },
       "Microsoft.AspNetCore.Metadata": {
         "type": "Transitive",
         "resolved": "10.0.10",
@@ -1236,7 +1241,7 @@
           "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
           "AndreGoepel.AppFoundation.MailService": "[1.9.0, )",
           "AndreGoepel.AppFoundation.ServiceDefaults": "[1.8.0, )",
-          "AndreGoepel.Marten.Configuration": "[1.0.1, )",
+          "AndreGoepel.Marten.Configuration": "[1.1.0, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
           "Marten": "[9.19.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.10, )",
@@ -1252,7 +1257,7 @@
         "type": "Project",
         "dependencies": {
           "AndreGoepel.Core": "[1.0.0, )",
-          "AndreGoepel.Marten.Configuration": "[1.0.1, )",
+          "AndreGoepel.Marten.Configuration": "[1.1.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.19.0, )",
           "WolverineFx.Marten": "[6.22.0, )"
@@ -1287,11 +1292,12 @@
       },
       "AndreGoepel.Marten.Configuration": {
         "type": "CentralTransitive",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "K/lZ0YfJ6+9u851HX1o89Y8TPNVwBd8SSqzh9KIWLgYf3/j6w2yL7RTBtAKlPUtTyTTIf2Vuh+Jsz1hREEEyOw==",
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "oz/8HU0TJ5efluVfz5d17BESg03G46DqYhuM0GXTuSNgeqxr/k7OYvJZl2pbw4IT8ffuDLj7Mwgo8xjiWJdyZA==",
         "dependencies": {
           "Marten": "9.19.0",
+          "Microsoft.AspNetCore.DataProtection.Abstractions": "10.0.10",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10"
         }
       },
