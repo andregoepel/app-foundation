@@ -166,7 +166,7 @@ routable pages are discovered.
 |---|---|
 | `Layout/MainLayout` | Radzen layout: header (profile menu + logout), sidebar (brand, `NavMenu`, copyright), body |
 | `Layout/NavMenu` | Setup-gated menu: authenticated **Account** submenu; **Administrator** section with an injectable admin slot + Users / Roles / User Cleanup |
-| `Layout/EmptyLayout`, `Layout/ReconnectModal` | Bare layout for setup/errors; Blazor reconnect UI |
+| `Layout/EmptyLayout` | Bare layout for setup/errors |
 | `Pages/Home` | Dashboard landing (`/dashboard`) |
 | `Pages/Setup` | First-run setup page |
 | `Administration/Pages/EmailSettingsPage` | Admin-only email settings editor (`/Administration/EmailSettings`, from 1.1.0; §5) |
