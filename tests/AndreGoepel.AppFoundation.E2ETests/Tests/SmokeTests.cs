@@ -3,7 +3,7 @@ using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 
 /// <summary>Fast confidence checks that the harness boots the app and the core happy path works.</summary>
-public sealed class SmokeTests(E2EAppFixture fixture) : E2ETestBase(fixture)
+public sealed class SmokeTests(AppFoundationE2EAppFixture fixture) : E2ETestBase(fixture)
 {
     [Fact]
     public async Task Setup_ProvisionsAdmin_AndSetupPageIsShownOnlyOnce()

@@ -2,8 +2,12 @@ using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 
 namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 
-/// <summary>Covers the Administrator-only management area and its authorization boundary.</summary>
-public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fixture)
+/// <summary>
+/// Covers the Administrator-only management area's data wiring and its authorization boundary
+/// through this app's sample host. Role CRUD is marten-identity's own authoritative E2E coverage,
+/// not re-tested here (#150).
+/// </summary>
+public sealed class AdministrationTests(AppFoundationE2EAppFixture fixture) : E2ETestBase(fixture)
 {
     [Fact]
     public async Task Admin_CanViewUsers_ListingIncludesAdminAccount()
@@ -22,29 +26,11 @@ public sealed class AdministrationTests(E2EAppFixture fixture) : E2ETestBase(fix
     }
 
     [Fact]
-    public async Task Admin_CanCreateRole_AppearsInGrid()
-    {
-        // Arrange
-        await LoginAsAdminAsync();
-        await Page.GotoAsync("/Administration/Roles");
-        await Page.WaitForBlazorAsync();
-        var roleName = "QA-Role-" + Guid.NewGuid().ToString("N")[..8];
-
-        // Act — the "New role" button opens a dialog with a name field.
-        await Page.ClickButtonAsync("New role");
-        await Page.FillFieldAsync("Rolename", roleName);
-        await Page.ClickButtonAsync("Save");
-
-        // Assert
-        await Expect(Page.GetByText(roleName)).ToBeVisibleAsync();
-    }
-
-    [Fact]
     public async Task NonAdmin_AccessingAdministration_IsBouncedAway()
     {
         // Arrange — a confirmed non-admin user.
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
+        await Fixture.ClearMailAsync(TestContext.Current.CancellationToken);
         var email = await RegisterAsync();
         await Page.WaitForURLAsync(url =>
             url.Contains("RegisterConfirmation", StringComparison.OrdinalIgnoreCase)

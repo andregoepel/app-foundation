@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AndreGoepel.Testing.E2E" />
     <PackageReference Include="Aspire.Hosting.Testing" />
     <PackageReference Include="Microsoft.Playwright" />
-    <PackageReference Include="Otp.NET" />
     <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />

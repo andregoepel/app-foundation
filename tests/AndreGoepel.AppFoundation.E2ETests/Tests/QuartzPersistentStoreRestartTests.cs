@@ -1,5 +1,5 @@
-using AndreGoepel.AppFoundation.E2ETests.Infrastructure;
 using AndreGoepel.AppFoundation.Hosting;
+using AndreGoepel.Testing.E2E;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
@@ -21,21 +21,21 @@ namespace AndreGoepel.AppFoundation.E2ETests.Tests;
 /// dependency — but not via a bespoke ad-hoc Postgres-only model:
 /// <c>DistributedApplicationTestingBuilder.Create()</c> requires the calling project to
 /// itself be an AppHost-SDK project, which this test project isn't. Instead this reuses the
-/// exact mechanism <see cref="E2EAppFixture"/> already proves works — booting the real
-/// sample AppHost — and only uses its Postgres resource's connection string; the "web" and
-/// "mailhog" resources that come along for the ride are unused here.
+/// exact mechanism <c>AndreGoepel.Testing.E2E</c>'s <see cref="E2EAppFixture"/> already proves
+/// works — booting the real sample AppHost — and only uses its Postgres resource's connection
+/// string; the "web" and "mailhog" resources that come along for the ride are unused here.
 /// <para>
-/// Uses its own <see cref="IAsyncLifetime"/> rather than injecting <see cref="E2EAppFixture"/>
-/// — it needs its own throwaway app graph, since the shared fixture's Postgres has other
-/// tests' data on it by the time any single test runs. Still joins the shared "e2e"
-/// <see cref="E2ECollection"/> (without consuming its fixture) purely so xUnit runs it
-/// sequentially against the rest of the E2E suite instead of in parallel: two full
-/// Aspire/Docker/Postgres graphs running concurrently on a CI runner caused unrelated
-/// Playwright navigations elsewhere in the suite to flake with network errors under the
-/// combined resource pressure.
+/// Uses its own <see cref="IAsyncLifetime"/> rather than injecting the app's own
+/// <c>AndreGoepel.AppFoundation.E2ETests.Infrastructure.AppFoundationE2EAppFixture</c> — it
+/// needs its own throwaway app graph, since the shared fixture's Postgres has other tests' data
+/// on it by the time any single test runs. Still joins the shared <see cref="E2ECollectionDefaults"/>
+/// collection (without consuming its fixture) purely so xUnit runs it sequentially against the
+/// rest of the E2E suite instead of in parallel: two full Aspire/Docker/Postgres graphs running
+/// concurrently on a CI runner caused unrelated Playwright navigations elsewhere in the suite to
+/// flake with network errors under the combined resource pressure.
 /// </para>
 /// </summary>
-[Collection(E2ECollection.Name)]
+[Collection(E2ECollectionDefaults.Name)]
 public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
 {
     private const string DatabaseResourceName = "appfoundation-database";
@@ -50,7 +50,7 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // E2E=true: throwaway Postgres (no persistent volume) — see E2EAppFixture.
+        // E2E=true: throwaway Postgres (no persistent volume) — see AppFoundationE2EAppFixture.
         var appHostBuilder =
             await DistributedApplicationTestingBuilder.CreateAsync<Projects.AndreGoepel_AppFoundation_AppHost>([
                 "E2E=true",
@@ -62,7 +62,7 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         await _app.StartAsync(startupCts.Token);
 
         // Waiting on "web" (rather than "postgres" directly) reuses the same readiness
-        // signal E2EAppFixture already relies on — by the time it's healthy, Postgres is
+        // signal AppFoundationE2EAppFixture already relies on — by the time it's healthy, Postgres is
         // definitely up too, since "web" waits for it.
         var notifications = _app.Services.GetRequiredService<ResourceNotificationService>();
         await notifications.WaitForResourceHealthyAsync(WebResourceName, startupCts.Token);
