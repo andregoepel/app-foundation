@@ -1,3 +1,4 @@
+using AndreGoepel.AppFoundation.Core;
 using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -28,7 +29,7 @@ internal sealed class MartenEmailSettingsStore(
             : new EmailSettings();
     }
 
-    public async Task SaveAsync(
+    public async Task<Result> SaveAsync(
         EmailSettings settings,
         string? newPassword,
         CancellationToken cancellationToken = default
@@ -48,7 +49,7 @@ internal sealed class MartenEmailSettingsStore(
         }
         else
         {
-            throw new InvalidOperationException("An SMTP password is required for the first save.");
+            return Result.Fail("An SMTP password is required for the first save.");
         }
 
         await store.SaveAsync(
@@ -65,5 +66,7 @@ internal sealed class MartenEmailSettingsStore(
             },
             cancellationToken
         );
+
+        return Result.Ok();
     }
 }

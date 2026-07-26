@@ -1,3 +1,4 @@
+using AndreGoepel.AppFoundation.Core;
 using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using NSubstitute;
@@ -63,7 +64,7 @@ public sealed class MartenEmailSettingsStoreTests
         );
 
         // Act
-        await emailStore.SaveAsync(
+        var result = await emailStore.SaveAsync(
             new EmailSettings
             {
                 SenderName = "S",
@@ -75,6 +76,7 @@ public sealed class MartenEmailSettingsStoreTests
         );
 
         // Assert
+        Assert.True(result.IsSuccess);
         Assert.NotNull(stored);
         Assert.NotEqual("new-secret", stored.ProtectedPassword);
         Assert.Equal(
@@ -101,7 +103,7 @@ public sealed class MartenEmailSettingsStoreTests
         );
 
         // Act
-        await BuildStore()
+        var result = await BuildStore()
             .SaveAsync(
                 new EmailSettings
                 {
@@ -114,26 +116,29 @@ public sealed class MartenEmailSettingsStoreTests
             );
 
         // Assert
+        Assert.True(result.IsSuccess);
         Assert.NotNull(stored);
         Assert.Equal("protected", stored.ProtectedPassword);
     }
 
     [Fact]
-    public async Task SaveAsync_FirstSaveWithoutAnyPassword_Throws()
+    public async Task SaveAsync_FirstSaveWithoutAnyPassword_ReturnsFailure()
     {
-        // Act + Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            BuildStore()
-                .SaveAsync(
-                    new EmailSettings
-                    {
-                        SenderName = "S",
-                        SenderEmail = "s@example.com",
-                        Server = "smtp",
-                        Username = "u",
-                    },
-                    newPassword: null
-                )
-        );
+        // Act
+        var result = await BuildStore()
+            .SaveAsync(
+                new EmailSettings
+                {
+                    SenderName = "S",
+                    SenderEmail = "s@example.com",
+                    Server = "smtp",
+                    Username = "u",
+                },
+                newPassword: null
+            );
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("An SMTP password is required for the first save.", result.Error);
     }
 }

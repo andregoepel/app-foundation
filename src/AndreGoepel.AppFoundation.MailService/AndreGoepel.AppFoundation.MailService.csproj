@@ -27,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AndreGoepel.AppFoundation.Core\AndreGoepel.AppFoundation.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MailKit" />
     <PackageReference Include="Marten" />
     <PackageReference Include="WolverineFx.Marten" />

@@ -273,6 +273,7 @@
       "andregoepel.appfoundation.mailservice": {
         "type": "Project",
         "dependencies": {
+          "AndreGoepel.AppFoundation.Core": "[1.9.0, )",
           "AndreGoepel.Marten.Configuration": "[1.0.1, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.19.0, )",

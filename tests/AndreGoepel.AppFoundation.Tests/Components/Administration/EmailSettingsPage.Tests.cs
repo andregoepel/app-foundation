@@ -1,4 +1,5 @@
 using AndreGoepel.AppFoundation.Components.Administration.Pages;
+using AndreGoepel.AppFoundation.Core;
 using AndreGoepel.AppFoundation.MailService;
 using Bunit;
 using Microsoft.AspNetCore.Authorization;
@@ -13,13 +14,14 @@ public sealed class EmailSettingsPageTests : BunitContext
 {
     private readonly IEmailSettingsStore store = Substitute.For<IEmailSettingsStore>();
     private readonly IEmailSender emailSender = Substitute.For<IEmailSender>();
+    private readonly NotificationService notificationService = new();
 
     public EmailSettingsPageTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddSingleton(store);
         Services.AddSingleton(emailSender);
-        Services.AddSingleton(new NotificationService());
+        Services.AddSingleton(notificationService);
     }
 
     private static EmailSettings Settings() =>
@@ -55,6 +57,9 @@ public sealed class EmailSettingsPageTests : BunitContext
     {
         // Arrange
         store.LoadAsync(Arg.Any<CancellationToken>()).Returns(Settings());
+        store
+            .SaveAsync(Arg.Any<EmailSettings>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Ok());
         var cut = Render<EmailSettingsPage>();
 
         // Act
@@ -71,6 +76,30 @@ public sealed class EmailSettingsPageTests : BunitContext
                     null,
                     Arg.Any<CancellationToken>()
                 )
+        );
+    }
+
+    [Fact]
+    public void Submit_StoreReturnsFailure_ShowsErrorNotificationWithResultMessage()
+    {
+        // Arrange
+        store.LoadAsync(Arg.Any<CancellationToken>()).Returns(Settings());
+        store
+            .SaveAsync(Arg.Any<EmailSettings>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Fail("An SMTP password is required for the first save."));
+        var cut = Render<EmailSettingsPage>();
+
+        // Act
+        cut.Find("form").Submit();
+
+        // Assert
+        cut.WaitForAssertion(() =>
+            Assert.Contains(
+                notificationService.Messages,
+                message =>
+                    message.Severity == NotificationSeverity.Error
+                    && message.Detail == "An SMTP password is required for the first save."
+            )
         );
     }
 
