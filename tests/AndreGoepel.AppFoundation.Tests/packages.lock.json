@@ -730,7 +730,7 @@
         "dependencies": {
           "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
           "AndreGoepel.AppFoundation.MailService": "[1.9.0, )",
-          "AndreGoepel.Design.Blazor": "[1.4.2, )",
+          "AndreGoepel.Design.Blazor": "[1.6.0, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
           "Marten": "[9.19.0, )",
           "Radzen.Blazor": "[11.1.7, )",
@@ -789,9 +789,9 @@
       },
       "AndreGoepel.Design.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[1.4.2, )",
-        "resolved": "1.4.2",
-        "contentHash": "57laKLfocolPOcRbBLP0GccM9k3T+grGAnlv/BpUmH9n1SnbxAqq6YEotTq5E9xThMq9WvuSGv/VUTB1B6Bdww==",
+        "requested": "[1.6.0, )",
+        "resolved": "1.6.0",
+        "contentHash": "ciJLnfD2c8mXk/WMPlybrwEhWnpsA8IGTrNAzo+5mRLAy0k7MQFWNPrTOlW536BYAhb0Ri3INseVBQfV8fX8ww==",
         "dependencies": {
           "Radzen.Blazor": "11.1.7"
         }
