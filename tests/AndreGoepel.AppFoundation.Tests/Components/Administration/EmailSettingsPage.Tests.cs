@@ -71,7 +71,9 @@ public sealed class EmailSettingsPageTests : BunitContext
                 .Received(1)
                 .SaveAsync(
                     Arg.Is<EmailSettings>(settings =>
-                        settings.SenderName == "Acme Mailer" && settings.Port == 2525
+                        settings != null
+                        && settings.SenderName == "Acme Mailer"
+                        && settings.Port == 2525
                     ),
                     null,
                     Arg.Any<CancellationToken>()

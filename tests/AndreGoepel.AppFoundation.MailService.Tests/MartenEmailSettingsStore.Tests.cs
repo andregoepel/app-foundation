@@ -32,7 +32,7 @@ public sealed class MartenEmailSettingsStoreTests
         store.LoadAsync<EmailSettingsDocument>(Arg.Any<CancellationToken>()).Returns(Document());
 
         // Act
-        var settings = await BuildStore().LoadAsync();
+        var settings = await BuildStore().LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("DB Sender", settings.SenderName);
@@ -44,7 +44,7 @@ public sealed class MartenEmailSettingsStoreTests
     public async Task LoadAsync_WithoutRecord_ReturnsBlankDefaults()
     {
         // Act
-        var settings = await BuildStore().LoadAsync();
+        var settings = await BuildStore().LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("", settings.SenderName);
@@ -58,7 +58,8 @@ public sealed class MartenEmailSettingsStoreTests
         // Arrange
         var emailStore = BuildStore();
         EmailSettingsDocument? stored = null;
-        store.SaveAsync(
+        // Substitute configuration call, not a real invocation — discard is intentional.
+        _ = store.SaveAsync(
             Arg.Do<EmailSettingsDocument>(document => stored = document),
             Arg.Any<CancellationToken>()
         );
@@ -72,7 +73,8 @@ public sealed class MartenEmailSettingsStoreTests
                 Server = "smtp",
                 Username = "u",
             },
-            "new-secret"
+            "new-secret",
+            TestContext.Current.CancellationToken
         );
 
         // Assert
@@ -97,7 +99,8 @@ public sealed class MartenEmailSettingsStoreTests
         var existing = Document();
         store.LoadAsync<EmailSettingsDocument>(Arg.Any<CancellationToken>()).Returns(existing);
         EmailSettingsDocument? stored = null;
-        store.SaveAsync(
+        // Substitute configuration call, not a real invocation — discard is intentional.
+        _ = store.SaveAsync(
             Arg.Do<EmailSettingsDocument>(document => stored = document),
             Arg.Any<CancellationToken>()
         );
@@ -112,7 +115,8 @@ public sealed class MartenEmailSettingsStoreTests
                     Server = "smtp",
                     Username = "u",
                 },
-                newPassword: null
+                newPassword: null,
+                TestContext.Current.CancellationToken
             );
 
         // Assert
@@ -134,7 +138,8 @@ public sealed class MartenEmailSettingsStoreTests
                     Server = "smtp",
                     Username = "u",
                 },
-                newPassword: null
+                newPassword: null,
+                TestContext.Current.CancellationToken
             );
 
         // Assert

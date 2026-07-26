@@ -10,7 +10,7 @@ public sealed class RegistrationTests(E2EAppFixture fixture) : E2ETestBase(fixtu
     {
         // Arrange — the setup gate must be past so /Account/Register is reachable.
         await Fixture.ProvisionAdminAsync();
-        await Fixture.MailHog.ClearAsync();
+        await Fixture.MailHog.ClearAsync(TestContext.Current.CancellationToken);
 
         // Act
         var email = await RegisterAsync();

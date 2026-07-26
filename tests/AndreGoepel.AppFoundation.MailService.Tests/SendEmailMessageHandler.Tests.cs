@@ -41,7 +41,9 @@ public sealed class SendEmailMessageHandlerTests
         await handler.Handle(message, LocalEnvelope(message), CancellationToken.None);
 
         // Assert
-        await sender.ReceivedWithAnyArgs(1).SendAsync(default!, default!, default!);
+        await sender
+            .ReceivedWithAnyArgs(1)
+            .SendAsync(default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -60,7 +62,9 @@ public sealed class SendEmailMessageHandlerTests
         await handler.Handle(message, external, CancellationToken.None);
 
         // Assert — nothing was sent.
-        await sender.DidNotReceiveWithAnyArgs().SendAsync(default!, default!, default!);
+        await sender
+            .DidNotReceiveWithAnyArgs()
+            .SendAsync(default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Theory]

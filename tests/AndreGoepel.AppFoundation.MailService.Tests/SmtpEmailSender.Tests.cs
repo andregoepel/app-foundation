@@ -25,7 +25,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config());
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         var from = sender.CapturedMessage!.From[0] as MailboxAddress;
@@ -41,7 +46,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config());
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         var to = sender.CapturedMessage!.To[0] as MailboxAddress;
@@ -56,7 +66,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config());
 
         // Act
-        await sender.SendAsync("to@example.com", "Hello World", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Hello World",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal("Hello World", sender.CapturedMessage!.Subject);
@@ -69,7 +84,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config());
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Hello <b>World</b>");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Hello <b>World</b>",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
@@ -84,7 +104,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config(html: true));
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
@@ -99,7 +124,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config(html: false));
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         var body = sender.CapturedMessage!.Body as TextPart;
@@ -114,7 +144,12 @@ public sealed class SmtpEmailSenderTests
         var sender = BuildSender(Config());
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(1, sender.SendMailCallCount);
@@ -128,8 +163,18 @@ public sealed class SmtpEmailSenderTests
         var sender = new TestableSmtpEmailSender(provider);
 
         // Act
-        await sender.SendAsync("to@example.com", "Subject", "Body");
-        await sender.SendAsync("to@example.com", "Subject", "Body");
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
+        await sender.SendAsync(
+            "to@example.com",
+            "Subject",
+            "Body",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(2, provider.GetCallCount);

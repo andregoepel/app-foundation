@@ -32,7 +32,7 @@ public sealed class MailSettingsProviderTests
         var provider = new MailSettingsProvider(store, dataProtection);
 
         // Act
-        var configuration = await provider.GetAsync();
+        var configuration = await provider.GetAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("DB Sender", configuration.SenderName);
@@ -48,7 +48,7 @@ public sealed class MailSettingsProviderTests
         var provider = new MailSettingsProvider(store, dataProtection);
 
         // Act
-        var configuration = await provider.GetAsync();
+        var configuration = await provider.GetAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("", configuration.SenderName);
