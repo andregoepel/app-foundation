@@ -1,4 +1,4 @@
-using AndreGoepel.AppFoundation.Core;
+using AndreGoepel.Core;
 
 namespace AndreGoepel.AppFoundation.MailService;
 

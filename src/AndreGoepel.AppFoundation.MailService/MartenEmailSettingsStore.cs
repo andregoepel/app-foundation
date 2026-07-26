@@ -1,4 +1,4 @@
-using AndreGoepel.AppFoundation.Core;
+using AndreGoepel.Core;
 using AndreGoepel.Marten.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 
