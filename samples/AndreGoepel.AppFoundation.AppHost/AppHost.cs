@@ -1,26 +1,22 @@
-using Microsoft.Extensions.Configuration;
+using AndreGoepel.AppFoundation.Aspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// A PostgreSQL container with a persistent volume so setup and accounts survive restarts.
-// The E2E suite passes E2E=true to skip the volume: tests need a throwaway database, and
+// The E2E suite passes E2E=true to skip the data volume: tests need a throwaway database, and
 // sharing the developer's volume would leak their local admin account into the test run.
-var postgres = builder.AddPostgres("postgres");
-if (!builder.Configuration.GetValue<bool>("E2E"))
-{
-    postgres.WithDataVolume();
-}
+var isE2E = string.Equals(builder.Configuration["E2E"], "true", StringComparison.OrdinalIgnoreCase);
 
 // The database resource name is the connection-string name the foundation reads by default
 // (AppFoundationOptions.DatabaseConnectionName == "appfoundation-database").
-var database = postgres.AddDatabase("appfoundation-database", "appfoundation");
+var (_, database) = builder.AddStandardPostgres(
+    isE2E,
+    databaseResourceName: "appfoundation-database",
+    databaseName: "appfoundation"
+);
 
 // MailHog captures outgoing development email locally: an SMTP server on 1025 and a web UI on
 // 8025 to read what was "sent". Nothing leaves the machine, and no real mail account is needed.
-var mailhog = builder
-    .AddContainer("mailhog", "mailhog/mailhog", "v1.0.1")
-    .WithEndpoint(name: "smtp", port: 1025, targetPort: 1025)
-    .WithHttpEndpoint(name: "http", port: 8025, targetPort: 8025);
+var mailhog = builder.AddStandardMailHog();
 
 // The sample web app, wired to the database and started only once it is ready. Email settings
 // are database-only (no configuration fallback) — the E2E fixture configures MailHog through the
