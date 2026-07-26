@@ -1,3 +1,5 @@
+using AndreGoepel.AppFoundation.Core;
+
 namespace AndreGoepel.AppFoundation.MailService;
 
 /// <summary>
@@ -15,9 +17,10 @@ public interface IEmailSettingsStore
 
     /// <summary>
     /// Persists the settings. <paramref name="newPassword"/> replaces the stored
-    /// SMTP password; pass <c>null</c> or empty to keep the current one.
+    /// SMTP password; pass <c>null</c> or empty to keep the current one. Fails when
+    /// no password is stored yet and none is supplied.
     /// </summary>
-    Task SaveAsync(
+    Task<Result> SaveAsync(
         EmailSettings settings,
         string? newPassword,
         CancellationToken cancellationToken = default

@@ -3,6 +3,7 @@
 @attribute [Authorize(Roles = "Administrator")]
 @inherits AndreGoepel.AppFoundation.Components.LocalizedComponentBase
 
+@using AndreGoepel.AppFoundation.Core
 @using AndreGoepel.AppFoundation.MailService
 
 @inject IEmailSettingsStore SettingsStore
@@ -145,7 +146,7 @@
         isSaving = true;
         try
         {
-            await SettingsStore.SaveAsync(
+            var result = await SettingsStore.SaveAsync(
                 new EmailSettings
                 {
                     SenderName = model.SenderName,
@@ -159,21 +160,24 @@
                 string.IsNullOrEmpty(model.Password) ? null : model.Password
             );
 
-            hasPassword = true;
-            Input.Password = "";
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                T("EmailSettings.SavedNotificationTitle"),
-                T("EmailSettings.SavedNotificationMessage")
-            );
-        }
-        catch (Exception ex)
-        {
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                T("EmailSettings.ErrorSavingSettingsTitle"),
-                ex.Message
-            );
+            if (result.IsSuccess)
+            {
+                hasPassword = true;
+                Input.Password = "";
+                NotificationService.Notify(
+                    NotificationSeverity.Success,
+                    T("EmailSettings.SavedNotificationTitle"),
+                    T("EmailSettings.SavedNotificationMessage")
+                );
+            }
+            else
+            {
+                NotificationService.Notify(
+                    NotificationSeverity.Error,
+                    T("EmailSettings.ErrorSavingSettingsTitle"),
+                    result.Error
+                );
+            }
         }
         finally
         {
