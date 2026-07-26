@@ -73,7 +73,8 @@ jobs:
             src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj \
             src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj \
             src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj \
-            src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj; do
+            src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj \
+            src/AndreGoepel.AppFoundation.Aspire/AndreGoepel.AppFoundation.Aspire.csproj; do
             dotnet pack "$proj" -c Release -p:Version=$VERSION -p:RestoreLockedMode=true -o nupkgs
           done
 

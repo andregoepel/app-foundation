@@ -6,6 +6,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj" />
+    <Project Path="src/AndreGoepel.AppFoundation.Aspire/AndreGoepel.AppFoundation.Aspire.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.Core/AndreGoepel.AppFoundation.Core.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj" />
     <Project Path="src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj" />
@@ -13,6 +14,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
+    <Project Path="tests/AndreGoepel.AppFoundation.Aspire.Tests/AndreGoepel.AppFoundation.Aspire.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.MailService.Tests/AndreGoepel.AppFoundation.MailService.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj" />
   </Folder>

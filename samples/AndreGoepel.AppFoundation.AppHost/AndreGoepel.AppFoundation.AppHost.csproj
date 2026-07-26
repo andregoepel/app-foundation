@@ -24,5 +24,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AndreGoepel.AppFoundation.Sample\AndreGoepel.AppFoundation.Sample.csproj" />
+    <!-- A helper class library, not an orchestrated app resource — IsAspireProjectResource="false"
+         stops the Aspire SDK from treating it as one (ASPIRE004). -->
+    <ProjectReference
+      Include="..\..\src\AndreGoepel.AppFoundation.Aspire\AndreGoepel.AppFoundation.Aspire.csproj"
+      IsAspireProjectResource="false"
+    />
   </ItemGroup>
 </Project>
