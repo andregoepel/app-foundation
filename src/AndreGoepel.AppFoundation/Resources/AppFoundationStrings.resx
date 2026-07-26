@@ -161,4 +161,33 @@
     <comment>{0} is the test recipient's email address.</comment>
   </data>
   <data name="EmailSettings.TestEmailFailedTitle" xml:space="preserve"><value><![CDATA[Test email failed]]></value></data>
+
+  <!-- Setup.razor -->
+  <data name="Setup.PageTitle" xml:space="preserve"><value><![CDATA[Initial setup]]></value></data>
+  <data name="Setup.Tagline" xml:space="preserve"><value><![CDATA[Set up your administrator account.]]></value></data>
+  <data name="Setup.EmailLabel" xml:space="preserve"><value><![CDATA[Email]]></value></data>
+  <data name="Setup.EmailRequired" xml:space="preserve"><value><![CDATA[Email is required]]></value></data>
+  <data name="Setup.EmailInvalid" xml:space="preserve"><value><![CDATA[Please enter a valid email address]]></value></data>
+  <data name="Setup.PasswordLabel" xml:space="preserve"><value><![CDATA[Password]]></value></data>
+  <data name="Setup.PasswordRequired" xml:space="preserve"><value><![CDATA[Password is required]]></value></data>
+  <data name="Setup.PasswordLengthInvalid" xml:space="preserve"><value><![CDATA[Password must be between 12 and 100 characters]]></value></data>
+  <data name="Setup.ConfirmPasswordLabel" xml:space="preserve"><value><![CDATA[Confirm password]]></value></data>
+  <data name="Setup.ConfirmPasswordRequired" xml:space="preserve"><value><![CDATA[Please confirm your password]]></value></data>
+  <data name="Setup.PasswordsDoNotMatch" xml:space="preserve"><value><![CDATA[The passwords do not match]]></value></data>
+  <data name="Setup.SubmitButton" xml:space="preserve"><value><![CDATA[Create admin & complete setup]]></value></data>
+  <data name="Setup.SubmitBusyText" xml:space="preserve"><value><![CDATA[Creating...]]></value></data>
+  <data name="Setup.OneTimeNotice" xml:space="preserve"><value><![CDATA[This step is only shown once.]]></value></data>
+  <data name="Setup.AlreadyCompletedTitle" xml:space="preserve"><value><![CDATA[Setup already completed]]></value></data>
+  <data name="Setup.AlreadyCompletedMessage" xml:space="preserve"><value><![CDATA[An administrator account already exists.]]></value></data>
+  <data name="Setup.ErrorCreatingAdminTitle" xml:space="preserve"><value><![CDATA[Error creating admin account]]></value></data>
+  <data name="Setup.ErrorCreatingRoleTitle" xml:space="preserve">
+    <value><![CDATA[Error creating role {0}]]></value>
+    <comment>{0} is the role name.</comment>
+  </data>
+  <data name="Setup.SuccessTitle" xml:space="preserve"><value><![CDATA[Success]]></value></data>
+  <data name="Setup.SuccessMessage" xml:space="preserve"><value><![CDATA[Administrator account created. You are now signed in.]]></value></data>
+  <data name="Setup.LoginErrorTitle" xml:space="preserve"><value><![CDATA[Login error]]></value></data>
+  <data name="Setup.LoginErrorMessage" xml:space="preserve"><value><![CDATA[Invalid login attempt.]]></value></data>
+  <data name="Setup.CriticalErrorTitle" xml:space="preserve"><value><![CDATA[Critical error]]></value></data>
+  <data name="Setup.CriticalErrorMessage" xml:space="preserve"><value><![CDATA[Setup could not be completed. Please try again.]]></value></data>
 </root>
