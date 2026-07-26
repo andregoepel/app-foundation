@@ -1,6 +1,7 @@
 @page "/Setup"
 @layout LoginLayout
 @rendermode InteractiveServer
+@inherits AndreGoepel.AppFoundation.Components.LocalizedComponentBase
 
 @using AndreGoepel.Marten.Identity
 @using AndreGoepel.Marten.Identity.Roles
@@ -24,49 +25,49 @@
 @inject NotificationService NotificationService
 @inject LoginTokenProtector LoginTokens
 
-<AppPageTitle Title="Initial setup" />
+<AppPageTitle Title="@T("Setup.PageTitle")" />
 
-<SectionContent SectionName="login-tagline">Set up your administrator account.</SectionContent>
+<SectionContent SectionName="login-tagline">@T("Setup.Tagline")</SectionContent>
 
-<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">Initial setup</RadzenText>
+<RadzenText TagName="TagName.H1" TextStyle="TextStyle.H4">@T("Setup.PageTitle")</RadzenText>
 
 <RadzenTemplateForm TItem="InputModel" Data=@Input Submit=@OnValidSubmit>
     <RadzenStack Gap="1.25rem">
 
         <RadzenStack Gap="0.4rem">
-            <RadzenLabel Text="Email" Component="Email" />
+            <RadzenLabel Text="@T("Setup.EmailLabel")" Component="Email" />
             <RadzenTextBox @bind-Value=@Input.Email
                            Name="Email"
                            Placeholder="admin@example.com"
                            Style="width:100%" />
-            <RadzenRequiredValidator Component="Email" Text="Email is required" />
-            <RadzenEmailValidator Component="Email" Text="Please enter a valid email address" />
+            <RadzenRequiredValidator Component="Email" Text="@T("Setup.EmailRequired")" />
+            <RadzenEmailValidator Component="Email" Text="@T("Setup.EmailInvalid")" />
         </RadzenStack>
 
         <RadzenStack Gap="0.4rem">
-            <RadzenLabel Text="Password" Component="Password" />
+            <RadzenLabel Text="@T("Setup.PasswordLabel")" Component="Password" />
             <RadzenPassword @bind-Value=@Input.Password
                             Name="Password"
                             Style="width:100%" />
-            <RadzenRequiredValidator Component="Password" Text="Password is required" />
-            <RadzenLengthValidator Component="Password" Min="12" Max="100" Text="Password must be between 12 and 100 characters" />
+            <RadzenRequiredValidator Component="Password" Text="@T("Setup.PasswordRequired")" />
+            <RadzenLengthValidator Component="Password" Min="12" Max="100" Text="@T("Setup.PasswordLengthInvalid")" />
         </RadzenStack>
 
         <RadzenStack Gap="0.4rem">
-            <RadzenLabel Text="Confirm password" Component="ConfirmPassword" />
+            <RadzenLabel Text="@T("Setup.ConfirmPasswordLabel")" Component="ConfirmPassword" />
             <RadzenPassword @bind-Value=@Input.ConfirmPassword
                             Name="ConfirmPassword"
                             Style="width:100%" />
-            <RadzenRequiredValidator Component="ConfirmPassword" Text="Please confirm your password" />
-            <RadzenCompareValidator Component="ConfirmPassword" Value="@Input.Password" Text="The passwords do not match" Operator="CompareOperator.Equal" />
+            <RadzenRequiredValidator Component="ConfirmPassword" Text="@T("Setup.ConfirmPasswordRequired")" />
+            <RadzenCompareValidator Component="ConfirmPassword" Value="@Input.Password" Text="@T("Setup.PasswordsDoNotMatch")" Operator="CompareOperator.Equal" />
         </RadzenStack>
 
         <div class="ag-login-actions">
             <RadzenButton ButtonType="ButtonType.Submit"
-                          Text="Create admin & complete setup"
+                          Text="@T("Setup.SubmitButton")"
                           ButtonStyle="ButtonStyle.Primary"
                           IsBusy=@isProcessing
-                          BusyText="Creating..." />
+                          BusyText="@T("Setup.SubmitBusyText")" />
         </div>
 
     </RadzenStack>
@@ -75,7 +76,7 @@
 <SignInHandoff Action="/login" Handle="@_handle" />
 
 <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color);">
-    This step is only shown once.
+    @T("Setup.OneTimeNotice")
 </RadzenText>
 
 @code {
@@ -107,8 +108,8 @@
             {
                 NotificationService.Notify(
                     NotificationSeverity.Info,
-                    "Setup already completed",
-                    "An administrator account already exists."
+                    T("Setup.AlreadyCompletedTitle"),
+                    T("Setup.AlreadyCompletedMessage")
                 );
                 NavigationManager.NavigateTo("/", forceLoad: true);
                 return;
@@ -131,7 +132,7 @@
                 {
                     NotificationService.Notify(
                         NotificationSeverity.Error,
-                        summary: "Error creating admin account",
+                        summary: T("Setup.ErrorCreatingAdminTitle"),
                         detail: error.Description
                     );
                 }
@@ -185,7 +186,7 @@
 
                         NotificationService.Notify(
                             NotificationSeverity.Error,
-                            summary: $"Error creating role {defaultRole.Name}",
+                            summary: T("Setup.ErrorCreatingRoleTitle", defaultRole.Name),
                             detail: detail
                         );
                     }
@@ -212,8 +213,8 @@
             {
                 NotificationService.Notify(
                     NotificationSeverity.Success,
-                    "Success",
-                    "Administrator account created. You are now signed in."
+                    T("Setup.SuccessTitle"),
+                    T("Setup.SuccessMessage")
                 );
 
                 // Hand the single-use login handle to the cookie-sign-in middleware.
@@ -226,7 +227,11 @@
             }
             else
             {
-                NotificationService.Notify(NotificationSeverity.Error, "LoginError", "Invalid login attempt.");
+                NotificationService.Notify(
+                    NotificationSeverity.Error,
+                    T("Setup.LoginErrorTitle"),
+                    T("Setup.LoginErrorMessage")
+                );
             }
         }
         catch (Exception ex)
@@ -234,8 +239,8 @@
             Logger.LogError(ex, "Critical error during setup");
             NotificationService.Notify(
                 NotificationSeverity.Error,
-                "Critical error",
-                "Setup could not be completed. Please try again."
+                T("Setup.CriticalErrorTitle"),
+                T("Setup.CriticalErrorMessage")
             );
         }
         finally

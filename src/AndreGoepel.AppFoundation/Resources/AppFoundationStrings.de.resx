@@ -160,4 +160,33 @@
     <comment>{0} ist die E-Mail-Adresse des Testempfängers.</comment>
   </data>
   <data name="EmailSettings.TestEmailFailedTitle" xml:space="preserve"><value><![CDATA[Test-E-Mail fehlgeschlagen]]></value></data>
+
+  <!-- Setup.razor -->
+  <data name="Setup.PageTitle" xml:space="preserve"><value><![CDATA[Ersteinrichtung]]></value></data>
+  <data name="Setup.Tagline" xml:space="preserve"><value><![CDATA[Richten Sie Ihr Administratorkonto ein.]]></value></data>
+  <data name="Setup.EmailLabel" xml:space="preserve"><value><![CDATA[E-Mail]]></value></data>
+  <data name="Setup.EmailRequired" xml:space="preserve"><value><![CDATA[E-Mail ist erforderlich]]></value></data>
+  <data name="Setup.EmailInvalid" xml:space="preserve"><value><![CDATA[Bitte geben Sie eine gültige E-Mail-Adresse ein]]></value></data>
+  <data name="Setup.PasswordLabel" xml:space="preserve"><value><![CDATA[Passwort]]></value></data>
+  <data name="Setup.PasswordRequired" xml:space="preserve"><value><![CDATA[Passwort ist erforderlich]]></value></data>
+  <data name="Setup.PasswordLengthInvalid" xml:space="preserve"><value><![CDATA[Das Passwort muss zwischen 12 und 100 Zeichen lang sein]]></value></data>
+  <data name="Setup.ConfirmPasswordLabel" xml:space="preserve"><value><![CDATA[Passwort bestätigen]]></value></data>
+  <data name="Setup.ConfirmPasswordRequired" xml:space="preserve"><value><![CDATA[Bitte bestätigen Sie Ihr Passwort]]></value></data>
+  <data name="Setup.PasswordsDoNotMatch" xml:space="preserve"><value><![CDATA[Die Passwörter stimmen nicht überein]]></value></data>
+  <data name="Setup.SubmitButton" xml:space="preserve"><value><![CDATA[Administrator anlegen & Einrichtung abschließen]]></value></data>
+  <data name="Setup.SubmitBusyText" xml:space="preserve"><value><![CDATA[Wird angelegt …]]></value></data>
+  <data name="Setup.OneTimeNotice" xml:space="preserve"><value><![CDATA[Dieser Schritt wird nur einmal angezeigt.]]></value></data>
+  <data name="Setup.AlreadyCompletedTitle" xml:space="preserve"><value><![CDATA[Einrichtung bereits abgeschlossen]]></value></data>
+  <data name="Setup.AlreadyCompletedMessage" xml:space="preserve"><value><![CDATA[Es existiert bereits ein Administratorkonto.]]></value></data>
+  <data name="Setup.ErrorCreatingAdminTitle" xml:space="preserve"><value><![CDATA[Fehler beim Anlegen des Administratorkontos]]></value></data>
+  <data name="Setup.ErrorCreatingRoleTitle" xml:space="preserve">
+    <value><![CDATA[Fehler beim Anlegen der Rolle {0}]]></value>
+    <comment>{0} ist der Rollenname.</comment>
+  </data>
+  <data name="Setup.SuccessTitle" xml:space="preserve"><value><![CDATA[Erfolgreich]]></value></data>
+  <data name="Setup.SuccessMessage" xml:space="preserve"><value><![CDATA[Administratorkonto erstellt. Sie sind jetzt angemeldet.]]></value></data>
+  <data name="Setup.LoginErrorTitle" xml:space="preserve"><value><![CDATA[Anmeldefehler]]></value></data>
+  <data name="Setup.LoginErrorMessage" xml:space="preserve"><value><![CDATA[Ungültiger Anmeldeversuch.]]></value></data>
+  <data name="Setup.CriticalErrorTitle" xml:space="preserve"><value><![CDATA[Kritischer Fehler]]></value></data>
+  <data name="Setup.CriticalErrorMessage" xml:space="preserve"><value><![CDATA[Die Einrichtung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.]]></value></data>
 </root>
