@@ -12,15 +12,26 @@ jobs:
     uses: andregoepel/workflows/.github/workflows/ci-library.yml@main
     with:
       test-filter: "FullyQualifiedName!~E2ETests"
-      pack-projects: |
-        src/AndreGoepel.AppFoundation.Core/AndreGoepel.AppFoundation.Core.csproj
-        src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj
-        src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj
-        src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj
-        src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj
-        src/AndreGoepel.AppFoundation.Aspire/AndreGoepel.AppFoundation.Aspire.csproj
-    secrets:
-      NUGET_USER: ${{ secrets.NUGET_USER }}
+
+  # Runs as a local job (not inside ci-library.yml) because NuGet.org Trusted
+  # Publishing validates job_workflow_ref against the workflow that defines
+  # the running job - a job inside a called workflow_call workflow would
+  # never match a policy scoped to this repo. See andregoepel/workflows#5.
+  pack-and-publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       id-token: write # NuGet OIDC trusted publishing
       contents: read
+    steps:
+      - uses: andregoepel/workflows/.github/actions/nuget-publish@main
+        with:
+          pack-projects: |
+            src/AndreGoepel.AppFoundation.Core/AndreGoepel.AppFoundation.Core.csproj
+            src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj
+            src/AndreGoepel.AppFoundation.MailService/AndreGoepel.AppFoundation.MailService.csproj
+            src/AndreGoepel.AppFoundation/AndreGoepel.AppFoundation.csproj
+            src/AndreGoepel.AppFoundation.Hosting/AndreGoepel.AppFoundation.Hosting.csproj
+            src/AndreGoepel.AppFoundation.Aspire/AndreGoepel.AppFoundation.Aspire.csproj
+          nuget-user: ${{ secrets.NUGET_USER }}
