@@ -366,6 +366,7 @@
           "AndreGoepel.Marten.Configuration": "[1.1.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.19.0, )",
+          "Npgsql": "[10.0.3, )",
           "WolverineFx.Marten": "[6.22.0, )"
         }
       },
@@ -408,9 +409,9 @@
       },
       "Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[9.0.4, )",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
       },
       "WolverineFx.Marten": {
         "type": "CentralTransitive",
