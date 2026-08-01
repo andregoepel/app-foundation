@@ -47,9 +47,9 @@
       },
       "Npgsql": {
         "type": "Direct",
-        "requested": "[9.0.4, )",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q=="
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
       },
       "Quartz.Extensions.Hosting": {
         "type": "Direct",
@@ -593,6 +593,7 @@
           "AndreGoepel.Design.Blazor": "[1.6.0, )",
           "AndreGoepel.Marten.Identity.Blazor": "[1.8.0, )",
           "Marten": "[9.19.0, )",
+          "Npgsql": "[10.0.3, )",
           "Radzen.Blazor": "[11.1.7, )",
           "WolverineFx.Marten": "[6.22.0, )"
         }
@@ -607,6 +608,7 @@
           "AndreGoepel.Marten.Configuration": "[1.1.0, )",
           "MailKit": "[4.17.0, )",
           "Marten": "[9.19.0, )",
+          "Npgsql": "[10.0.3, )",
           "WolverineFx.Marten": "[6.22.0, )"
         }
       },
@@ -649,10 +651,10 @@
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
         "requested": "[9.19.0, )",
-        "resolved": "9.19.0",
-        "contentHash": "A9/5T+UfZ4QK7kS/1VQi58h/32K2OnetDXiyKEx7hNHqEdjniGosG+20mEKQvvicex9qIRy+6eprd52a6zdeyg==",
+        "resolved": "9.18.0",
+        "contentHash": "6XJJ7N3BWfTniBlMs5Xv7QL2P7gA1Mkth4kx1wBL7d3QRRNpwZk5xYewtgJyqbeI0Vwj/8XuncA6Ay0VcP+wxQ==",
         "dependencies": {
-          "Marten": "9.19.0"
+          "Marten": "9.18.0"
         }
       },
       "Microsoft.Extensions.Http.Resilience": {
