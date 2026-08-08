@@ -9,23 +9,23 @@
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
   </ItemGroup>
   <ItemGroup Label="Marten">
-    <PackageVersion Include="Marten" Version="9.19.0" />
+    <PackageVersion Include="Marten" Version="9.22.5" />
     <PackageVersion Include="Marten.AspNetCore" Version="9.19.0" />
   </ItemGroup>
   <ItemGroup Label="Postgres">
     <!-- Direct reference for QuartzSchemaProvisioner's raw DDL bootstrap (#129); otherwise
          only arrives transitively via Marten. Version matches Marten's current transitive
          resolution. -->
-    <PackageVersion Include="Npgsql" Version="9.0.4" />
+    <PackageVersion Include="Npgsql" Version="9.0.5" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.22.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.22.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.25.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.25.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
-    <PackageVersion Include="AndreGoepel.Core" Version="1.0.0" />
+    <PackageVersion Include="AndreGoepel.Core" Version="1.0.1" />
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.6.0" />
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.8.0" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.9.1" />
     <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.0.0" />
     <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.1.0" />
     <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.0.0" />
@@ -47,18 +47,18 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.1.7" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.2.2" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.18.2" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.19.1" />
     <!-- Quartz core's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
          which throws on .NET 8+ (removed for security reasons) — required, not optional,
          for the persistent job store (#129). -->
-    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.18.2" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.19.1" />
   </ItemGroup>
   <ItemGroup Label="Testing">
-    <PackageVersion Include="bunit" Version="2.8.6" />
+    <PackageVersion Include="bunit" Version="2.9.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="Otp.NET" Version="1.4.1" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
