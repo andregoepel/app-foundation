@@ -30,6 +30,7 @@
     <PackageReference Include="AndreGoepel.Core" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Marten" />
+    <PackageReference Include="Npgsql" />
     <PackageReference Include="WolverineFx.Marten" />
     <PackageReference Include="AndreGoepel.Marten.Configuration" />
   </ItemGroup>

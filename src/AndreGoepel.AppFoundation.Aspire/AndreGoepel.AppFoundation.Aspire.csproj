@@ -21,5 +21,6 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 </Project>
