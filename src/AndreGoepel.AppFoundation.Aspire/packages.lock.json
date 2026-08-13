@@ -671,9 +671,9 @@
       },
       "Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[9.0.4, )",
-        "resolved": "9.0.4",
-        "contentHash": "68BASXH0FAEuL/J4J0eRfYC8/3vzqQTmoW8zDzNf0JgaVxc7LZeEkS6jaG0ib3voFLxY5ZiCwJG+uQM+mzuu0Q==",
+        "requested": "[9.0.5, )",
+        "resolved": "9.0.5",
+        "contentHash": "NRZkUlTUh06f7f14wriEoO+BrJcyw/agh3xozXLM3ii7C/08SyXqcI89EMfZJuHkOcfDU8W0enGcZ8RGNVOw0w==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "8.0.2"
         }
