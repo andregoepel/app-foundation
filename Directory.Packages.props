@@ -20,7 +20,7 @@
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
   </ItemGroup>
   <ItemGroup Label="Marten">
-    <PackageVersion Include="Marten" Version="9.22.5" />
+    <PackageVersion Include="Marten" Version="9.23.0" />
     <PackageVersion Include="Marten.AspNetCore" Version="9.22.5" />
   </ItemGroup>
   <ItemGroup Label="Postgres">
@@ -30,8 +30,8 @@
     <PackageVersion Include="Npgsql" Version="9.0.5" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.25.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.25.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.27.1" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.27.1" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.1" />
@@ -58,7 +58,7 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.2.2" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.2.4" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
