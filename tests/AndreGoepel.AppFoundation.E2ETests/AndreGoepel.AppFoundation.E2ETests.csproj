@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
     <!-- Aspire.Hosting.Testing pulls RID-specific orchestration packages, so a committed
          lock file would be OS-dependent and break CI's locked-mode restore. The sample
          AppHost opts out of lock files for the same reason. -->

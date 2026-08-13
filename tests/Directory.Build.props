@@ -1,0 +1,14 @@
+<Project>
+  <!-- Chain to the repo-root Directory.Build.props: MSBuild's automatic Directory.Build.props
+       discovery only picks up the nearest file, so without this Import, every test project
+       would silently lose TreatWarningsAsErrors, RestorePackagesWithLockFile and the NuGet
+       audit warning exceptions. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>
