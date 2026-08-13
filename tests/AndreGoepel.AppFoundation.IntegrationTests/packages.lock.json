@@ -1333,11 +1333,11 @@
       },
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[9.22.5, )",
-        "resolved": "9.22.5",
-        "contentHash": "fpdaIj0Y9q+JgMFTtRzB/+7XZuyYbQ0u425LeEuK0lsuBXEP+oHWnAGjav5Ax0b31Y+2eEUnRHYjnMSMMMfj1Q==",
+        "requested": "[9.23.0, )",
+        "resolved": "9.23.0",
+        "contentHash": "eYpMY3DQCgbKZeFMSZEaRLSAdRjhEZEPyIVTH2eVRP/rWXJdRMYRbKB8junMD38hdmNLOrcmK3hB0DwcrNIc5A==",
         "dependencies": {
-          "Marten": "9.22.5"
+          "Marten": "9.23.0"
         }
       },
       "Microsoft.AspNetCore.HeaderPropagation": {
