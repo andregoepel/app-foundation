@@ -835,10 +835,10 @@
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
         "requested": "[9.19.0, )",
-        "resolved": "9.18.0",
-        "contentHash": "6XJJ7N3BWfTniBlMs5Xv7QL2P7gA1Mkth4kx1wBL7d3QRRNpwZk5xYewtgJyqbeI0Vwj/8XuncA6Ay0VcP+wxQ==",
+        "resolved": "9.19.0",
+        "contentHash": "A9/5T+UfZ4QK7kS/1VQi58h/32K2OnetDXiyKEx7hNHqEdjniGosG+20mEKQvvicex9qIRy+6eprd52a6zdeyg==",
         "dependencies": {
-          "Marten": "9.18.0"
+          "Marten": "9.19.0"
         }
       },
       "Microsoft.AspNetCore.HeaderPropagation": {
