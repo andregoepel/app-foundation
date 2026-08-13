@@ -10,7 +10,7 @@
          which has a high severity arbitrary-file-write advisory
          (GHSA-q939-rpr3-3284). Pin to the patched 2026.0.0 to clear the CI
          vulnerability gate. Remove once Testcontainers ships a release that
-         resolves to >= 2026.0.0 on its own. -->
+         resolves to >= 2026.0.0 on its own (tracked in #179). -->
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
   </ItemGroup>
   <ItemGroup Label="Aspire">
