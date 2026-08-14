@@ -25,8 +25,8 @@ builder.AddAppFoundation(options =>
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-// Brand the management shell. A real host would also set LogoPath and, optionally, an
-// AdminMenu component to contribute its own administration entries.
+// Brand the management shell. A real host would also set LogoPath and, optionally, a
+// Menu component to contribute its own nav entries.
 builder.Services.Configure<AppFoundationLayoutOptions>(options =>
 {
     options.BrandName = "AppFoundation Sample";

@@ -179,7 +179,7 @@ routable pages are discovered.
 | `BrandName` | Sidebar brand text |
 | `LogoPath` | Brand logo (default `favicon.png`) |
 | `Copyright` | Sidebar footer (hidden when empty) |
-| `AdminMenu` | A Razor component **type** rendered via `DynamicComponent` inside the administrator menu — how a host injects its own admin entries |
+| `Menu` | A Razor component **type** rendered via `DynamicComponent` between `Home` and `Account` for all users — how a host injects its own nav entries. The component is responsible for gating any role-specific entries (e.g. with `AuthorizeView`) |
 
 The host configures these with `services.Configure<AppFoundationLayoutOptions>(...)`. The
 account/administration *identity* pages come from `AndreGoepel.Marten.Identity.Blazor`.

@@ -66,12 +66,12 @@ builder.AddAppFoundation(options =>
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-// Brand the management shell and contribute your own admin menu entries.
+// Brand the management shell and contribute your own menu entries.
 builder.Services.Configure<AppFoundationLayoutOptions>(o =>
 {
     o.BrandName = "your.app";
     o.Copyright = "your.app © 2026";
-    o.AdminMenu = typeof(YourAdminMenu); // optional Razor component
+    o.Menu = typeof(YourMenu); // optional Razor component
 });
 
 var app = builder.Build();
@@ -141,8 +141,8 @@ A PostgreSQL connection string is required, by default under
 | `DefaultRoles` | *(empty)* | Roles seeded at first-run `/Setup` — see [Default roles](#default-roles-first-run-setup) |
 
 **`AppFoundationLayoutOptions`** (management shell branding):
-`BrandName`, `LogoPath`, `Copyright`, and `AdminMenu` (a Razor component type rendered as
-extra administrator nav entries).
+`BrandName`, `LogoPath`, `Copyright`, and `Menu` (a Razor component type rendered as
+extra nav entries, between `Home` and `Account`, for all users).
 
 ### Docker secrets (from 1.1.0)
 
