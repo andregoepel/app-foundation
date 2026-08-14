@@ -4,13 +4,12 @@
     "net10.0": {
       "AndreGoepel.Marten.Testing": {
         "type": "Direct",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "zDLOVc2IuzmaaOVfZzVKNHij/wzrAFhvtAhA48uDkcb8fgdWdKp0KhnG2YDzm0JNWuGm74JD4/IsKPDahUzDsQ==",
+        "requested": "[1.0.2, )",
+        "resolved": "1.0.2",
+        "contentHash": "7FQFETyx6Ti+3jwg+5I0dquQCgqd258nV6nDcjt2T3bfARObSPBZ+aT5GKCTw98ytO+ur3z9k75ZVGpdmagshw==",
         "dependencies": {
           "Marten": "9.23.0",
-          "SSH.NET": "2026.0.0",
-          "Testcontainers.PostgreSql": "4.13.0",
+          "Testcontainers.PostgreSql": "4.14.0",
           "xunit.v3.extensibility.core": "3.2.2"
         }
       },
@@ -995,6 +994,15 @@
         "resolved": "0.55.0",
         "contentHash": "GIfgOvuF8MpU52bprhwtDEtx0gmVIGOepM8bw0lH/TSMD0rg1Xp+5Y53kPG8rFVdcpbNANlhDQ5mEVVPO3/2Tg=="
       },
+      "SSH.NET": {
+        "type": "Transitive",
+        "resolved": "2026.0.0",
+        "contentHash": "Yu9dirPq8l3oaat0+OQ7K0nUf5MmYltpia5UGqsApTG4zTPvBC1cxbNnC3NERij26dUST0A3Ef1QdHSn5ArbWQ==",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
+        }
+      },
       "System.Composition": {
         "type": "Transitive",
         "resolved": "9.0.0",
@@ -1060,22 +1068,22 @@
       },
       "Testcontainers": {
         "type": "Transitive",
-        "resolved": "4.13.0",
-        "contentHash": "j8vi9jPBNSwaraGGx8w+2gtZyWrlbKxdhiGMS3nektg+KiwjFWx9ghCjs57EoQfvI+IAbzti0oQJupQChwgMog==",
+        "resolved": "4.14.0",
+        "contentHash": "ojuBi91xcMsR6vnFuNsQDWU9tlZlrtmqy95VPNWVVnh24GiwFL/WMnVmb6bRv8LqovtnKPJN9cpmH1k02Z4ZoA==",
         "dependencies": {
           "Docker.DotNet.Enhanced": "4.3.3",
           "Docker.DotNet.Enhanced.X509": "4.3.3",
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
-          "SSH.NET": "2025.1.0",
+          "SSH.NET": "2026.0.0",
           "SharpZipLib": "1.4.2"
         }
       },
       "Testcontainers.PostgreSql": {
         "type": "Transitive",
-        "resolved": "4.13.0",
-        "contentHash": "2ow4AE8drI9iA9Fr4ycAPusXPB1lJfQyyNONSMLE/XqLpm8VuNAh3pK38fOjkOWtTrnD03s4hAIdl4036Ik69A==",
+        "resolved": "4.14.0",
+        "contentHash": "OPHWR9oCW89yuNxJjUo8Xtwrk0bcOdzFOE2Ryo01GAf/3WEzD+0j0gmdKSxx5kBprCdlbXurBJyaV7nSLPyWKQ==",
         "dependencies": {
-          "Testcontainers": "4.13.0"
+          "Testcontainers": "4.14.0"
         }
       },
       "Weasel.Core": {
@@ -1459,16 +1467,6 @@
         "dependencies": {
           "Microsoft.AspNetCore.Components": "10.0.11",
           "Microsoft.AspNetCore.Components.Web": "10.0.11"
-        }
-      },
-      "SSH.NET": {
-        "type": "CentralTransitive",
-        "requested": "[2026.0.0, )",
-        "resolved": "2026.0.0",
-        "contentHash": "Yu9dirPq8l3oaat0+OQ7K0nUf5MmYltpia5UGqsApTG4zTPvBC1cxbNnC3NERij26dUST0A3Ef1QdHSn5ArbWQ==",
-        "dependencies": {
-          "BouncyCastle.Cryptography": "2.7.0",
-          "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
         }
       },
       "WolverineFx.Marten": {
