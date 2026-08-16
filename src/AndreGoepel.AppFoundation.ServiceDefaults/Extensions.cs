@@ -9,6 +9,9 @@ using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting;
 
+// Mirrored byte-for-byte in marten-identity/samples/AndreGoepel.Marten.Identity.ServiceDefaults —
+// a package reference would invert the repo dependency order (see app-foundation#159). CI in both
+// repos diffs the two files and fails if they drift.
 public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
