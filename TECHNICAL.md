@@ -235,6 +235,36 @@ restart:
 - **Health checks** — `/health` (all) and `/alive` (liveness), mapped in Development only.
 - **HTTP resilience** (standard handler) and **service discovery** on outbound `HttpClient`s.
 
+### Decision: mirrored, not shared, with `marten-identity`'s sample (#159)
+
+`marten-identity/samples/AndreGoepel.Marten.Identity.ServiceDefaults` is a byte-identical copy of
+this project's `Extensions.cs`, not a package reference — deliberately, not out of neglect.
+
+**Why not a shared package.** `AndreGoepel.AppFoundation.Hosting` depends on
+`AndreGoepel.Marten.Identity.Blazor` (a real `PackageReference`, not just a layering
+convention), and the marten-identity sample lives in the same solution/CI build as
+`marten-identity`'s own `src/`. A sample project referencing `AndreGoepel.AppFoundation.ServiceDefaults`
+would make marten-identity's build graph depend on an app-foundation release that itself depends
+on a marten-identity release — a real cycle, not a style violation.
+
+**Why not just accept the drift.** Both files are unmodified output of Microsoft's
+`aspire-servicedefaults` template — there's no design authority here to diverge from, only a
+copy-paste hazard. CI in both repos diffs the two files byte-for-byte and fails if they've
+drifted (see `.github/workflows/ci.yml`, job `servicedefaults-drift`), so unnoticed divergence is
+the one failure mode this setup can't produce.
+
+**When to revisit** (any one of these flips the decision to a real shared package,
+`AndreGoepel.Aspire.ServiceDefaults`, sitting below `marten-*` with zero AndreGoepel dependencies):
+
+1. A *second* repo outside app-foundation needs its own ServiceDefaults copy.
+2. The drift-gate fires a second time because someone edited only one side.
+3. This project's ServiceDefaults grows actual custom logic (metrics, enrichers, checks) instead
+   of staying template output — at that point there's real content worth sharing.
+4. `AppFoundation.Hosting` stops depending on `AndreGoepel.Marten.Identity.Blazor`, which removes
+   the cycle and lets the sample reference this package directly.
+
+Full option analysis: `andregoepel/app-foundation#159` and `andregoepel/marten-identity#158`.
+
 ---
 
 ## 7. Configuration

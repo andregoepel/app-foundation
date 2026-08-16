@@ -15,3 +15,6 @@ Marten/PostgreSQL. Orchestrated via .NET Aspire.
 ## Repo Specifics
 - Quartz.NET for scheduled jobs
 - Testing scope: domain logic and handlers
+- `AndreGoepel.AppFoundation.ServiceDefaults` is deliberately mirrored (not package-referenced) in
+  `marten-identity/samples/AndreGoepel.Marten.Identity.ServiceDefaults` — CI-guarded against
+  drift. See TECHNICAL.md §6 for why (#159).
