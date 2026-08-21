@@ -3,14 +3,14 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="Aspire">
-    <PackageVersion Include="Aspire.Hosting" Version="13.4.6" />
-    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting" Version="13.5.1" />
+    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.5.1" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.1" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.1" />
   </ItemGroup>
   <ItemGroup Label="Marten">
-    <PackageVersion Include="Marten" Version="9.23.0" />
-    <PackageVersion Include="Marten.AspNetCore" Version="9.23.0" />
+    <PackageVersion Include="Marten" Version="9.29.0" />
+    <PackageVersion Include="Marten.AspNetCore" Version="9.29.0" />
   </ItemGroup>
   <ItemGroup Label="Postgres">
     <!-- Direct reference for QuartzSchemaProvisioner's raw DDL bootstrap (#129); otherwise
@@ -19,16 +19,16 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.28.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.28.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.29.2" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.29.2" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.2" />
-    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.6.3" />
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="1.9.3" />
-    <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.0.2" />
-    <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.2.0" />
-    <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.0.1" />
+    <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.6.4" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="2.0.1" />
+    <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.1.0" />
+    <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.2.1" />
+    <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
@@ -47,7 +47,7 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.2.4" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.2.6" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
@@ -63,9 +63,9 @@
     <PackageVersion Include="Otp.NET" Version="1.4.1" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageVersion Include="NSubstitute" Version="6.2.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
   </ItemGroup>
 </Project>
