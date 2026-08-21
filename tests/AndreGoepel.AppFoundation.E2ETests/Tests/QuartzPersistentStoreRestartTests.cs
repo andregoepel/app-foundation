@@ -155,6 +155,15 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         // supply those types.
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
+        // Both schedulers start inside the test process. Quartz's scheduler and worker
+        // threads are foreground by default, so the runner would find them still alive at
+        // shutdown and force the process to exit (xunit.v3 4.x reports that as a run error).
+        builder.Services.AddQuartz(quartz =>
+        {
+            quartz.SetProperty("quartz.scheduler.makeSchedulerThreadDaemon", "true");
+            quartz.SetProperty("quartz.threadPool.makeThreadsDaemons", "true");
+        });
+
         var app = builder.Build();
         app.UseAppFoundation();
 
