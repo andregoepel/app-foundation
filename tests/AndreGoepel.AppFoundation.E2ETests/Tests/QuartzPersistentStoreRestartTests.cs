@@ -113,8 +113,8 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         // Both hosts run in the test process, so their hosted services (Quartz, Marten,
         // Wolverine) have to be shut down here rather than left to process teardown --
         // disposal alone leaves foreground threads alive past the end of the run.
-        await second.StopAsync();
-        await first.StopAsync();
+        await second.StopAsync(TestContext.Current.CancellationToken);
+        await first.StopAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task AssertCleanupTriggerIsPersistedAsync()
