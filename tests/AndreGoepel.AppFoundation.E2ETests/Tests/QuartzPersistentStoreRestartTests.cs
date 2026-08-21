@@ -109,6 +109,12 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         // concern unrelated to what this test verifies and one that behaved inconsistently
         // across the two schedulers in practice.
         await AssertCleanupTriggerIsPersistedAsync();
+
+        // Both hosts run in the test process, so their hosted services (Quartz, Marten,
+        // Wolverine) have to be shut down here rather than left to process teardown --
+        // disposal alone leaves foreground threads alive past the end of the run.
+        await second.StopAsync();
+        await first.StopAsync();
     }
 
     private async Task AssertCleanupTriggerIsPersistedAsync()
