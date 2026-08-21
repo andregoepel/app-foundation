@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.5.1" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -15,11 +15,13 @@
          The AppHost is a dev-only sample, so opt it out of lock files. -->
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <UserSecretsId>appfoundation-sample-apphost</UserSecretsId>
+    <!-- Aspire 13.5 warns when the CLI bundle is absent; this sample only ever gets built. -->
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.6" />
-    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.5.1" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.5.1" />
   </ItemGroup>
 
   <ItemGroup>

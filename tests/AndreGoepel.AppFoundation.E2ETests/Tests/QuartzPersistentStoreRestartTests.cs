@@ -109,6 +109,12 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         // concern unrelated to what this test verifies and one that behaved inconsistently
         // across the two schedulers in practice.
         await AssertCleanupTriggerIsPersistedAsync();
+
+        // Both hosts run in the test process, so their hosted services (Quartz, Marten,
+        // Wolverine) have to be shut down here rather than left to process teardown --
+        // disposal alone leaves foreground threads alive past the end of the run.
+        await second.StopAsync(TestContext.Current.CancellationToken);
+        await first.StopAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task AssertCleanupTriggerIsPersistedAsync()
@@ -154,6 +160,15 @@ public sealed class QuartzPersistentStoreRestartTests : IAsyncLifetime
         // AddRazorComponents/AddInteractiveServerComponents needs to be registered too, to
         // supply those types.
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+        // Both schedulers start inside the test process. Quartz's scheduler thread is a
+        // foreground thread by default, so the runner would find it still alive at
+        // shutdown and force the process to exit (xunit.v3 4.x reports that as a run error).
+        // The worker pool needs no such setting: DefaultThreadPool uses the .NET pool.
+        builder.Services.AddQuartz(quartz =>
+        {
+            quartz.SetProperty("quartz.scheduler.makeSchedulerThreadDaemon", "true");
+        });
 
         var app = builder.Build();
         app.UseAppFoundation();
