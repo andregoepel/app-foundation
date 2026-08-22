@@ -15,6 +15,15 @@
           "Radzen.Blazor": "11.2.6"
         }
       },
+      "AndreGoepel.Testing.Bunit": {
+        "type": "Direct",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "jSGPzTvuwmXurumydJxDCwibaxBoCqG5RgceApSGMYIyysCMFz7yv9g92Wf7fO786rAVecLXd+I4rN10OhRIAg==",
+        "dependencies": {
+          "bunit": "2.9.0"
+        }
+      },
       "bunit": {
         "type": "Direct",
         "requested": "[2.9.0, )",

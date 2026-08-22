@@ -1,4 +1,3 @@
-using System.Globalization;
 using AndreGoepel.AppFoundation.Components.Administration.Pages;
 using AndreGoepel.AppFoundation.MailService;
 using Bunit;
@@ -15,7 +14,7 @@ public sealed class EmailSettingsPageLocalizationTests : BunitContext
 
     public EmailSettingsPageLocalizationTests()
     {
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
         Services.AddSingleton(store);
         Services.AddSingleton(emailSender);
         Services.AddSingleton(new NotificationService());
@@ -38,21 +37,14 @@ public sealed class EmailSettingsPageLocalizationTests : BunitContext
     public void Render_German_ShowsGermanCopy()
     {
         // Arrange
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
-        try
-        {
-            // Act
-            var cut = Render<EmailSettingsPage>();
+        using var culture = CultureScope.UiOnly("de");
 
-            // Assert
-            Assert.Contains("E-Mail-Einstellungen", cut.Markup);
-            Assert.Contains("Absendername", cut.Markup);
-            Assert.Contains("Änderungen speichern", cut.Markup);
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        // Act
+        var cut = Render<EmailSettingsPage>();
+
+        // Assert
+        Assert.Contains("E-Mail-Einstellungen", cut.Markup);
+        Assert.Contains("Absendername", cut.Markup);
+        Assert.Contains("Änderungen speichern", cut.Markup);
     }
 }

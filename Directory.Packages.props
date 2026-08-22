@@ -28,7 +28,8 @@
     <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="2.0.1" />
     <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.1.0" />
     <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.2.1" />
-    <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.1.0" />
+    <PackageVersion Include="AndreGoepel.Testing.Bunit" Version="1.2.0" />
+    <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />

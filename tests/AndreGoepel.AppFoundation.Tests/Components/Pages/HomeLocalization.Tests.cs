@@ -1,4 +1,3 @@
-using System.Globalization;
 using AndreGoepel.AppFoundation.Components.Pages;
 using Bunit;
 
@@ -21,19 +20,12 @@ public sealed class HomeLocalizationTests : BunitContext
     public void Render_German_ShowsGermanCopy()
     {
         // Arrange
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
-        try
-        {
-            // Act
-            var cut = Render<Home>();
+        using var culture = CultureScope.UiOnly("de");
 
-            // Assert
-            Assert.Contains("Willkommen!", cut.Markup);
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        // Act
+        var cut = Render<Home>();
+
+        // Assert
+        Assert.Contains("Willkommen!", cut.Markup);
     }
 }

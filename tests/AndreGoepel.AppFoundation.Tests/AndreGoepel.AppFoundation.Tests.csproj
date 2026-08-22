@@ -4,6 +4,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AndreGoepel.Testing.Bunit" />
     <PackageReference Include="bunit" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

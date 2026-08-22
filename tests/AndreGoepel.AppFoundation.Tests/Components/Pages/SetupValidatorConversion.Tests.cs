@@ -22,7 +22,7 @@ public sealed class SetupValidatorConversionTests : BunitContext
 {
     public SetupValidatorConversionTests()
     {
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
     }
 
     [Fact]

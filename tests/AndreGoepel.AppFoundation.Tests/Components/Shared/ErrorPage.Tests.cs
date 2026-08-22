@@ -1,4 +1,3 @@
-using System.Globalization;
 using AndreGoepel.AppFoundation.Components.Shared;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -14,7 +13,7 @@ public sealed class ErrorPageTests : BunitContext
 
     private IRenderedComponent<ErrorPage> RenderError(string code, HttpContext? httpContext = null)
     {
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
         Services.AddSingleton<IHttpContextAccessor>(
             new HttpContextAccessor { HttpContext = httpContext ?? new DefaultHttpContext() }
         );
@@ -56,20 +55,13 @@ public sealed class ErrorPageTests : BunitContext
     [Fact]
     public void Render_German_With404_ShowsGermanNotFoundMessage()
     {
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
-        try
-        {
-            // Act
-            var cut = RenderError("404");
+        using var culture = CultureScope.UiOnly("de");
 
-            // Assert
-            Assert.Contains("Seite nicht gefunden", cut.Markup);
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        // Act
+        var cut = RenderError("404");
+
+        // Assert
+        Assert.Contains("Seite nicht gefunden", cut.Markup);
     }
 
     [Fact]
@@ -129,7 +121,7 @@ public sealed class ErrorPageTests : BunitContext
     {
         // Arrange
         Services.AddSingleton<IHttpContextAccessor>(new HttpContextAccessor { HttpContext = null });
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
 
         // Act
         var cut = Render<ErrorPage>(p => p.Add(c => c.Code, "404"));
