@@ -18,7 +18,7 @@ public sealed class EmailSettingsPageTests : BunitContext
 
     public EmailSettingsPageTests()
     {
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
         Services.AddSingleton(store);
         Services.AddSingleton(emailSender);
         Services.AddSingleton(notificationService);

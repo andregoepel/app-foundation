@@ -11,7 +11,7 @@ public sealed class NotFoundTests : BunitContext
     public void Render_ShowsNotFoundMessage()
     {
         // Arrange — NotFound renders ErrorPage, which needs IHttpContextAccessor (#128).
-        JSInterop.Mode = JSRuntimeMode.Loose;
+        this.UseLooseJSInterop();
         Services.AddSingleton<IHttpContextAccessor>(
             new HttpContextAccessor { HttpContext = new DefaultHttpContext() }
         );

@@ -1,4 +1,3 @@
-using System.Globalization;
 using AndreGoepel.AppFoundation.Components.Pages;
 using Bunit;
 
@@ -22,23 +21,16 @@ public sealed class ErrorLocalizationTests : BunitContext
     public void Render_German_ShowsGermanCopy()
     {
         // Arrange
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
-        try
-        {
-            // Act
-            var cut = Render<Error>();
+        using var culture = CultureScope.UiOnly("de");
 
-            // Assert
-            Assert.Contains(
-                "Bei der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten.",
-                cut.Markup
-            );
-            Assert.Contains("Entwicklungsmodus", cut.Markup);
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        // Act
+        var cut = Render<Error>();
+
+        // Assert
+        Assert.Contains(
+            "Bei der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten.",
+            cut.Markup
+        );
+        Assert.Contains("Entwicklungsmodus", cut.Markup);
     }
 }

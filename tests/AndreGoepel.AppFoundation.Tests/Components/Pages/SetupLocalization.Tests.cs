@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Resources;
 using AndreGoepel.AppFoundation.Resources;
 using AndreGoepel.Design.Blazor.Resources;
@@ -30,71 +29,57 @@ public sealed class SetupLocalizationTests
     public void English_ResolvesEnglishCopy()
     {
         // Arrange
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
-        try
-        {
-            // Act / Assert
-            Assert.Equal(
-                "Initial setup",
-                Services.LocalizedText<AppFoundationStrings>("Setup.PageTitle", Fallback)
-            );
-            Assert.Equal(
-                "Create admin & complete setup",
-                Services.LocalizedText<AppFoundationStrings>("Setup.SubmitButton", Fallback)
-            );
-            Assert.Equal(
-                "The passwords do not match",
-                Services.LocalizedText<AppFoundationStrings>("Setup.PasswordsDoNotMatch", Fallback)
-            );
-            Assert.Equal(
-                "Error creating role Member",
-                Services.LocalizedText<AppFoundationStrings>(
-                    "Setup.ErrorCreatingRoleTitle",
-                    Fallback,
-                    "Member"
-                )
-            );
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        using var culture = CultureScope.UiOnly("en");
+
+        // Act / Assert
+        Assert.Equal(
+            "Initial setup",
+            Services.LocalizedText<AppFoundationStrings>("Setup.PageTitle", Fallback)
+        );
+        Assert.Equal(
+            "Create admin & complete setup",
+            Services.LocalizedText<AppFoundationStrings>("Setup.SubmitButton", Fallback)
+        );
+        Assert.Equal(
+            "The passwords do not match",
+            Services.LocalizedText<AppFoundationStrings>("Setup.PasswordsDoNotMatch", Fallback)
+        );
+        Assert.Equal(
+            "Error creating role Member",
+            Services.LocalizedText<AppFoundationStrings>(
+                "Setup.ErrorCreatingRoleTitle",
+                Fallback,
+                "Member"
+            )
+        );
     }
 
     [Fact]
     public void German_ResolvesGermanCopy()
     {
         // Arrange
-        var original = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
-        try
-        {
-            // Act / Assert
-            Assert.Equal(
-                "Ersteinrichtung",
-                Services.LocalizedText<AppFoundationStrings>("Setup.PageTitle", Fallback)
-            );
-            Assert.Equal(
-                "Administrator anlegen & Einrichtung abschließen",
-                Services.LocalizedText<AppFoundationStrings>("Setup.SubmitButton", Fallback)
-            );
-            Assert.Equal(
-                "Die Passwörter stimmen nicht überein",
-                Services.LocalizedText<AppFoundationStrings>("Setup.PasswordsDoNotMatch", Fallback)
-            );
-            Assert.Equal(
-                "Fehler beim Anlegen der Rolle Member",
-                Services.LocalizedText<AppFoundationStrings>(
-                    "Setup.ErrorCreatingRoleTitle",
-                    Fallback,
-                    "Member"
-                )
-            );
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = original;
-        }
+        using var culture = CultureScope.UiOnly("de");
+
+        // Act / Assert
+        Assert.Equal(
+            "Ersteinrichtung",
+            Services.LocalizedText<AppFoundationStrings>("Setup.PageTitle", Fallback)
+        );
+        Assert.Equal(
+            "Administrator anlegen & Einrichtung abschließen",
+            Services.LocalizedText<AppFoundationStrings>("Setup.SubmitButton", Fallback)
+        );
+        Assert.Equal(
+            "Die Passwörter stimmen nicht überein",
+            Services.LocalizedText<AppFoundationStrings>("Setup.PasswordsDoNotMatch", Fallback)
+        );
+        Assert.Equal(
+            "Fehler beim Anlegen der Rolle Member",
+            Services.LocalizedText<AppFoundationStrings>(
+                "Setup.ErrorCreatingRoleTitle",
+                Fallback,
+                "Member"
+            )
+        );
     }
 }
