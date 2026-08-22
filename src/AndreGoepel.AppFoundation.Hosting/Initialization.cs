@@ -298,9 +298,9 @@ public static class Initialization
         // MapRazorComponents — since a Blazor Server circuit takes its culture from the request that creates it.
         app.UseDesignBlazorLocalization();
 
-        app.UseAntiforgery();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseAntiforgery();
 
         app.UseMartenIdentityMiddleware();
 
