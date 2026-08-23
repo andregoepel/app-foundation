@@ -7,7 +7,6 @@
 
   <PropertyGroup>
     <PackageId>AndreGoepel.AppFoundation.Aspire</PackageId>
-    <Version>1.8.0</Version>
     <Description>Standardized .NET Aspire AppHost building blocks (MailHog, Postgres) for AndreGoepel.AppFoundation hosts.</Description>
     <PackageTags>appfoundation;aspire;apphost;mailhog;postgresql</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
