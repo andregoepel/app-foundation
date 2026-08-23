@@ -2,6 +2,12 @@
   <PropertyGroup>
     <Authors>André Göpel</Authors>
     <Copyright>© André Göpel</Copyright>
+    <!-- The release version is the git tag: CI packs with
+         -p:Version=${GITHUB_REF_NAME#v}, so this value never reaches NuGet. It exists so a
+         local build reports something truthful. Kept here rather than per-project because
+         every package in this repo ships from the same tag, so a per-project copy has nothing
+         to say that this one does not — and the copies only ever drifted out of date. -->
+    <Version>2.1.0</Version>
     <RepositoryUrl>https://github.com/andregoepel/app-foundation</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/andregoepel/app-foundation</PackageProjectUrl>
