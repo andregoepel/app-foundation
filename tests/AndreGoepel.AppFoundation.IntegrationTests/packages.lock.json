@@ -4,9 +4,9 @@
     "net10.0": {
       "AndreGoepel.Marten.Testing": {
         "type": "Direct",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "pT6i++l8JEuwnx4gY2ZO+EwOGuuLZkR9uEzPSybfPTrdVHblttZN/nl0Bb//jCW1Nk6YXPmk5oX5/ZGpzuGuew==",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "rE7ASlAE0L9xoOASfDhBKEWysPz7FpfofK/jNPjWc8l30aFvwNIE2ntImrelULs0GQvX5QGij3NjKs9GiQHxyQ==",
         "dependencies": {
           "Marten": "9.29.0",
           "Testcontainers.PostgreSql": "4.14.0",
