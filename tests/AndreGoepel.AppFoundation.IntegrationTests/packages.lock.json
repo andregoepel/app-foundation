@@ -1229,8 +1229,8 @@
       "andregoepel.appfoundation": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
-          "AndreGoepel.AppFoundation.MailService": "[1.9.0, )",
+          "AndreGoepel.AppFoundation.Core": "[2.1.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[2.1.0, )",
           "AndreGoepel.Design.Blazor": "[1.6.4, )",
           "AndreGoepel.Marten.Identity.Blazor": "[2.0.1, )",
           "Marten": "[9.29.0, )",
@@ -1245,10 +1245,10 @@
       "andregoepel.appfoundation.hosting": {
         "type": "Project",
         "dependencies": {
-          "AndreGoepel.AppFoundation": "[1.8.0, )",
-          "AndreGoepel.AppFoundation.Core": "[1.8.0, )",
-          "AndreGoepel.AppFoundation.MailService": "[1.9.0, )",
-          "AndreGoepel.AppFoundation.ServiceDefaults": "[1.8.0, )",
+          "AndreGoepel.AppFoundation": "[2.1.0, )",
+          "AndreGoepel.AppFoundation.Core": "[2.1.0, )",
+          "AndreGoepel.AppFoundation.MailService": "[2.1.0, )",
+          "AndreGoepel.AppFoundation.ServiceDefaults": "[2.1.0, )",
           "AndreGoepel.Marten.Configuration": "[1.2.1, )",
           "AndreGoepel.Marten.Identity.Blazor": "[2.0.1, )",
           "Marten": "[9.29.0, )",
