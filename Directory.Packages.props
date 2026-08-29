@@ -3,13 +3,13 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="Aspire">
-    <PackageVersion Include="Aspire.Hosting" Version="13.5.2" />
+    <PackageVersion Include="Aspire.Hosting" Version="13.5.3" />
     <PackageVersion Include="Aspire.Hosting.Docker" Version="13.5.2" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.2" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.2" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.3" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.3" />
   </ItemGroup>
   <ItemGroup Label="Marten">
-    <PackageVersion Include="Marten" Version="9.29.0" />
+    <PackageVersion Include="Marten" Version="9.30.0" />
     <PackageVersion Include="Marten.AspNetCore" Version="9.29.0" />
   </ItemGroup>
   <ItemGroup Label="Postgres">
@@ -19,8 +19,8 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.29.2" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.29.2" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.30.3" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.30.3" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.2" />
@@ -48,15 +48,15 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.2.6" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.2.8" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.20.0" />
     <!-- Quartz core's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
          which throws on .NET 8+ (removed for security reasons) — required, not optional,
          for the persistent job store (#129). -->
-    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.20.0" />
   </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="bunit" Version="2.9.0" />
