@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.20.0" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="4.0.1" />
     <!-- Quartz core's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
          which throws on .NET 8+ (removed for security reasons) — required, not optional,
          for the persistent job store (#129). -->
