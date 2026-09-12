@@ -537,8 +537,8 @@
       },
       "Quartz": {
         "type": "Transitive",
-        "resolved": "3.20.0",
-        "contentHash": "mDyb74DiYb4FYs0/hdCdBEq/lQ2Y3ekgVb2APEnJXc6imFqMKIlKV8pKKurfRDMh2fGZ+iXZfNm7nKfmd6wOOg=="
+        "resolved": "4.0.1",
+        "contentHash": "Z+UmHAn99DiRVk59KLKPLuXqkIYIVWb2JI5WuwtO45XqIY1Lz6FGD1/spM7sqB9d8VRDtHkkhyjeynS1uAi05w=="
       },
       "Quartz.Extensions.DependencyInjection": {
         "type": "Transitive",
@@ -774,7 +774,7 @@
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.11, )",
           "Npgsql": "[10.0.3, )",
           "Quartz.Extensions.Hosting": "[3.20.0, )",
-          "Quartz.Serialization.SystemTextJson": "[3.20.0, )",
+          "Quartz.Serialization.SystemTextJson": "[4.0.1, )",
           "Radzen.Blazor": "[11.2.8, )",
           "WolverineFx.Marten": "[6.32.0, )",
           "WolverineFx.RuntimeCompilation": "[6.32.0, )"
@@ -945,11 +945,11 @@
       },
       "Quartz.Serialization.SystemTextJson": {
         "type": "CentralTransitive",
-        "requested": "[3.20.0, )",
-        "resolved": "3.20.0",
-        "contentHash": "6s6Gf6I67d3t4gWYW2Q1q0Q6THx3mCKmeOiJKjZcrNnRHTg0q5uIE8oZ7h4SQ0XVGYKzSysaHEg2SAOg93AMug==",
+        "requested": "[4.0.1, )",
+        "resolved": "4.0.1",
+        "contentHash": "JRKqeMQ0l8mLVfImkE6nciSiWmuaPdNYdv+FctMuzigkmXvmYnd/dHq+eBEKRWjepWvsOVyX1XW70F0JIYBfOQ==",
         "dependencies": {
-          "Quartz": "3.20.0"
+          "Quartz": "4.0.1"
         }
       },
       "Radzen.Blazor": {
