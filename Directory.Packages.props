@@ -56,7 +56,7 @@
     <!-- Quartz core's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
          which throws on .NET 8+ (removed for security reasons) — required, not optional,
          for the persistent job store (#129). -->
-    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.20.0" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="4.0.1" />
   </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="bunit" Version="2.9.0" />
