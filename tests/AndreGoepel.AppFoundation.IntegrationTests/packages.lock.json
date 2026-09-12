@@ -549,6 +549,17 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11"
         }
       },
+      "Microsoft.Extensions.Diagnostics.HealthChecks": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "4x6y2Uy+g9Ou93eBCVkG/3JCwnc2AMKhrE1iuEhXT/MzNN7co/Zt6yL+q1Srt0CnOe3iLX+sVqpJI4ZGlOPfug==",
+        "dependencies": {
+          "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Options": "10.0.0"
+        }
+      },
       "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.0",
@@ -960,20 +971,15 @@
       },
       "Quartz": {
         "type": "Transitive",
-        "resolved": "3.20.0",
-        "contentHash": "mDyb74DiYb4FYs0/hdCdBEq/lQ2Y3ekgVb2APEnJXc6imFqMKIlKV8pKKurfRDMh2fGZ+iXZfNm7nKfmd6wOOg==",
+        "resolved": "4.0.1",
+        "contentHash": "Z+UmHAn99DiRVk59KLKPLuXqkIYIVWb2JI5WuwtO45XqIY1Lz6FGD1/spM7sqB9d8VRDtHkkhyjeynS1uAi05w==",
         "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "2.1.1"
-        }
-      },
-      "Quartz.Extensions.DependencyInjection": {
-        "type": "Transitive",
-        "resolved": "3.20.0",
-        "contentHash": "s7Na0G4rSHRLIEWNGZxou69tpuzyimib8lAR7q7Cidmz8tK4ELLfgPpfI7cwZE//9qhOMZkK6b9Hju40ZMNhOQ==",
-        "dependencies": {
-          "Microsoft.Extensions.Configuration.Abstractions": "10.0.0",
-          "Microsoft.Extensions.Options": "10.0.0",
-          "Quartz": "3.20.0"
+          "Microsoft.Extensions.Configuration.Binder": "10.0.0",
+          "Microsoft.Extensions.DependencyInjection": "10.0.0",
+          "Microsoft.Extensions.Diagnostics.HealthChecks": "10.0.0",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Logging": "10.0.0",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "10.0.0"
         }
       },
       "SharpZipLib": {
@@ -1235,6 +1241,7 @@
           "AndreGoepel.Marten.Identity.Blazor": "[2.0.2, )",
           "Marten": "[9.30.0, )",
           "Npgsql": "[10.0.3, )",
+          "Quartz.Extensions.Hosting": "[4.0.1, )",
           "Radzen.Blazor": "[11.2.8, )",
           "WolverineFx.Marten": "[6.32.0, )"
         }
@@ -1254,7 +1261,7 @@
           "Marten": "[9.30.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.11, )",
           "Npgsql": "[10.0.3, )",
-          "Quartz.Extensions.Hosting": "[3.20.0, )",
+          "Quartz.Extensions.Hosting": "[4.0.1, )",
           "Quartz.Serialization.SystemTextJson": "[3.20.0, )",
           "Radzen.Blazor": "[11.2.8, )",
           "WolverineFx.Marten": "[6.32.0, )",
@@ -1445,12 +1452,11 @@
       },
       "Quartz.Extensions.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[3.20.0, )",
-        "resolved": "3.20.0",
-        "contentHash": "pFcsLUhDYMt00jW6atTp0+/GJGVp3JKNdAXCxV0l/pTJKOmHmZ5bw4+aTVHdyRx0oodW3B17gK/gg9Hw0KGMLQ==",
+        "requested": "[4.0.1, )",
+        "resolved": "4.0.1",
+        "contentHash": "mi9gHtpeQCqUlgMCmZm34NdYWsOr7PB2THRu6t7mLoYvNYYXSDkUWZYWMyoTrr/pD9HjtWbp6HykpNyEEm6SkA==",
         "dependencies": {
-          "Microsoft.Extensions.Hosting.Abstractions": "10.0.0",
-          "Quartz.Extensions.DependencyInjection": "3.20.0"
+          "Quartz": "4.0.1"
         }
       },
       "Quartz.Serialization.SystemTextJson": {
