@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AndreGoepel.Marten.Configuration" />
     <PackageReference Include="Marten" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Radzen.Blazor" />
