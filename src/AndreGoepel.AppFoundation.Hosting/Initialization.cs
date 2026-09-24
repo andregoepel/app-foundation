@@ -79,8 +79,6 @@ public static class Initialization
             identity.EnableUserRegistration = false;
             options.ConfigureIdentity?.Invoke(identity);
         });
-        builder.Services.AddMartenIdentityCleanup();
-
         var connectionString =
             builder.Configuration.GetConnectionString(options.DatabaseConnectionName)
             ?? throw new InvalidOperationException(
@@ -93,10 +91,10 @@ public static class Initialization
             options.SchemaCreation
             ?? (builder.Environment.IsDevelopment() ? AutoCreate.All : AutoCreate.CreateOrUpdate);
 
-        // Merges into the same QuartzOptions as AddMartenIdentityCleanup's own AddQuartz call, layering a
-        // Postgres-backed persistent store on top of its RAMJobStore registration. Configuration only — no I/O,
-        // no re-registering jobs — so AddAppFoundation stays testable without a reachable database; the qrtz_
-        // schema itself is provisioned later in UseAppFoundation (#129).
+        // Register the persistent store before AddMartenIdentityCleanup contributes its jobs. Quartz 4 keeps
+        // repeated AddQuartz calls additive, but the first call selects the default scheduler's component
+        // implementations. Configuration only — no I/O — so AddAppFoundation remains testable without a
+        // reachable database; the qrtz_ schema itself is provisioned later in UseAppFoundation (#129).
         builder.Services.AddQuartz(quartz =>
         {
             quartz.UsePersistentStore(store =>
@@ -104,12 +102,14 @@ public static class Initialization
                 store.UsePostgres(connectionString);
 
                 // Postgres folds unquoted identifiers to lowercase; Quartz's own default ("QRTZ_") would 404.
-                store.SetProperty("quartz.jobStore.tablePrefix", "qrtz_");
+                store.ConfigureStore(storeOptions => storeOptions.TablePrefix = "qrtz_");
 
                 // Quartz's default BinaryObjectSerializer uses BinaryFormatter, removed in .NET 8+.
                 store.UseSystemTextJsonSerializer();
             });
         });
+
+        builder.Services.AddMartenIdentityCleanup();
 
         builder.Services.AddScoped<IEmailSender<User>, IdentityEmailSender>();
 

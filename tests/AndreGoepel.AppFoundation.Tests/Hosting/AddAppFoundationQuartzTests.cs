@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartz;
+using Quartz.Extensibility;
+using Quartz.Impl;
 
 namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
@@ -19,13 +21,15 @@ public sealed class AddAppFoundationQuartzTests
         builder.AddAppFoundation();
 
         // Assert
-        var quartz = ResolveQuartzOptions(builder);
-        Assert.Equal("Quartz.Impl.AdoJobStore.JobStoreTX, Quartz", quartz["quartz.jobStore.type"]);
-        Assert.Equal(
-            "Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz",
-            quartz["quartz.jobStore.driverDelegateType"]
-        );
-        Assert.Equal("Npgsql", quartz["quartz.dataSource.default.provider"]);
+        using var provider = builder.Services.BuildServiceProvider();
+        var store = provider.GetRequiredService<IOptions<AdoJobStoreOptions>>().Value;
+        var dataSource = provider
+            .GetRequiredService<IOptionsMonitor<DataSourceOptions>>()
+            .Get(store.DataSource);
+
+        Assert.True(provider.GetRequiredService<IJobStore>().SupportsPersistence);
+        Assert.Equal("quartz", store.DataSource);
+        Assert.Equal(DataSourceOptions.Providers.Npgsql, dataSource.Provider);
     }
 
     [Fact]
@@ -40,7 +44,9 @@ public sealed class AddAppFoundationQuartzTests
         builder.AddAppFoundation();
 
         // Assert
-        Assert.Equal("qrtz_", ResolveQuartzOptions(builder)["quartz.jobStore.tablePrefix"]);
+        using var provider = builder.Services.BuildServiceProvider();
+        var store = provider.GetRequiredService<IOptions<AdoJobStoreOptions>>().Value;
+        Assert.Equal("qrtz_", store.TablePrefix);
     }
 
     [Fact]
@@ -54,9 +60,9 @@ public sealed class AddAppFoundationQuartzTests
         builder.AddAppFoundation();
 
         // Assert
-        Assert.Equal(
-            "Quartz.Simpl.SystemTextJsonObjectSerializer, Quartz.Serialization.SystemTextJson",
-            ResolveQuartzOptions(builder)["quartz.serializer.type"]
+        using var provider = builder.Services.BuildServiceProvider();
+        Assert.IsType<SystemTextJsonObjectSerializer>(
+            provider.GetRequiredService<IObjectSerializer>()
         );
     }
 
@@ -71,13 +77,7 @@ public sealed class AddAppFoundationQuartzTests
         // Act / Assert — no exception
         builder.AddAppFoundation();
         using var provider = builder.Services.BuildServiceProvider();
-        provider.GetRequiredService<IOptions<QuartzOptions>>();
-    }
-
-    private static QuartzOptions ResolveQuartzOptions(WebApplicationBuilder builder)
-    {
-        using var provider = builder.Services.BuildServiceProvider();
-        return provider.GetRequiredService<IOptions<QuartzOptions>>().Value;
+        provider.GetRequiredService<IOptions<AdoJobStoreOptions>>();
     }
 
     private static WebApplicationBuilder CreateBuilder()
