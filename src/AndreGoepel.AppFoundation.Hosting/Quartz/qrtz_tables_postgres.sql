@@ -1,9 +1,9 @@
 -- Quartz.NET PostgreSQL job-store schema, vendored from
--- https://github.com/quartznet/quartznet/blob/v3.18.2/database/tables/tables_postgres.sql
--- (the tag matching the Quartz version this solution pins) and adapted for idempotent,
--- non-destructive startup provisioning: every CREATE TABLE / CREATE INDEX below is
--- IF NOT EXISTS, and the original script's table-dropping block has been removed
--- entirely — this script must never delete data. See QuartzSchemaProvisioner (#129).
+-- https://github.com/quartznet/quartznet/blob/v4.1.1/database/tables/tables_postgres.sql
+-- and adapted for idempotent, non-destructive startup provisioning. CREATE statements
+-- use IF NOT EXISTS, the original table-dropping block is omitted, and the guarded 3.x
+-- to 4.x column migration is included below. This script must never delete data.
+-- See QuartzSchemaProvisioner (#129).
 
 CREATE TABLE IF NOT EXISTS qrtz_job_details
   (
@@ -39,6 +39,10 @@ CREATE TABLE IF NOT EXISTS qrtz_triggers
     misfire_instr SMALLINT NULL,
     misfire_orig_fire_time BIGINT NULL,
     execution_group VARCHAR(200) NULL,
+    preferred_node VARCHAR(200) NULL,
+    preferred_node_auto BOOL NOT NULL DEFAULT FALSE,
+    retry_policy VARCHAR(250) NULL,
+    retry_attempt INTEGER NULL,
     job_data BYTEA NULL,
     PRIMARY KEY (sched_name, trigger_name, trigger_group),
     FOREIGN KEY (sched_name, job_name, job_group)
@@ -122,6 +126,13 @@ CREATE TABLE IF NOT EXISTS qrtz_paused_trigger_grps
     PRIMARY KEY (sched_name, trigger_group)
 );
 
+CREATE TABLE IF NOT EXISTS qrtz_paused_job_grps
+  (
+    sched_name TEXT NOT NULL,
+    job_group TEXT NOT NULL,
+    PRIMARY KEY (sched_name, job_group)
+);
+
 CREATE TABLE IF NOT EXISTS qrtz_fired_triggers
   (
     sched_name TEXT NOT NULL,
@@ -168,3 +179,60 @@ CREATE INDEX IF NOT EXISTS idx_qrtz_ft_trig_inst_name ON qrtz_fired_triggers (in
 CREATE INDEX IF NOT EXISTS idx_qrtz_ft_job_name ON qrtz_fired_triggers (job_name);
 CREATE INDEX IF NOT EXISTS idx_qrtz_ft_job_group ON qrtz_fired_triggers (job_group);
 CREATE INDEX IF NOT EXISTS idx_qrtz_ft_job_req_recovery ON qrtz_fired_triggers (requests_recovery);
+-- Quartz 4 requires columns that were optional or absent in Quartz 3. Each guard makes
+-- startup safe for fresh, already-current, and partially migrated databases.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'misfire_orig_fire_time') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN misfire_orig_fire_time BIGINT NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'execution_group') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN execution_group VARCHAR(200) NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_fired_triggers' AND column_name = 'execution_group') THEN
+    ALTER TABLE qrtz_fired_triggers ADD COLUMN execution_group VARCHAR(200) NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'preferred_node') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN preferred_node VARCHAR(200) NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'preferred_node_auto') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN preferred_node_auto BOOL NOT NULL DEFAULT FALSE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'retry_policy') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN retry_policy VARCHAR(250) NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'qrtz_triggers' AND column_name = 'retry_attempt') THEN
+    ALTER TABLE qrtz_triggers ADD COLUMN retry_attempt INTEGER NULL;
+  END IF;
+END $$;

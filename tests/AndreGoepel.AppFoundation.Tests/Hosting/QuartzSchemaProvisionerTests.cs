@@ -15,6 +15,7 @@ public sealed class QuartzSchemaProvisionerTests
         "qrtz_blob_triggers",
         "qrtz_calendars",
         "qrtz_paused_trigger_grps",
+        "qrtz_paused_job_grps",
         "qrtz_fired_triggers",
         "qrtz_scheduler_state",
         "qrtz_locks",
@@ -50,6 +51,23 @@ public sealed class QuartzSchemaProvisionerTests
         {
             Assert.Contains($"CREATE TABLE IF NOT EXISTS {table}", script);
         }
+    }
+
+    [Theory]
+    [InlineData("misfire_orig_fire_time")]
+    [InlineData("execution_group")]
+    [InlineData("preferred_node")]
+    [InlineData("preferred_node_auto")]
+    [InlineData("retry_policy")]
+    [InlineData("retry_attempt")]
+    public void ReadScript_MigratesRequiredQuartz4Columns(string column)
+    {
+        // Act
+        var script = QuartzSchemaProvisioner.ReadScript();
+
+        // Assert
+        Assert.Contains($"column_name = '{column}'", script);
+        Assert.Contains($"ADD COLUMN {column}", script);
     }
 
     [Fact]
