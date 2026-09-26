@@ -29,6 +29,7 @@
   <ItemGroup>
     <PackageReference Include="Marten" />
     <PackageReference Include="Npgsql" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Radzen.Blazor" />
     <PackageReference Include="AndreGoepel.Design.Blazor" />
     <PackageReference Include="AndreGoepel.Marten.Identity.Blazor" />
