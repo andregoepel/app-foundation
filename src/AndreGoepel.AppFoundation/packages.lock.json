@@ -45,9 +45,9 @@
       },
       "Radzen.Blazor": {
         "type": "Direct",
-        "requested": "[11.4.2, )",
-        "resolved": "11.4.2",
-        "contentHash": "0kz2fbgP7jBoS8pw0O2/Q5q4QQfLLaJ+cc0LfgEM1VxEUa52pmHSbhDNssbAuN+RMBh5lDVULw7GB4Zw+AhwNA=="
+        "requested": "[11.5.1, )",
+        "resolved": "11.5.1",
+        "contentHash": "1grwHjm04KGvp9bwE+0ZPa/cCGepxi058eGza+NRMZxuTJeEc+PuQge7gvxxzjWk/VtkxrUxuaYVF8igEpHMSQ=="
       },
       "WolverineFx.Marten": {
         "type": "Direct",
