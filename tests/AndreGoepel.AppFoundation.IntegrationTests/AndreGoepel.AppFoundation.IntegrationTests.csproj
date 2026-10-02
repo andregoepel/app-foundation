@@ -16,4 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\AndreGoepel.AppFoundation.Hosting\AndreGoepel.AppFoundation.Hosting.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Fixtures/Quartz411Schema.sql" />
+  </ItemGroup>
 </Project>

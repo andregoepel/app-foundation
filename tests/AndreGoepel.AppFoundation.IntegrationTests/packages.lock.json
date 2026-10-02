@@ -4,11 +4,11 @@
     "net10.0": {
       "AndreGoepel.Marten.Testing": {
         "type": "Direct",
-        "requested": "[1.2.4, )",
-        "resolved": "1.2.4",
-        "contentHash": "gZ70pAQs41PPaTHR0TnbEZP3PLD4NTZiyc0eu5qb6VHQ7irLWz544C+0TYfWLxuKLAjx/OUy9G2rNGOXWEDaXA==",
+        "requested": "[1.2.5, )",
+        "resolved": "1.2.5",
+        "contentHash": "z2kRCezWxjdMRQ9ufHIcY8Lbk1wPUz7hFejTeRE/CBT6ymJGsAGhYeZdjaqaeBboJd4tNoo9B8WRnXLdWcLTGQ==",
         "dependencies": {
-          "Marten": "9.39.0",
+          "Marten": "9.45.0",
           "Testcontainers.PostgreSql": "4.15.0",
           "xunit.v3.extensibility.core": "4.0.1"
         }
