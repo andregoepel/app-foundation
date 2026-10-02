@@ -19,8 +19,8 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.44.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.44.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.45.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.45.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.4" />
@@ -48,7 +48,7 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="11.4.2" />
+    <PackageVersion Include="Radzen.Blazor" Version="11.5.1" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.18.1" />
