@@ -46,12 +46,12 @@
       },
       "AndreGoepel.Marten.Identity": {
         "type": "Transitive",
-        "resolved": "2.1.3",
-        "contentHash": "jJaBoVdI0IBkIVqEGMc7TvV5KF7rBeNHj5CN53lTeGXLD6dn7oNEdc55gQZS1xQt4GnuB4JyC+KJRBSq1/LTSA==",
+        "resolved": "2.2.0",
+        "contentHash": "TLrnxKwE8N4L0Sm86jnPevfoG4xQNlEV9pTPVLPKhZKfnuyrmI3IGxs70DsUS1eGYNjMjjb5lDrz9QMrqsrs9g==",
         "dependencies": {
           "AndreGoepel.Core": "1.0.4",
           "AndreGoepel.Marten.Configuration": "1.2.6",
-          "AndreGoepel.Marten.Identity.Abstractions": "2.1.3",
+          "AndreGoepel.Marten.Identity.Abstractions": "2.2.0",
           "Marten": "9.45.0",
           "Marten.AspNetCore": "9.45.0",
           "Quartz.Extensions.Hosting": "4.3.0"
@@ -59,8 +59,8 @@
       },
       "AndreGoepel.Marten.Identity.Abstractions": {
         "type": "Transitive",
-        "resolved": "2.1.3",
-        "contentHash": "rlSpaNG6y+hLBmJlfaB05QMmBvSnlcstDt96tno9EMVtfhdzaluYiIoTbA5ehjmiVkYSSnslKxhPv2YBoLjC7g=="
+        "resolved": "2.2.0",
+        "contentHash": "s7SMgi60kGZz1bhe+xHDH9SHgQCjdEEezB0MM7/+zKAf4+EgEQnbPmvzGLMattYklBg6Dx9XncPM5xOF0xSBEw=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
@@ -1243,11 +1243,11 @@
         "dependencies": {
           "AndreGoepel.AppFoundation.Core": "[2.1.0, )",
           "AndreGoepel.AppFoundation.MailService": "[2.1.0, )",
-          "AndreGoepel.Design.Blazor": "[1.6.8, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[2.1.3, )",
+          "AndreGoepel.Design.Blazor": "[1.7.1, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[2.2.0, )",
           "Marten": "[9.45.0, )",
           "Npgsql": "[10.0.3, )",
-          "Radzen.Blazor": "[11.5.1, )",
+          "Radzen.Blazor": "[12.0.5, )",
           "WolverineFx.Marten": "[6.45.0, )"
         }
       },
@@ -1262,13 +1262,13 @@
           "AndreGoepel.AppFoundation.MailService": "[2.1.0, )",
           "AndreGoepel.AppFoundation.ServiceDefaults": "[2.1.0, )",
           "AndreGoepel.Marten.Configuration": "[1.2.6, )",
-          "AndreGoepel.Marten.Identity.Blazor": "[2.1.3, )",
+          "AndreGoepel.Marten.Identity.Blazor": "[2.2.0, )",
           "Marten": "[9.45.0, )",
           "Microsoft.AspNetCore.HeaderPropagation": "[10.0.12, )",
           "Npgsql": "[10.0.3, )",
           "Quartz.Extensions.Hosting": "[4.3.0, )",
           "Quartz.Serialization.SystemTextJson": "[4.3.0, )",
-          "Radzen.Blazor": "[11.5.1, )",
+          "Radzen.Blazor": "[12.0.5, )",
           "WolverineFx.Marten": "[6.45.0, )",
           "WolverineFx.RuntimeCompilation": "[6.45.0, )"
         }
@@ -1304,11 +1304,11 @@
       },
       "AndreGoepel.Design.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[1.6.8, )",
-        "resolved": "1.6.8",
-        "contentHash": "MxK+AwfVthPJeA2CtW0U4djWalFqyAfiWhaK0cwnnzumMQRhAAtHPxgCS97TIEOZcmnqJ5Ndr62pGnqMXHnILQ==",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "maOQhT7pRXtn/hH2UPmE31TTUNosP6lyxpMVEo+cK+/RRDqEYXvUIW+bc9XcbFEOYKnIAU4hQ5M5JP5E/FYWoA==",
         "dependencies": {
-          "Radzen.Blazor": "11.4.2"
+          "Radzen.Blazor": "12.0.5"
         }
       },
       "AndreGoepel.Marten.Configuration": {
@@ -1324,15 +1324,15 @@
       },
       "AndreGoepel.Marten.Identity.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[2.1.3, )",
-        "resolved": "2.1.3",
-        "contentHash": "MFvbcxdd28DyJ708UWszb2OnTMiiqthjBQdAxLl2VvKShZLehDwgPQvP0GlEcbBKBmwed/YAW2JgztYO8sR3IA==",
+        "requested": "[2.2.0, )",
+        "resolved": "2.2.0",
+        "contentHash": "MFgOOBEa1vAGjLraAUe38MmFBj+D5MqNTWvKlJf2t7K1e5sZYgdQw4DZa0HI1NyvTiV12Gs1VfTUwSfFzODyvQ==",
         "dependencies": {
-          "AndreGoepel.Design.Blazor": "1.6.8",
+          "AndreGoepel.Design.Blazor": "1.7.1",
           "AndreGoepel.Marten.Configuration": "1.2.6",
-          "AndreGoepel.Marten.Identity": "2.1.3",
+          "AndreGoepel.Marten.Identity": "2.2.0",
           "Marten": "9.45.0",
-          "Radzen.Blazor": "11.5.1"
+          "Radzen.Blazor": "12.0.5"
         }
       },
       "MailKit": {
@@ -1360,7 +1360,7 @@
       },
       "Marten.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[9.30.0, )",
+        "requested": "[9.45.0, )",
         "resolved": "9.45.0",
         "contentHash": "JQSLFY9Whdtm7X2EUIU9v9C/kdEP+oBbcRqJ2lFZr5MYCqt3cck+rTY/lDwM1IoALyErWycP5Cn3TAC2UIHEKg==",
         "dependencies": {
@@ -1475,9 +1475,9 @@
       },
       "Radzen.Blazor": {
         "type": "CentralTransitive",
-        "requested": "[11.5.1, )",
-        "resolved": "11.5.1",
-        "contentHash": "1grwHjm04KGvp9bwE+0ZPa/cCGepxi058eGza+NRMZxuTJeEc+PuQge7gvxxzjWk/VtkxrUxuaYVF8igEpHMSQ==",
+        "requested": "[12.0.5, )",
+        "resolved": "12.0.5",
+        "contentHash": "DVLwsZYRsWXd2iM+NoPvLu4xFX24xxNJmIknfjjlcGY8m9irod6PbOXj+6xUJpPAIau3z2ByGEkRKky2xmp6jA==",
         "dependencies": {
           "Microsoft.AspNetCore.Components": "10.0.12",
           "Microsoft.AspNetCore.Components.Web": "10.0.12"
