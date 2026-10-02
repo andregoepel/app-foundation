@@ -19,15 +19,15 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
-    <PackageVersion Include="WolverineFx.Marten" Version="6.44.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.44.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.45.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.45.0" />
   </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.4" />
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.6.8" />
-    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="2.1.1" />
+    <PackageVersion Include="AndreGoepel.Marten.Identity.Blazor" Version="2.1.2" />
     <PackageVersion Include="AndreGoepel.Marten.Testing" Version="1.2.5" />
-    <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.2.5" />
+    <PackageVersion Include="AndreGoepel.Marten.Configuration" Version="1.2.6" />
     <PackageVersion Include="AndreGoepel.Testing.Bunit" Version="1.3.4" />
     <PackageVersion Include="AndreGoepel.Testing.E2E" Version="1.3.4" />
   </ItemGroup>
