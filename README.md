@@ -310,6 +310,17 @@ run the app with a role that has no DDL rights. Quartz's `qrtz_*` job-store tabl
 same posture — provisioned idempotently alongside Marten's schema, skipped under
 `AutoCreate.None` — see [Scheduled jobs](#scheduled-jobs).
 
+### Quartz 4.3 schema upgrade
+
+The startup provisioner also adds the nullable columns introduced by Quartz 4.2 and 4.3,
+without replacing tables or existing jobs and triggers. With `SchemaCreation = AutoCreate.None`,
+apply the official PostgreSQL migrations before deploying Quartz 4.3:
+[continuations](https://github.com/quartznet/quartznet/blob/v4.3.0/database/migrations/4.2/add_continuations_postgres.sql),
+[fire progress](https://github.com/quartznet/quartznet/blob/v4.3.0/database/migrations/4.3/add_fire_progress_postgres.sql),
+[overlap policy](https://github.com/quartznet/quartznet/blob/v4.3.0/database/migrations/4.3/add_overlap_policy_postgres.sql),
+and [pause reasons](https://github.com/quartznet/quartznet/blob/v4.3.0/database/migrations/4.3/add_pause_reason_postgres.sql).
+These follow the existing 3.x-to-4.0 migration when upgrading a Quartz 3 schema.
+
 ### Scheduled jobs
 
 `AddAppFoundation` configures Quartz.NET with a PostgreSQL-persisted job store (`qrtz_*`
