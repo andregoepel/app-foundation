@@ -17,6 +17,11 @@ public sealed class AppFoundationAspireExtensionsTests
 
         // Assert
         Assert.Equal("mailhog", mailhog.Resource.Name);
+        Assert.True(mailhog.Resource.TryGetContainerImageName(out var image));
+        Assert.Equal(
+            "docker.io/mailhog/mailhog:v1.0.1@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea",
+            image
+        );
         var endpoints = mailhog.Resource.Annotations.OfType<EndpointAnnotation>().ToList();
         var smtp = Assert.Single(endpoints, e => e.Name == "smtp");
         Assert.Equal(1025, smtp.Port);
@@ -25,6 +30,40 @@ public sealed class AppFoundationAspireExtensionsTests
         Assert.Equal(8025, http.Port);
         Assert.Equal(8025, http.TargetPort);
         Assert.Equal("http", http.UriScheme);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("latest")]
+    public void AddStandardMailHog_DefaultAliases_UseThePinnedImage(string? tag)
+    {
+        // Arrange
+        var builder = DistributedApplication.CreateBuilder([]);
+
+        // Act
+        var mailhog = builder.AddStandardMailHog(tag: tag);
+
+        // Assert
+        Assert.True(mailhog.Resource.TryGetContainerImageName(out var image));
+        Assert.Equal(
+            "docker.io/mailhog/mailhog:v1.0.1@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea",
+            image
+        );
+    }
+
+    [Fact]
+    public void AddStandardMailHog_CustomImageReference_PreservesTheOverride()
+    {
+        // Arrange
+        var builder = DistributedApplication.CreateBuilder([]);
+        var tag = "custom@sha256:" + new string('a', 64);
+
+        // Act
+        var mailhog = builder.AddStandardMailHog(tag: tag);
+
+        // Assert
+        Assert.True(mailhog.Resource.TryGetContainerImageName(out var image));
+        Assert.Equal($"docker.io/mailhog/mailhog:{tag}", image);
     }
 
     [Fact]
@@ -56,7 +95,8 @@ public sealed class AppFoundationAspireExtensionsTests
         var (server, database) = builder.AddStandardPostgres(isE2E: false);
 
         // Assert
-        Assert.Contains(server.Resource.Annotations, a => a is ContainerMountAnnotation);
+        var mount = Assert.Single(server.Resource.Annotations.OfType<ContainerMountAnnotation>());
+        Assert.Equal("/var/lib/postgresql", mount.Target);
         var lifetime = server.Resource.Annotations.OfType<ContainerLifetimeAnnotation>().Single();
         Assert.Equal(ContainerLifetime.Persistent, lifetime.Lifetime);
         Assert.Equal("appfoundation-database", database.Resource.Name);
@@ -74,6 +114,11 @@ public sealed class AppFoundationAspireExtensionsTests
         var (server, _) = builder.AddStandardPostgres(isE2E: true);
 
         // Assert
+        Assert.True(server.Resource.TryGetContainerImageName(out var image));
+        Assert.Equal(
+            "docker.io/library/postgres:18.4@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636",
+            image
+        );
         Assert.DoesNotContain(server.Resource.Annotations, a => a is ContainerMountAnnotation);
         Assert.DoesNotContain(server.Resource.Annotations, a => a is ContainerLifetimeAnnotation);
     }
