@@ -87,7 +87,8 @@ PATH (even with its daemon stopped) it may be picked first. Force Podman:
 
 > First run pulls the `postgres` and `mailhog/mailhog` images. If Podman prompts to choose a
 > registry, add `unqualified-search-registries = ["docker.io"]` to your `containers.conf`, or
-> pre-pull: `podman pull docker.io/mailhog/mailhog:v1.0.1` and `podman pull docker.io/library/postgres`.
+> pre-pull: `podman pull docker.io/mailhog/mailhog:v1.0.1@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea` and
+> `podman pull docker.io/library/postgres:18.4@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636`.
 
 ## Running
 

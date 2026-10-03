@@ -14,6 +14,11 @@ namespace AndreGoepel.AppFoundation.Aspire;
 /// </summary>
 public static class AppFoundationAspireExtensions
 {
+    private const string MailHogImageTag =
+        "v1.0.1@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea";
+    private const string PostgresImageTag =
+        "18.4@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
+
     /// <summary>
     /// Adds a MailHog container that captures outgoing development email locally: an SMTP
     /// endpoint and an HTTP endpoint for its web UI / API.
@@ -21,8 +26,8 @@ public static class AppFoundationAspireExtensions
     /// <param name="builder">The AppHost's distributed application builder.</param>
     /// <param name="name">Resource name of the container.</param>
     /// <param name="tag">
-    /// Image tag. Defaults to the pinned <c>v1.0.1</c> for reproducible dev environments; pass
-    /// <c>null</c> to use the image's default (untagged/latest) instead.
+    /// Image tag. The default, <c>null</c>, and <c>latest</c> use the digest-pinned
+    /// <c>v1.0.1</c> image. Custom images can use <c>tag@sha256:digest</c>.
     /// </param>
     /// <param name="smtpPort">Host port MailHog's SMTP endpoint is exposed on.</param>
     /// <param name="httpPort">Host port MailHog's HTTP (web UI / API) endpoint is exposed on.</param>
@@ -45,9 +50,10 @@ public static class AppFoundationAspireExtensions
         int httpPort = 8025
     )
     {
-        var container = tag is null
-            ? builder.AddContainer(name, "mailhog/mailhog")
-            : builder.AddContainer(name, "mailhog/mailhog", tag);
+        var imageTag = tag is null or "latest" or "v1.0.1" ? MailHogImageTag : tag;
+        var container = builder
+            .AddContainer(name, "mailhog/mailhog", imageTag)
+            .WithImageRegistry("docker.io");
 
         return container
             .WithEndpoint(name: "smtp", port: smtpPort, targetPort: 1025)
@@ -104,6 +110,7 @@ public static class AppFoundationAspireExtensions
             userName is not null && password is not null
                 ? builder.AddPostgres(serverName, userName, password)
                 : builder.AddPostgres(serverName);
+        server = server.WithImageTag(PostgresImageTag);
 
         if (!isE2E)
         {
