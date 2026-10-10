@@ -26,15 +26,15 @@
       },
       "Marten": {
         "type": "Direct",
-        "requested": "[9.45.0, )",
-        "resolved": "9.45.0",
-        "contentHash": "HZL0QvGYnP6NZuxdT1KRsEtqJ2J2bVX1gHlO56XUqa9+xRW9FBSNXvJ31am1lEQeC2RmpI42AMSyLZO8LYsQUw==",
+        "requested": "[9.47.0, )",
+        "resolved": "9.47.0",
+        "contentHash": "3SH9c2IcEQw8gbSsbMA4vA8NkO2fkbvqWPK/KQal3MTgDWU8K6s1+AndmigX3AYoDw1JlKKNZNKqObUK42oBmw==",
         "dependencies": {
-          "JasperFx": "2.79.1",
-          "JasperFx.Events": "2.79.1",
+          "JasperFx": "2.81.0",
+          "JasperFx.Events": "2.81.0",
           "Microsoft.IO.RecyclableMemoryStream": "3.0.1",
-          "Weasel.Postgresql": "9.37.0",
-          "Weasel.Storage": "9.37.0"
+          "Weasel.Postgresql": "9.42.0",
+          "Weasel.Storage": "9.42.0"
         }
       },
       "Npgsql": {
@@ -43,21 +43,30 @@
         "resolved": "10.0.3",
         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
       },
+      "Quartz.Extensions.Hosting": {
+        "type": "Direct",
+        "requested": "[4.4.0, )",
+        "resolved": "4.4.0",
+        "contentHash": "8P6FLw6WhijVnL4I7uzfxhXap4C4pMsS04qmIAxJfm3EE0HMR28U217fPt1dcwqhqOdOs4rYzm60c3mFHIhv7g==",
+        "dependencies": {
+          "Quartz": "4.4.0"
+        }
+      },
       "Radzen.Blazor": {
         "type": "Direct",
-        "requested": "[12.0.5, )",
-        "resolved": "12.0.5",
-        "contentHash": "DVLwsZYRsWXd2iM+NoPvLu4xFX24xxNJmIknfjjlcGY8m9irod6PbOXj+6xUJpPAIau3z2ByGEkRKky2xmp6jA=="
+        "requested": "[12.0.8, )",
+        "resolved": "12.0.8",
+        "contentHash": "N3faq3a6XHhmmhuXguWmpxpIQU+aJg4kaxdKVcC92Oqu53GdZRVET5AFJwpoeCRPEHjRE9tz8O2Gg2t0EWVPBw=="
       },
       "WolverineFx.Marten": {
         "type": "Direct",
-        "requested": "[6.45.0, )",
-        "resolved": "6.45.0",
-        "contentHash": "M23XUyGOGpSYjG3Afvn1q6kSfZTks0sDn0OpKVNQcFGoOWpbhh0tOqPUMSv3jFwduwWohNrzSmmI80ePH9TK/Q==",
+        "requested": "[6.48.3, )",
+        "resolved": "6.48.3",
+        "contentHash": "/uR8jxOTsrt9+vRYqvcWpUcS5SfW68G7pMYCn5qFZoT6r/039GFZXWl6nC04omc6XvSbqUISmRJTkRCMC6wDQw==",
         "dependencies": {
-          "Marten": "9.45.0",
-          "Weasel.Storage": "9.38.0",
-          "WolverineFx.Postgresql": "6.45.0"
+          "Marten": "9.46.0",
+          "Weasel.Storage": "9.41.0",
+          "WolverineFx.Postgresql": "6.48.3"
         }
       },
       "AndreGoepel.Marten.Identity": {
@@ -100,8 +109,8 @@
       },
       "JasperFx": {
         "type": "Transitive",
-        "resolved": "2.79.1",
-        "contentHash": "WLnJ5sQjpk9HooyGZnUHfFkXaivpK2t3bZzkQ8l564r0gxPhEHW5RiOAyYXAlHbwy/J/mQI5obghsn85Dw/Hkw==",
+        "resolved": "2.81.0",
+        "contentHash": "t4OTm59DdwRnECR8MOkCKWAmOtnbmoQw+8E1ySWGzsg6R8apQo7OGEqzedSPgWe2HWXz1ZrxW+yB7PuraIYqjg==",
         "dependencies": {
           "FastExpressionCompiler": "5.4.1",
           "ImTools": "4.0.0",
@@ -112,16 +121,16 @@
       },
       "JasperFx.Events": {
         "type": "Transitive",
-        "resolved": "2.79.1",
-        "contentHash": "C/Lgvb+l9rpK+2x5H/SWn4qyf2ReMX9uPCjDXZdqHLygcCJNYCWfpihVfKUzHXfBqc10Oh2dgUAfd1xBi8AgLw==",
+        "resolved": "2.81.0",
+        "contentHash": "uOHQpBY8/CfEaj0Scd5UfqJ6QqfqO9xqFlv1s/kRlzeNVcTOPAXCciHQYfyMTg5Yje2bpf3r9flDxlcYPHTdKA==",
         "dependencies": {
-          "JasperFx": "2.79.1"
+          "JasperFx": "2.81.0"
         }
       },
       "JasperFx.SourceGenerator": {
         "type": "Transitive",
-        "resolved": "2.79.1",
-        "contentHash": "T4N6f318e7IrKgDc6lx58F5vvF6DJ0dXqDNZUF3CIofKqpkL00Vtk0nH+HSYdKB6uE77NuwLrTE1C/WdxTw0vg=="
+        "resolved": "2.81.0",
+        "contentHash": "iNZVKJdvzJGAOimnIvBCGMwPMwog5Ncwkfm40HknszZGTsq5YLzcc0Vyq4Xwp6nt7BY6xzf3hRuadSMp16Wa1w=="
       },
       "Microsoft.Bcl.TimeProvider": {
         "type": "Transitive",
@@ -191,8 +200,8 @@
       },
       "Quartz": {
         "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "sjWlYGxMrU3QhcGV2257OSZm59ACgvDbJa59e9LUrHA5FE/s+Mpwmos6vwEnBuhW872ky5gxTm6ARBC48xVCbg=="
+        "resolved": "4.4.0",
+        "contentHash": "S4swtePwq2vUIvG+B9M7BNIv65icqWfkQwkR2EzVvoT3/MACM2FaSjappcIzaGk5/5K/D8kWLb92kwURkWih3Q=="
       },
       "Spectre.Console": {
         "type": "Transitive",
@@ -214,61 +223,61 @@
       },
       "Weasel.Core": {
         "type": "Transitive",
-        "resolved": "9.38.0",
-        "contentHash": "0ul9MSX/BDL2MdpSATUU1VlNrNzaBiSD76laQqpTGB9Fdmf/Rcr/Led1zoNjuWrb2yC6yvPegsGiuHiiEZpLVQ==",
+        "resolved": "9.42.0",
+        "contentHash": "tQtY+mSAnDlRstdiEECDn8iit1c98KZ8JP55QoTmwV2F5t581Etm3deNNbE/o6KAqE3NoaIBTBgDf2WABkCPKA==",
         "dependencies": {
           "JasperFx": "2.76.0"
         }
       },
       "Weasel.Postgresql": {
         "type": "Transitive",
-        "resolved": "9.38.0",
-        "contentHash": "k5IPJ+RrUZcO8+nwdj2citHZJhGWe+nxevqtgfVFDPPzZQhI4oDYlU7MaXS9O0vDKxuLJTLFF2mS080xfZT5aw==",
+        "resolved": "9.42.0",
+        "contentHash": "HonYZU7QgOeRZxOsGyNkCIjEswCZaX1raIWjM+WwopX47kRXCREK//3+cbukYqTnYT3mzrt6fLRQzyhmRQxHlQ==",
         "dependencies": {
           "JasperFx.Events": "2.76.0",
           "Npgsql": "9.0.4",
           "Npgsql.NetTopologySuite": "9.0.4",
           "Patched.DistributedLock.Postgres": "1.3.3",
-          "Weasel.Core": "9.38.0"
+          "Weasel.Core": "9.42.0"
         }
       },
       "Weasel.Storage": {
         "type": "Transitive",
-        "resolved": "9.38.0",
-        "contentHash": "NxVOf90gt/HZVTGVL7vU6B3yPBCwVgHkb5zzMw9fSBs3QKJf1zBaDiqR7M88OYOF96gdvlS1EnxwblLHc2tg6A==",
+        "resolved": "9.42.0",
+        "contentHash": "gezrBk/aQGr++416wcoQxhfjGjltRMZkDKqXwOU3o46gJvV+j94saJ2H+lQJapA5MQWNGVH5lkrFIj/aqBMh7A==",
         "dependencies": {
           "JasperFx.Events": "2.76.0",
-          "Weasel.Core": "9.38.0"
+          "Weasel.Core": "9.42.0"
         }
       },
       "WolverineFx": {
         "type": "Transitive",
-        "resolved": "6.45.0",
-        "contentHash": "6IRYkx0Rnmt702Z8ZwlKqI6UXuFU8AWUso3Usn7g5q4nwN91+j2DmwZmMCw7j7eeG9f9N9klFljdkkUNTZM7tw==",
+        "resolved": "6.48.3",
+        "contentHash": "A3qtAhFba8l5jotAQnSArAp1VweHQeRPCmfkAHZsSn7mo7Stl9tdYsMtLGzO6/aFNoK867q0jbWTL4fKRDUyNg==",
         "dependencies": {
           "Cronos": "0.11.0",
-          "JasperFx": "2.79.1",
-          "JasperFx.Events": "2.79.1",
-          "JasperFx.SourceGenerator": "2.79.1",
+          "JasperFx": "2.81.0",
+          "JasperFx.Events": "2.81.0",
+          "JasperFx.SourceGenerator": "2.81.0",
           "NewId": "4.0.1"
         }
       },
       "WolverineFx.Postgresql": {
         "type": "Transitive",
-        "resolved": "6.45.0",
-        "contentHash": "CrW5VXNvGrD7wbWV12uvSV75JenWuv43GnA7D6SEA7H77vYbCiUzvJmhWrJvdGV8xSE3Zrv1p5SIdWTSJu8HbA==",
+        "resolved": "6.48.3",
+        "contentHash": "1jYVQReBOkX69QrVx2DmP5rJv0zpmt5zbhC0+ougwZmcriNPolcZpi3uTvKZXUNij/h0u+7E1CZlgiOW5qlsMA==",
         "dependencies": {
-          "Weasel.Postgresql": "9.38.0",
-          "WolverineFx.RDBMS": "6.45.0"
+          "Weasel.Postgresql": "9.41.0",
+          "WolverineFx.RDBMS": "6.48.3"
         }
       },
       "WolverineFx.RDBMS": {
         "type": "Transitive",
-        "resolved": "6.45.0",
-        "contentHash": "LHvWJpJ5bcBKpQ3P/ix+jiddUnQtuNQF6rK+t69aHes4viIDLckFZ4ago9rCqPS1jFcUFCo4hRZd416a+On4HA==",
+        "resolved": "6.48.3",
+        "contentHash": "6MhadFAYfyT7bPgQnLAfo+XaS3gpu0ukJTZrD1ucglX3rapsQIiXQiKIDJghfIBvec5kgaJYHTGz3aZFUY+ADg==",
         "dependencies": {
-          "Weasel.Core": "9.38.0",
-          "WolverineFx": "6.45.0"
+          "Weasel.Core": "9.41.0",
+          "WolverineFx": "6.48.3"
         }
       },
       "andregoepel.appfoundation.core": {
@@ -280,9 +289,9 @@
           "AndreGoepel.Core": "[1.0.4, )",
           "AndreGoepel.Marten.Configuration": "[1.2.6, )",
           "MailKit": "[4.18.1, )",
-          "Marten": "[9.45.0, )",
+          "Marten": "[9.47.0, )",
           "Npgsql": "[10.0.3, )",
-          "WolverineFx.Marten": "[6.45.0, )"
+          "WolverineFx.Marten": "[6.48.3, )"
         }
       },
       "AndreGoepel.Core": {
@@ -316,15 +325,6 @@
         "contentHash": "JQSLFY9Whdtm7X2EUIU9v9C/kdEP+oBbcRqJ2lFZr5MYCqt3cck+rTY/lDwM1IoALyErWycP5Cn3TAC2UIHEKg==",
         "dependencies": {
           "Marten": "9.45.0"
-        }
-      },
-      "Quartz.Extensions.Hosting": {
-        "type": "CentralTransitive",
-        "requested": "[4.3.0, )",
-        "resolved": "4.3.0",
-        "contentHash": "U6AMOBonHotNrY0UjIRjab0vbn5dcvgPU9l3gOF4bg9nLdUisyAhQN80k+CN/dl5e0dUXpDcvp08wWX2ewbkww==",
-        "dependencies": {
-          "Quartz": "4.3.0"
         }
       }
     }
