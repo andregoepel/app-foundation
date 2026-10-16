@@ -450,7 +450,7 @@ public static class Initialization
         AppFoundationOptions options
     )
     {
-        headers["X-Content-Type-Options"] = "nosniff";
+        headers.XContentTypeOptions = "nosniff";
 
         if (options.ReferrerPolicy is { Length: > 0 } referrerPolicy)
         {
