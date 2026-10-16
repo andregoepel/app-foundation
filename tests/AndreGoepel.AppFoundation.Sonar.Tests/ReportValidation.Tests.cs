@@ -15,8 +15,10 @@ public sealed class ReportValidationTests
             "Test(\"{\\\"path\\\":\\\"C:\\\\temp\\\"}\", \\n, \n\r\t\0\a\b\f\v\u0001\uffff, 😀)";
         const string escaped =
             "Test(\\\"{\\\\\\\"path\\\\\\\":\\\\\\\"C:\\\\\\\\temp\\\\\\\"}\\\", \\\\n, \\n\\r\\t\\0\\a\\b\\f\\v\\x01\\xffff, 😀)";
+
         // Act
         var result = ReportValidation.Tests(RunnerFixture.Tests(escaped), [name]);
+
         // Assert
         Assert.True(result.IsSuccess, result.Error);
     }
@@ -46,6 +48,7 @@ public sealed class ReportValidationTests
             "--server-id",
             id,
         ]);
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -67,6 +70,7 @@ public sealed class ReportValidationTests
             "--server-id",
             "local-id",
         ]);
+
         // Assert
         Assert.True(result.IsSuccess, result.Error);
     }
@@ -81,6 +85,7 @@ public sealed class ReportValidationTests
     {
         // Act
         var result = AnalysisOptions.Parse(args);
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -93,6 +98,7 @@ public sealed class ReportValidationTests
     {
         // Act
         var result = ReportValidation.Discovery(output, 1);
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -102,8 +108,10 @@ public sealed class ReportValidationTests
     {
         // Arrange
         var document = RunnerFixture.Tests("Test(value: \\\"example\\\")");
+
         // Act
         var result = ReportValidation.Tests(document, ["Test(value: \"example\")"]);
+
         // Assert
         Assert.True(result.IsSuccess, result.Error);
         Assert.Equal(1, result.Value);
@@ -117,6 +125,7 @@ public sealed class ReportValidationTests
     {
         // Act
         var result = ReportValidation.Tests(RunnerFixture.Tests(name, outcome), ["expected"]);
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -136,8 +145,10 @@ public sealed class ReportValidationTests
                 kind == "empty" ? "" : "<results />",
                 TestContext.Current.CancellationToken
             );
+
         if (kind == "stale")
             File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddDays(-1));
+
         // Act / Assert
         await Assert.ThrowsAsync<InvalidDataException>(() =>
             ReportValidation.ReadFreshAsync(
@@ -158,6 +169,7 @@ public sealed class ReportValidationTests
             .Descendants("source_file")
             .Single()
             .SetAttributeValue("path", Path.Combine(Path.GetTempPath(), "other.cs"));
+
         // Act / Assert
         await Assert.ThrowsAsync<InvalidDataException>(() =>
             ReportValidation.CoverageAsync(
@@ -183,6 +195,7 @@ public sealed class ReportValidationTests
         var source = document.Descendants("source_file").Single();
         source.SetAttributeValue("checksum_type", algorithm);
         source.SetAttributeValue("checksum", checksum);
+
         // Act
         var result = await ReportValidation.CoverageAsync(
             document,
@@ -191,6 +204,7 @@ public sealed class ReportValidationTests
             null,
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -207,6 +221,7 @@ public sealed class ReportValidationTests
             null,
             TestContext.Current.CancellationToken
         );
+
         // Act
         var merged = await ReportValidation.CoverageAsync(
             fixture.Coverage(checksum: false),
@@ -215,6 +230,7 @@ public sealed class ReportValidationTests
             verified.Value!.SourceChecksums,
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(merged.IsSuccess, merged.Error);
         Assert.Equal([RunnerFixture.Source], merged.Value!.ExecutedSources);
@@ -225,6 +241,7 @@ public sealed class ReportValidationTests
     {
         // Arrange
         using var fixture = new RunnerFixture();
+
         // Act
         var result = await ReportValidation.CoverageAsync(
             fixture.Coverage(),
@@ -233,6 +250,7 @@ public sealed class ReportValidationTests
             null,
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -242,6 +260,7 @@ public sealed class ReportValidationTests
     {
         // Arrange
         using var fixture = new RunnerFixture();
+
         // Act
         var result = await ReportValidation.CoverageAsync(
             new XDocument(new XElement("results")),
@@ -250,6 +269,7 @@ public sealed class ReportValidationTests
             null,
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -265,8 +285,10 @@ public sealed class ReportValidationTests
     {
         // Arrange
         using var document = JsonDocument.Parse(json);
+
         // Act
         var result = ReportValidation.Audit(document.RootElement, 1);
+
         // Assert
         Assert.True(result.IsFailure);
     }
@@ -280,17 +302,20 @@ public sealed class ReportValidationTests
             fixture.Root,
             TestContext.Current.CancellationToken
         );
+
         // Act
         fixture.Write("artifacts/generated.txt", "generated");
         var generated = await SourceFiles.SnapshotAsync(
             fixture.Root,
             TestContext.Current.CancellationToken
         );
+
         fixture.Write(RunnerFixture.Source, "changed");
         var changed = await SourceFiles.SnapshotAsync(
             fixture.Root,
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.Equal(before, generated);
         Assert.NotEqual(before, changed);

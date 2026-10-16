@@ -29,12 +29,15 @@ internal sealed class ProcessRunner : IProcessRunner
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
         };
+
         foreach (var argument in arguments.Skip(1))
             start.ArgumentList.Add(argument);
+
         start.Environment.Remove("APPFOUNDATION_SONAR_TOKEN");
         start.Environment.Remove("APPFOUNDATION_SONAR_VERIFY_TOKEN");
         start.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
         start.Environment["NO_COLOR"] = "1";
+
         return start;
     }
 
@@ -47,11 +50,13 @@ internal sealed class ProcessRunner : IProcessRunner
         using var process = new Process { StartInfo = CreateStartInfo(root, arguments) };
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(30));
+
         try
         {
             process.Start();
             var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
             var error = process.StandardError.ReadToEndAsync(timeout.Token);
+
             try
             {
                 await process.WaitForExitAsync(timeout.Token);
@@ -60,11 +65,14 @@ internal sealed class ProcessRunner : IProcessRunner
             {
                 if (!process.HasExited)
                     process.Kill(entireProcessTree: true);
+
                 await process.WaitForExitAsync(CancellationToken.None);
+
                 return Result.Fail<CommandOutput>(
                     "Command cancelled or exceeded its 30-minute limit."
                 );
             }
+
             return Result.Ok(new CommandOutput(process.ExitCode, await output + await error));
         }
         catch (System.ComponentModel.Win32Exception)

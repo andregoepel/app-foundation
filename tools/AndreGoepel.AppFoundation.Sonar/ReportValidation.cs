@@ -21,6 +21,7 @@ internal static partial class ReportValidation
         var file = new FileInfo(path);
         if (!file.Exists || file.Length == 0 || file.LastWriteTimeUtc < started.UtcDateTime)
             throw new InvalidDataException($"Missing, empty or stale report: {file.Name}");
+
         await using var stream = File.OpenRead(path);
         return await XDocument.LoadAsync(stream, LoadOptions.None, cancellationToken);
     }
@@ -33,6 +34,7 @@ internal static partial class ReportValidation
             .Select(line => line.Trim())
             .ToArray();
         var totals = DiscoveryTotal().Matches(output.Replace("\r", "", StringComparison.Ordinal));
+
         return
             totals.Count == 1
             && int.Parse(totals[0].Groups[1].Value, CultureInfo.InvariantCulture) == names.Length
@@ -49,6 +51,7 @@ internal static partial class ReportValidation
         var names = tests
             .Select(t => (string?)t.Attribute("name") ?? "")
             .Order(StringComparer.Ordinal);
+
         return
             assemblies.Length == 1
             && (string?)assemblies[0].Attribute("errors") == "0"
@@ -73,10 +76,12 @@ internal static partial class ReportValidation
             )
         )
             return Result.Fail("Incomplete dependency audit.");
+
         foreach (var project in projects.EnumerateArray())
         {
             if (!project.TryGetProperty("frameworks", out var frameworks))
                 continue;
+
             foreach (var framework in frameworks.EnumerateArray())
             foreach (var group in new[] { "topLevelPackages", "transitivePackages" })
             {
@@ -91,12 +96,14 @@ internal static partial class ReportValidation
                     return Result.Fail("Known vulnerable dependency blocks analysis.");
             }
         }
+
         return Result.Ok();
     }
 
     internal static string EscapeTestName(string name)
     {
         var escaped = new StringBuilder();
+
         for (var index = 0; index < name.Length; index++)
         {
             var character = name[index];
@@ -105,6 +112,7 @@ internal static partial class ReportValidation
                 escaped.Append(character).Append(name[++index]);
                 continue;
             }
+
             escaped.Append(
                 character switch
                 {
@@ -125,6 +133,7 @@ internal static partial class ReportValidation
                 }
             );
         }
+
         return escaped.ToString();
     }
 
@@ -139,17 +148,20 @@ internal static partial class ReportValidation
         var mapped = new SortedSet<string>(StringComparer.Ordinal);
         var executed = new SortedSet<string>(StringComparer.Ordinal);
         var checksums = new Dictionary<string, string>(StringComparer.Ordinal);
+
         foreach (var module in document.Descendants("module"))
         {
             var name = (string?)module.Attribute("name") ?? "";
             if (name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 name = name[..^4];
+
             if (
                 !ProjectFolders.Any(folder =>
                     File.Exists(Path.Combine(root, folder, name, name + ".csproj"))
                 )
             )
                 continue;
+
             var ids = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var source in module.Descendants("source_file"))
             {
@@ -157,6 +169,7 @@ internal static partial class ReportValidation
                 var relative = SourceFiles.Relative(root, path);
                 if (relative.Split('/').Contains("obj"))
                     continue;
+
                 var data = await File.ReadAllBytesAsync(path, cancellationToken);
                 var sha256 = SourceFiles.Hash(data);
                 var algorithm = (
@@ -173,9 +186,11 @@ internal static partial class ReportValidation
                 };
                 if (!valid)
                     return Result.Fail<CoverageEvidence>("Unverified coverage source: " + relative);
+
                 checksums[relative] = sha256;
                 ids[(string?)source.Attribute("id") ?? ""] = relative;
             }
+
             foreach (var range in module.Descendants("range"))
             {
                 if (
@@ -185,11 +200,13 @@ internal static partial class ReportValidation
                     )
                 )
                     continue;
+
                 mapped.Add(relative);
                 if ((string?)range.Attribute("covered") == "yes")
                     executed.Add(relative);
             }
         }
+
         return mapped.Count > 0 && executed.Count > 0 && anchors.All(executed.Contains)
             ? Result.Ok(new CoverageEvidence([.. mapped], [.. executed], checksums))
             : Result.Fail<CoverageEvidence>(
@@ -205,6 +222,7 @@ internal static partial class ReportValidation
     )
     {
         var found = new SortedSet<string>(StringComparer.Ordinal);
+
         foreach (
             var file in Directory.EnumerateFiles(
                 Path.Combine(scannerDirectory, "out"),
@@ -219,8 +237,10 @@ internal static partial class ReportValidation
                 .ToDictionary(e => e.Name.LocalName, e => e.Value, StringComparer.Ordinal);
             if (values.GetValueOrDefault("IsExcluded") != "false")
                 return Result.Fail<string[]>("Scanner excluded a solution project.");
+
             found.Add(SourceFiles.Relative(root, values["FullPath"]));
         }
+
         return found.SetEquals(projects)
             ? Result.Ok(found.ToArray())
             : Result.Fail<string[]>("Scanner scope differs from the full solution.");

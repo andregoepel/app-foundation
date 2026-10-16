@@ -36,6 +36,7 @@ public sealed class QuartzSchemaProvisionerTests
     {
         // Arrange — AutoCreate.None means schema is provisioned out-of-band (#53); Quartz's
         // qrtz_ tables follow the same posture as Marten's schema.
+
         // Act / Assert
         Assert.False(QuartzSchemaProvisioner.ShouldProvision(AutoCreate.None));
     }
@@ -75,6 +76,7 @@ public sealed class QuartzSchemaProvisionerTests
     {
         // Arrange — the vendored script must never be able to delete data, however it's
         // invoked.
+
         // Act
         var script = QuartzSchemaProvisioner.ReadScript();
 

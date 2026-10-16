@@ -27,6 +27,7 @@ internal static class SourceFiles
             || Path.IsPathRooted(relative)
         )
             throw new InvalidDataException("A source path lies outside this checkout.");
+
         return relative;
     }
 
@@ -38,10 +39,12 @@ internal static class SourceFiles
     )
     {
         var files = new SortedDictionary<string, string>(StringComparer.Ordinal);
+
         foreach (var file in Enumerate(new DirectoryInfo(root)))
             files[Relative(root, file.FullName)] = Hash(
                 await File.ReadAllBytesAsync(file.FullName, cancellationToken)
             );
+
         return Hash(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(files)));
     }
 
@@ -51,10 +54,12 @@ internal static class SourceFiles
         {
             if (Generated.Contains(entry.Name))
                 continue;
+
             if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
                 throw new InvalidDataException(
                     "Source symlinks require an explicit mapping review."
                 );
+
             if (entry is DirectoryInfo child)
             {
                 foreach (var file in Enumerate(child))

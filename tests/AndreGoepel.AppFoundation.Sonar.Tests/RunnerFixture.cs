@@ -8,15 +8,19 @@ namespace AndreGoepel.AppFoundation.Sonar.Tests;
 internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
 {
     private static readonly string[] Vulnerabilities = ["CVE"];
+
     internal const string ProjectName = "AndreGoepel.Fixture";
     internal const string TestProject = "AndreGoepel.Fixture.E2ETests";
     internal const string Source = "tools/AndreGoepel.Fixture/Example.cs";
+
     internal string Root { get; } =
         Path.Combine(Path.GetTempPath(), "sonar-tests-" + Guid.NewGuid().ToString("N"));
     internal AnalysisOptions Options { get; }
     internal AnalysisContract Contract { get; }
+
     internal string Fault { get; set; } = "";
     internal List<string> Commands { get; } = [];
+
     internal string Output => Path.Combine(Root, "artifacts/sonar/test-run");
     internal string Scanner => Path.Combine(Root, ".sonarqube");
     internal string[] Projects { get; } =
@@ -25,6 +29,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
     internal RunnerFixture()
     {
         Directory.CreateDirectory(Root);
+
         Options = new AnalysisOptions(
             Root,
             new Uri("http://127.0.0.1:9000"),
@@ -41,8 +46,10 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             [Source],
             ["artifacts/**"]
         );
+
         foreach (var project in Projects)
             Write(project, "<Project />");
+
         Write(Source, "class Example {}\n");
         Write(
             Contract.Solution,
@@ -81,6 +88,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
                 SourceFiles.Hash(File.ReadAllBytes(Path.Combine(Root, Source)))
             );
         }
+
         var range = new XElement(
             "range",
             new XAttribute("source_id", "1"),
@@ -96,6 +104,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             new XElement("source_files", source),
             functions
         );
+
         return new XDocument(new XElement("results", new XElement("modules", module)));
     }
 
@@ -115,6 +124,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             new XAttribute("total", "1"),
             new XElement("collection", test)
         );
+
         return new XDocument(new XElement("assemblies", assembly));
     }
 
@@ -135,6 +145,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
     {
         var command = string.Join(' ', arguments);
         Commands.Add(command);
+
         var text = "";
         var exit = 0;
         if (command.Contains("--version", StringComparison.Ordinal))
@@ -201,6 +212,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             if (Fault == "scanner-exit")
                 exit = 1;
         }
+
         return Task.FromResult(Result.Ok(new CommandOutput(exit, text)));
     }
 
@@ -261,6 +273,7 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             },
             _ => throw new InvalidOperationException("Unexpected fixture endpoint"),
         };
+
         return Task.FromResult(JsonSerializer.SerializeToElement(response));
     }
 

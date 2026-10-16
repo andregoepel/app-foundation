@@ -15,6 +15,7 @@ internal sealed partial record AnalysisOptions(
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
         string[] known = ["--root", "--url", "--project", "--server-id", "--run-name"];
+
         for (var i = 0; i < args.Length; i += 2)
         {
             if (
@@ -26,6 +27,7 @@ internal sealed partial record AnalysisOptions(
                     "Use --root, --server-id and --run-name, with optional --url and --project; each option accepts one value."
                 );
         }
+
         if (
             !values.TryGetValue("--root", out var root)
             || !Path.IsPathFullyQualified(root)
@@ -42,6 +44,7 @@ internal sealed partial record AnalysisOptions(
             return Result.Fail<AnalysisOptions>(
                 "An absolute --root, separate --server-id and unique lowercase --run-name are required."
             );
+
         var options = new AnalysisOptions(
             Path.GetFullPath(root),
             url,
@@ -50,6 +53,7 @@ internal sealed partial record AnalysisOptions(
             run
         );
         var validation = options.ValidateTarget();
+
         return validation.IsSuccess
             ? Result.Ok(options)
             : Result.Fail<AnalysisOptions>(validation.Error);
@@ -72,6 +76,7 @@ internal sealed partial record AnalysisOptions(
             return Result.Fail(
                 "Only the separate loopback Sonar prototype on port 9000 and app-foundation-local projects are allowed."
             );
+
         return Result.Ok();
     }
 

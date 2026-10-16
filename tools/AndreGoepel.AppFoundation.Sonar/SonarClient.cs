@@ -44,13 +44,16 @@ internal sealed class SonarClient(HttpClient client, Uri url) : ISonarClient
                 "Basic",
                 Convert.ToBase64String(Encoding.UTF8.GetBytes(token + ":"))
             );
+
         using var response = await client.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
+
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var document = await JsonDocument.ParseAsync(
             stream,
             cancellationToken: cancellationToken
         );
+
         return document.RootElement.Clone();
     }
 }

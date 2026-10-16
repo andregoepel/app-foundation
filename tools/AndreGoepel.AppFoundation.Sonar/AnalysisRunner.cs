@@ -19,8 +19,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
         var target = options.ValidateTarget();
         if (target.IsFailure)
             return target;
+
         if (string.IsNullOrEmpty(scanToken) || string.IsNullOrEmpty(verifyToken))
             return Result.Fail("Both local Sonar credentials are required.");
+
         var status = await sonar.GetAsync("system/status", null, cancellationToken);
         if (
             status.GetProperty("id").GetString() != options.ServerId
@@ -28,8 +30,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             || status.GetProperty("version").GetString() != contract.ServerVersion
         )
             return Result.Fail("Unexpected local server identity, version or status.");
+
         var lockPath = Path.Combine(options.Root, ".sonar-analysis.lock");
         FileStream runLock;
+
         try
         {
             runLock = new FileStream(
@@ -43,6 +47,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
         {
             return Result.Fail("An analysis lock already exists; inspect it before retrying.");
         }
+
         await using (runLock)
         {
             var context = new RunContext(
@@ -53,8 +58,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 processes,
                 sonar
             );
+
             Result outcome;
             Result cleanup;
+
             try
             {
                 outcome = await context.ExecuteAsync(cancellationToken);
@@ -71,6 +78,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     File.Delete(lockPath);
                 }
             }
+
             return cleanup.IsFailure
                 ? Result.Fail($"{outcome.Error} {cleanup.Error}".Trim())
                 : outcome;
@@ -99,8 +107,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             ServerId = options.ServerId,
             Sdk = contract.Sdk,
         };
+
         private bool outputOwned;
         private bool scannerOwned;
+
         private string Private => Path.Combine(output, "private");
         private string Reports => Path.Combine(Private, "reports");
 
@@ -108,8 +118,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
         {
             if (Directory.Exists(scanner) || File.Exists(scanner))
                 return Result.Fail("Stale .sonarqube path: inspect it before a new run.");
+
             if (Directory.Exists(output) || File.Exists(output))
                 return Result.Fail("Run name already exists; previous evidence is preserved.");
+
             Directory.CreateDirectory(output);
             outputOwned = true;
             Directory.CreateDirectory(Private);
@@ -120,6 +132,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     output,
                     UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
                 );
+
             summary.SourceSha256 = await SourceFiles.SnapshotAsync(options.Root, ct);
             summary.ContractSha256 = SourceFiles.Hash(
                 await File.ReadAllBytesAsync(
@@ -127,11 +140,13 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     ct
                 )
             );
+
             var sdk = await CommandAsync("sdk", ["dotnet", "--version"], ct);
             if (sdk.IsFailure)
                 return sdk;
             if (sdk.Value!.Text.Trim() != contract.Sdk)
                 return Result.Fail("SDK version differs from the contract.");
+
             var solution = XDocument.Parse(
                 await File.ReadAllTextAsync(Path.Combine(options.Root, contract.Solution), ct)
             );
@@ -145,13 +160,16 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 .ToHashSet(StringComparer.Ordinal);
             if (!tests.SetEquals(contract.Tests.Keys))
                 return Result.Fail("Test project inventory drift.");
+
             var preparation = await PrepareAsync(projects.Length, ct);
             if (preparation.IsFailure)
                 return preparation;
+
             var merged = Path.Combine(Reports, "coverage.xml");
             var begin = await BeginAsync(merged, ct);
             if (begin.IsFailure)
                 return begin;
+
             var build = await CommandAsync(
                 "analysis-build",
                 [
@@ -168,6 +186,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (build.IsFailure)
                 return build;
+
             var scope = await ReportValidation.ProjectScopeAsync(
                 scanner,
                 options.Root,
@@ -176,12 +195,16 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (scope.IsFailure)
                 return scope;
+
             summary.AnalyzedProjects = scope.Value!;
+
             var coverage = await CollectCoverageAsync(merged, ct);
             if (coverage.IsFailure)
                 return coverage;
+
             if (await SourceFiles.SnapshotAsync(options.Root, ct) != summary.SourceSha256)
                 return Result.Fail("Sources changed during analysis; upload refused.");
+
             var end = await CommandAsync(
                 "scanner-end",
                 ["dotnet", "sonarscanner", "end", "/d:sonar.token=" + scanToken],
@@ -190,6 +213,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (end.IsFailure)
                 return end;
+
             return await VerifyAsync(end.Value!, ct);
         }
 
@@ -201,12 +225,14 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 ("format", ["dotnet", "csharpier", "check", "."]),
                 ("restore", ["dotnet", "restore", contract.Solution, "--locked-mode"]),
             ];
+
             foreach (var (label, args) in initial)
             {
                 var result = await CommandAsync(label, args, ct);
                 if (result.IsFailure)
                     return result;
             }
+
             var audit = await CommandAsync(
                 "audit",
                 [
@@ -224,10 +250,12 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (audit.IsFailure)
                 return audit;
+
             using var document = JsonDocument.Parse(audit.Value!.Text);
             var validation = ReportValidation.Audit(document.RootElement, projectCount);
             if (validation.IsFailure)
                 return validation;
+
             var build = await CommandAsync(
                 "ordinary-build",
                 [
@@ -245,6 +273,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (build.IsFailure)
                 return build;
+
             return await CommandAsync(
                 "playwright",
                 [
@@ -285,7 +314,9 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     )
             )
                 return Result.Fail("Server coverage exclusions require review.");
+
             scannerOwned = true;
+
             return await CommandAsync(
                 "scanner-begin",
                 [
@@ -313,6 +344,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             var checksums = new Dictionary<string, string>(StringComparer.Ordinal);
             var mapped = new HashSet<string>(StringComparer.Ordinal);
             var executed = new HashSet<string>(StringComparer.Ordinal);
+
             foreach (var (project, minimum) in contract.Tests)
             {
                 string[] testArgs =
@@ -328,6 +360,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     "--no-ansi",
                     "--no-progress",
                 ];
+
                 var discovery = await CommandAsync(
                     project + "-discovery",
                     [.. testArgs, "--list-tests"],
@@ -335,12 +368,15 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 );
                 if (discovery.IsFailure)
                     return discovery;
+
                 var names = ReportValidation.Discovery(discovery.Value!.Text, minimum);
                 if (names.IsFailure)
                     return names;
+
                 var directory = Path.Combine(Reports, project);
                 Directory.CreateDirectory(directory);
                 var coveragePath = Path.Combine(directory, "coverage.xml");
+
                 var run = await CommandAsync(
                     project,
                     [
@@ -370,6 +406,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 );
                 if (run.IsFailure)
                     return run;
+
                 var tests = ReportValidation.Tests(
                     await ReportValidation.ReadFreshAsync(
                         Path.Combine(directory, "tests.xml"),
@@ -380,15 +417,18 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 );
                 if (tests.IsFailure)
                     return tests;
+
                 var anchors = project.EndsWith("E2ETests", StringComparison.Ordinal)
                     ? contract.CoverageAnchors
                     : [];
                 var coverage = await ReadCoverageAsync(coveragePath, anchors, null, ct);
                 if (coverage.IsFailure)
                     return coverage;
+
                 var evidence = coverage.Value!;
                 foreach (var pair in evidence.SourceChecksums)
                     checksums[pair.Key] = pair.Value;
+
                 mapped.UnionWith(evidence.MappedSources);
                 executed.UnionWith(evidence.ExecutedSources);
                 summary.Tests[project] = new TestEvidence(
@@ -398,6 +438,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 );
                 files.Add(coveragePath);
             }
+
             var merge = await CommandAsync(
                 "coverage-merge",
                 ["dotnet", "coverage", "merge", .. files, "-f", "xml", "-o", merged],
@@ -405,6 +446,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             );
             if (merge.IsFailure)
                 return merge;
+
             var result = await ReadCoverageAsync(merged, contract.CoverageAnchors, checksums, ct);
             if (result.IsFailure)
                 return result;
@@ -413,6 +455,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 || !executed.SetEquals(result.Value.ExecutedSources)
             )
                 return Result.Fail("Merged coverage differs from its verified inputs.");
+
             summary.Coverage = result.Value;
             return Result.Ok();
         }
@@ -448,6 +491,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 || receipt.GetValueOrDefault("projectKey") != options.Project
             )
                 return Result.Fail("Invalid scanner task receipt.");
+
             var task = (await sonar.GetAsync("ce/task", scanToken, ct, ("id", taskId))).GetProperty(
                 "task"
             );
@@ -456,10 +500,12 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 || task.GetProperty("componentKey").GetString() != options.Project
             )
                 return Result.Fail("Analysis task did not succeed.");
+
             var analysisId = task.GetProperty("analysisId").GetString()!;
             summary.TaskId = taskId;
             summary.AnalysisId = analysisId;
             summary.ScannerExitCode = end.ExitCode;
+
             var latest = (
                 await sonar.GetAsync(
                     "project_analyses/search",
@@ -474,6 +520,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 || latest[0].GetProperty("key").GetString() != analysisId
             )
                 return Result.Fail("Another analysis replaced this project's latest result.");
+
             var gate = (
                 await sonar.GetAsync(
                     "qualitygates/project_status",
@@ -494,6 +541,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     != contract.Gate
             )
                 return Result.Fail("Empty or unexpected quality gate.");
+
             var measures = (
                 await sonar.GetAsync(
                     "measures/component",
@@ -516,6 +564,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     StringComparer.Ordinal
                 );
             summary.Gate = gate;
+
             if (
                 !summary.Measures.ContainsKey("coverage")
                 || !double.TryParse(
@@ -527,10 +576,13 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 || !CoverageImport().IsMatch(end.Text)
             )
                 return Result.Fail("Sonar did not confirm mapped coverage import.");
+
             if (await SourceFiles.SnapshotAsync(options.Root, ct) != summary.SourceSha256)
                 return Result.Fail("Sources changed before verification completed.");
+
             if (end.ExitCode != 0 || gate.GetProperty("status").GetString() != "OK")
                 return Result.Fail("Full analysis completed, but the quality gate failed.");
+
             summary.State = "complete";
             return Result.Ok();
         }
@@ -546,10 +598,12 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             var result = await processes.RunAsync(options.Root, arguments, ct);
             if (result.IsFailure)
                 return Result.Fail<CommandOutput>(label + ": " + result.Error);
+
             var outputText = result
                 .Value!.Text.Replace(scanToken, "[REDACTED]", StringComparison.Ordinal)
                 .Replace(verifyToken, "[REDACTED]", StringComparison.Ordinal);
             await File.WriteAllTextAsync(Path.Combine(Private, label + ".log"), outputText, ct);
+
             return allowFailure || result.Value.ExitCode == 0
                 ? Result.Ok(new CommandOutput(result.Value.ExitCode, outputText))
                 : Result.Fail<CommandOutput>(label + " failed; see its private log.");
@@ -560,6 +614,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             var cleanup = RemoveScannerDirectory();
             if (cleanup.IsFailure)
                 summary.State = "failed";
+
             try
             {
                 if (outputOwned)
@@ -576,6 +631,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             {
                 return Result.Fail($"Could not write the analysis receipt. {cleanup.Error}".Trim());
             }
+
             return cleanup;
         }
 
@@ -587,8 +643,10 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 {
                     if ((File.GetAttributes(scanner) & FileAttributes.ReparsePoint) != 0)
                         return Result.Fail("Unsafe scanner cleanup path; inspect it manually.");
+
                     Directory.Delete(scanner, recursive: true);
                 }
+
                 return Result.Ok();
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)

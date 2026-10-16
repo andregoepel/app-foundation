@@ -12,12 +12,14 @@ public sealed class RuntimeAdaptersTests
     {
         // Arrange
         var runner = new ProcessRunner();
+
         // Act
         var result = await runner.RunAsync(
             Directory.GetCurrentDirectory(),
             ["dotnet", "--version"],
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(result.IsSuccess, result.Error);
         Assert.Equal(0, result.Value!.ExitCode);
@@ -33,6 +35,7 @@ public sealed class RuntimeAdaptersTests
             ["missing-sonar-command-" + Guid.NewGuid().ToString("N"), "secret"],
             TestContext.Current.CancellationToken
         );
+
         // Assert
         Assert.True(result.IsFailure);
         Assert.DoesNotContain("secret", result.Error);
@@ -46,6 +49,7 @@ public sealed class RuntimeAdaptersTests
             Path.GetTempPath(),
             ["dotnet", "a path", "$(not-a-command)"]
         );
+
         // Assert
         Assert.False(start.UseShellExecute);
         Assert.Equal(["a path", "$(not-a-command)"], start.ArgumentList);
@@ -63,6 +67,7 @@ public sealed class RuntimeAdaptersTests
         using var handler = new StubHandler(status);
         using var http = new HttpClient(handler);
         var client = new SonarClient(http, new Uri("http://127.0.0.1:9000"));
+
         // Act / Assert
         if (status == HttpStatusCode.OK)
         {
@@ -72,6 +77,7 @@ public sealed class RuntimeAdaptersTests
                 TestContext.Current.CancellationToken,
                 ("key", "space & value")
             );
+
             Assert.Equal("UP", response.GetProperty("status").GetString());
         }
         else
@@ -83,6 +89,7 @@ public sealed class RuntimeAdaptersTests
                     ("key", "space & value")
                 )
             );
+
         Assert.Equal(
             "http://127.0.0.1:9000/api/system/status?key=space%20%26%20value",
             handler.Url
@@ -105,6 +112,7 @@ public sealed class RuntimeAdaptersTests
         {
             Url = request.RequestUri!.AbsoluteUri;
             Authorization = request.Headers.Authorization?.Parameter;
+
             return Task.FromResult(
                 new HttpResponseMessage(status)
                 {
