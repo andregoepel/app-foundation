@@ -41,15 +41,9 @@ public sealed class AdministrationTests(AppFoundationE2EAppFixture fixture) : E2
         // Act
         await Page.GotoAsync("/Administration/Roles");
 
-        // Assert — the Administrator-only page never renders for a non-admin: the
-        // authorization redirect bounces them off the /Administration path (to the app
-        // home, since they are already authenticated — an anonymous visitor would instead
-        // be sent to the login page).
-        await Page.WaitForURLAsync(url =>
-            !new Uri(url).AbsolutePath.Contains(
-                "Administration",
-                StringComparison.OrdinalIgnoreCase
-            )
-        );
+        // Assert — denial returns the authenticated user to the home page.
+        await Expect(Page).ToHaveURLAsync(new Uri(new Uri(Fixture.AppBaseUrl), "/").AbsoluteUri);
+        await Expect(Page.Locator(".ag-user-email")).ToHaveTextAsync(email);
+        await Expect(Page.Locator(".rz-data-grid")).ToHaveCountAsync(0);
     }
 }

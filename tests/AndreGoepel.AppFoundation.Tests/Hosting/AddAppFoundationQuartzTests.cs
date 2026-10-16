@@ -67,17 +67,30 @@ public sealed class AddAppFoundationQuartzTests
     }
 
     [Fact]
-    public void AddAppFoundation_DoesNotConnectToTheDatabase()
+    public void AddAppFoundation_ResolvesQuartzOptionsWithoutRequiringDatabase()
     {
-        // Arrange — AddAppFoundation must stay side-effect-free against the connection
-        // string (mirrors AddMarten): resolving config alone must not attempt a real
-        // connection, even though the configured connection string here is unreachable.
+        // Arrange
         var builder = CreateBuilder();
 
-        // Act / Assert — no exception
-        builder.AddAppFoundation();
-        using var provider = builder.Services.BuildServiceProvider();
-        provider.GetRequiredService<IOptions<AdoJobStoreOptions>>();
+        // Act
+        var exception = Record.Exception(() =>
+        {
+            builder.AddAppFoundation();
+            using var provider = builder.Services.BuildServiceProvider();
+            var store = provider.GetRequiredService<IOptions<AdoJobStoreOptions>>().Value;
+            var dataSource = provider
+                .GetRequiredService<IOptionsMonitor<DataSourceOptions>>()
+                .Get(store.DataSource);
+
+            // Assert
+            Assert.Equal(DataSourceOptions.Providers.Npgsql, dataSource.Provider);
+            Assert.Equal(
+                builder.Configuration.GetConnectionString("appfoundation-database"),
+                dataSource.ConnectionString
+            );
+        });
+
+        Assert.Null(exception);
     }
 
     private static WebApplicationBuilder CreateBuilder()

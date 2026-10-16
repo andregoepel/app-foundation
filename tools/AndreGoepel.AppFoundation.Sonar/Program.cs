@@ -1,0 +1,63 @@
+using System.Text.Json;
+using AndreGoepel.AppFoundation.Sonar;
+
+var parsed = AnalysisOptions.Parse(args);
+if (parsed.IsFailure)
+{
+    await Console.Error.WriteLineAsync(parsed.Error);
+    return 1;
+}
+
+var options = parsed.Value!;
+var scanToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN") ?? "";
+var verifyToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN") ?? "";
+Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN", null);
+Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN", null);
+
+using var cancellation = new CancellationTokenSource();
+Console.CancelKeyPress += (_, signal) =>
+{
+    signal.Cancel = true;
+    cancellation.Cancel();
+};
+
+using var client = SonarClient.CreateHttpClient();
+
+try
+{
+    var contract = JsonSerializer.Deserialize<AnalysisContract>(
+        await File.ReadAllTextAsync(
+            Path.Combine(options.Root, "scripts/sonar/contract.json"),
+            cancellation.Token
+        ),
+        JsonFormat.Options
+    )!;
+
+    var result = await new AnalysisRunner(
+        new ProcessRunner(),
+        new SonarClient(client, options.Url)
+    ).RunAsync(options, contract, scanToken, verifyToken, cancellation.Token);
+    if (result.IsFailure)
+        await Console.Error.WriteLineAsync(result.Error);
+
+    return result.IsSuccess ? 0 : 1;
+}
+catch (Exception error)
+    when (error
+            is IOException
+                or InvalidDataException
+                or UnauthorizedAccessException
+                or HttpRequestException
+                or JsonException
+                or System.Xml.XmlException
+                or OperationCanceledException
+                or InvalidOperationException
+                or KeyNotFoundException
+    )
+{
+    await Console.Error.WriteLineAsync(
+        $"Analysis stopped ({error.GetType().Name}); inspect the private logs and prerequisites."
+    );
+
+    return 1;
+}

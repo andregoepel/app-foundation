@@ -26,33 +26,48 @@ public sealed class EnsureKeyRingProtectedTests
         // Arrange
         var encryptor = Substitute.For<IXmlEncryptor>();
 
-        // Act / Assert — encryption configured (cert / Key Vault / KMS), so allowed.
-        Initialization.EnsureKeyRingProtected(
-            isDevelopment: false,
-            allowUnprotectedKeyRing: false,
-            xmlEncryptor: encryptor
+        // Act
+        var exception = Record.Exception(() =>
+            Initialization.EnsureKeyRingProtected(
+                isDevelopment: false,
+                allowUnprotectedKeyRing: false,
+                xmlEncryptor: encryptor
+            )
         );
+
+        // Assert
+        Assert.Null(exception);
     }
 
     [Fact]
     public void NonDevelopment_WithoutEncryptor_ExplicitlyAllowed_DoesNotThrow()
     {
-        // Act / Assert — host accepted an unencrypted key ring.
-        Initialization.EnsureKeyRingProtected(
-            isDevelopment: false,
-            allowUnprotectedKeyRing: true,
-            xmlEncryptor: null
+        // Act
+        var exception = Record.Exception(() =>
+            Initialization.EnsureKeyRingProtected(
+                isDevelopment: false,
+                allowUnprotectedKeyRing: true,
+                xmlEncryptor: null
+            )
         );
+
+        // Assert
+        Assert.Null(exception);
     }
 
     [Fact]
     public void Development_WithoutEncryptor_DoesNotThrow()
     {
-        // Act / Assert — local development never requires key encryption.
-        Initialization.EnsureKeyRingProtected(
-            isDevelopment: true,
-            allowUnprotectedKeyRing: false,
-            xmlEncryptor: null
+        // Act
+        var exception = Record.Exception(() =>
+            Initialization.EnsureKeyRingProtected(
+                isDevelopment: true,
+                allowUnprotectedKeyRing: false,
+                xmlEncryptor: null
+            )
         );
+
+        // Assert
+        Assert.Null(exception);
     }
 }

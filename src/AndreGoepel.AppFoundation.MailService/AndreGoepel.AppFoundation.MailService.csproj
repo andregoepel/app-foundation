@@ -28,6 +28,8 @@
   <ItemGroup>
     <PackageReference Include="AndreGoepel.Core" />
     <PackageReference Include="MailKit" />
+    <!-- Pin MimeKit's transitive dependency to the security-patched release. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="Marten" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="WolverineFx.Marten" />

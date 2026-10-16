@@ -27,4 +27,4 @@ builder
     .WaitFor(database)
     .WaitFor(mailhog);
 
-builder.Build().Run();
+await builder.Build().RunAsync();

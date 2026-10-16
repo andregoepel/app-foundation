@@ -5,6 +5,12 @@ namespace AndreGoepel.AppFoundation.Tests.Hosting;
 
 public sealed class ForwardedHeaderConfigurationTests
 {
+    private static readonly string[] ScalarNetworks = ["172.28.0.0/16", "10.0.0.0/8"];
+    private static readonly string[] ScalarProxies = ["192.168.1.1", "192.168.1.2"];
+    private static readonly string[] Ipv6Networks = ["fd00::/8", "172.28.0.0/16"];
+    private static readonly string[] ArrayNetworks = ["10.0.0.0/8", "172.16.0.0/12"];
+    private static readonly string[] AugmentedNetworks = ["10.0.0.0/8", "172.28.0.0/16"];
+
     [Fact]
     public void Merge_DelimitedScalar_SplitsIntoEntries()
     {
@@ -22,8 +28,8 @@ public sealed class ForwardedHeaderConfigurationTests
         Initialization.MergeForwardedHeaderConfiguration(configuration, options);
 
         // Assert
-        Assert.Equal(new[] { "172.28.0.0/16", "10.0.0.0/8" }, options.KnownProxyNetworks);
-        Assert.Equal(new[] { "192.168.1.1", "192.168.1.2" }, options.KnownProxies);
+        Assert.Equal(ScalarNetworks, options.KnownProxyNetworks);
+        Assert.Equal(ScalarProxies, options.KnownProxies);
     }
 
     [Fact]
@@ -39,7 +45,7 @@ public sealed class ForwardedHeaderConfigurationTests
         Initialization.MergeForwardedHeaderConfiguration(configuration, options);
 
         // Assert
-        Assert.Equal(new[] { "fd00::/8", "172.28.0.0/16" }, options.KnownProxyNetworks);
+        Assert.Equal(Ipv6Networks, options.KnownProxyNetworks);
     }
 
     [Fact]
@@ -59,7 +65,7 @@ public sealed class ForwardedHeaderConfigurationTests
         Initialization.MergeForwardedHeaderConfiguration(configuration, options);
 
         // Assert
-        Assert.Equal(new[] { "10.0.0.0/8", "172.16.0.0/12" }, options.KnownProxyNetworks);
+        Assert.Equal(ArrayNetworks, options.KnownProxyNetworks);
     }
 
     [Fact]
@@ -76,7 +82,7 @@ public sealed class ForwardedHeaderConfigurationTests
         Initialization.MergeForwardedHeaderConfiguration(configuration, options);
 
         // Assert — code entry kept, new one appended, duplicate not added twice.
-        Assert.Equal(new[] { "10.0.0.0/8", "172.28.0.0/16" }, options.KnownProxyNetworks);
+        Assert.Equal(AugmentedNetworks, options.KnownProxyNetworks);
     }
 
     [Fact]

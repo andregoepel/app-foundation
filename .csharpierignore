@@ -1,0 +1,3 @@
+# Generated scanner XML may contain credentials; never format it.
+.sonarqube/
+artifacts/

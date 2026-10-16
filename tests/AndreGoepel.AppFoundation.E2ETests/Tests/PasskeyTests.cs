@@ -15,7 +15,7 @@ public sealed class PasskeyTests(AppFoundationE2EAppFixture fixture) : E2ETestBa
     public async Task RegisterPasskey_ThenLoginWithPasskey_Succeeds()
     {
         // Arrange — create a passkey, then sign out (credential stays in the virtual authenticator).
-        await CreateConfirmedUserAndLoginAsync();
+        var email = await CreateConfirmedUserAndLoginAsync();
         await VirtualAuthenticator.EnableAsync(Context, Page);
         await RegisterPasskeyAsync("Login Key");
         await LogoutAsync();
@@ -36,13 +36,10 @@ public sealed class PasskeyTests(AppFoundationE2EAppFixture fixture) : E2ETestBa
             // Conditional mediation already signed in and navigated away — nothing to click.
         }
 
-        // Assert — the assertion ceremony logs us in and leaves the login page.
-        await Page.WaitForURLAsync(url =>
-            !new Uri(url).AbsolutePath.StartsWith(
-                "/Account/Login",
-                StringComparison.OrdinalIgnoreCase
-            )
-        );
+        // Assert — successful authentication returns the same user to the dashboard.
+        await Expect(Page)
+            .ToHaveURLAsync(new Uri(new Uri(Fixture.AppBaseUrl), "/dashboard").AbsoluteUri);
+        await Expect(Page.Locator(".ag-user-email")).ToHaveTextAsync(email);
     }
 
     #region Helpers

@@ -13,6 +13,7 @@
     <Project Path="src/AndreGoepel.AppFoundation.ServiceDefaults/AndreGoepel.AppFoundation.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AndreGoepel.AppFoundation.Sonar.Tests/AndreGoepel.AppFoundation.Sonar.Tests.csproj" />
     <File Path="tests/Directory.Build.props" />
     <Project Path="tests/AndreGoepel.AppFoundation.Tests/AndreGoepel.AppFoundation.Tests.csproj" />
     <Project Path="tests/AndreGoepel.AppFoundation.IntegrationTests/AndreGoepel.AppFoundation.IntegrationTests.csproj" />
@@ -23,5 +24,8 @@
   <Folder Name="/samples/">
     <Project Path="samples/AndreGoepel.AppFoundation.AppHost/AndreGoepel.AppFoundation.AppHost.csproj" />
     <Project Path="samples/AndreGoepel.AppFoundation.Sample/AndreGoepel.AppFoundation.Sample.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/AndreGoepel.AppFoundation.Sonar/AndreGoepel.AppFoundation.Sonar.csproj" />
   </Folder>
 </Solution>

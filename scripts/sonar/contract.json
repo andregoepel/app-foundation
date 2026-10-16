@@ -1,0 +1,21 @@
+{
+  "sdk": "10.0.402",
+  "serverVersion": "26.10.0.133078",
+  "gate": "AppFoundation PoC 1.0.0",
+  "solution": "AndreGoepel.AppFoundation.slnx",
+  "tests": {
+    "AndreGoepel.AppFoundation.Sonar.Tests": 70,
+    "AndreGoepel.AppFoundation.Tests": 93,
+    "AndreGoepel.AppFoundation.MailService.Tests": 29,
+    "AndreGoepel.AppFoundation.Aspire.Tests": 8,
+    "AndreGoepel.AppFoundation.IntegrationTests": 5,
+    "AndreGoepel.AppFoundation.E2ETests": 14
+  },
+  "coverageAnchors": [
+    "src/AndreGoepel.AppFoundation.Hosting/Initialization.cs",
+    "samples/AndreGoepel.AppFoundation.Sample/Program.cs",
+    "samples/AndreGoepel.AppFoundation.AppHost/AppHost.cs"
+  ],
+  "sourceExclusions": ["**/bin/**", "**/obj/**", "**/.sonarqube/**", "**/wwwroot/lib/**", "artifacts/**"],
+  "coverageExclusions": []
+}

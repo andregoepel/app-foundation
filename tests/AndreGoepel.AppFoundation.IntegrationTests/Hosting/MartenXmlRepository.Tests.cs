@@ -24,7 +24,7 @@ namespace AndreGoepel.AppFoundation.IntegrationTests.Hosting;
 [Collection(Infrastructure.IntegrationCollection.Name)]
 public sealed class MartenXmlRepositoryTests(MartenFixture fixture) : IAsyncLifetime
 {
-    private CancellationToken Ct => TestContext.Current.CancellationToken;
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     public async ValueTask InitializeAsync() => await fixture.ResetAsync(Ct);
 
