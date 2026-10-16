@@ -1,0 +1,238 @@
+{
+  "version": "1.0.0",
+  "baselineAnalysisId": null,
+  "maximumRunAgeMinutes": 120,
+  "evidenceLifetimeMinutes": 60,
+  "conditions": [
+    {
+      "metric": "violations",
+      "op": "GT",
+      "error": "0"
+    },
+    {
+      "metric": "coverage",
+      "op": "LT",
+      "error": "80"
+    },
+    {
+      "metric": "new_violations",
+      "op": "GT",
+      "error": "0"
+    },
+    {
+      "metric": "new_coverage",
+      "op": "LT",
+      "error": "80"
+    },
+    {
+      "metric": "new_duplicated_lines_density",
+      "op": "GT",
+      "error": "3"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "op": "LT",
+      "error": "100"
+    }
+  ],
+  "profiles": [
+    {
+      "language": "azureresourcemanager",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 27,
+      "rulesUpdatedAt": "2026-10-16T17:32:18+08:00"
+    },
+    {
+      "language": "cloudformation",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 22,
+      "rulesUpdatedAt": "2026-10-16T17:32:19+08:00"
+    },
+    {
+      "language": "cs",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 121,
+      "rulesUpdatedAt": "2026-10-16T17:32:20+08:00"
+    },
+    {
+      "language": "css",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 25,
+      "rulesUpdatedAt": "2026-10-16T17:32:21+08:00"
+    },
+    {
+      "language": "docker",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 18,
+      "rulesUpdatedAt": "2026-10-16T17:32:22+08:00"
+    },
+    {
+      "language": "flex",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 11,
+      "rulesUpdatedAt": "2026-10-16T17:32:23+08:00"
+    },
+    {
+      "language": "go",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 6,
+      "rulesUpdatedAt": "2026-10-16T17:32:23+08:00"
+    },
+    {
+      "language": "ipynb",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 230,
+      "rulesUpdatedAt": "2026-10-16T17:32:24+08:00"
+    },
+    {
+      "language": "java",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 274,
+      "rulesUpdatedAt": "2026-10-16T17:32:26+08:00"
+    },
+    {
+      "language": "js",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 199,
+      "rulesUpdatedAt": "2026-10-16T17:32:27+08:00"
+    },
+    {
+      "language": "json",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 0,
+      "rulesUpdatedAt": "2026-10-16T17:32:29+08:00"
+    },
+    {
+      "language": "jsp",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 0,
+      "rulesUpdatedAt": "2026-10-16T17:32:29+08:00"
+    },
+    {
+      "language": "kotlin",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 54,
+      "rulesUpdatedAt": "2026-10-16T17:32:30+08:00"
+    },
+    {
+      "language": "kubernetes",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 18,
+      "rulesUpdatedAt": "2026-10-16T17:32:31+08:00"
+    },
+    {
+      "language": "php",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 78,
+      "rulesUpdatedAt": "2026-10-16T17:32:31+08:00"
+    },
+    {
+      "language": "py",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 232,
+      "rulesUpdatedAt": "2026-10-16T17:32:32+08:00"
+    },
+    {
+      "language": "ruby",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 9,
+      "rulesUpdatedAt": "2026-10-16T17:32:34+08:00"
+    },
+    {
+      "language": "rust",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 58,
+      "rulesUpdatedAt": "2026-10-16T17:32:34+08:00"
+    },
+    {
+      "language": "scala",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 8,
+      "rulesUpdatedAt": "2026-10-16T17:32:35+08:00"
+    },
+    {
+      "language": "secrets",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 30,
+      "rulesUpdatedAt": "2026-10-16T17:32:36+08:00"
+    },
+    {
+      "language": "terraform",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 49,
+      "rulesUpdatedAt": "2026-10-16T17:32:37+08:00"
+    },
+    {
+      "language": "text",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 3,
+      "rulesUpdatedAt": "2026-10-16T17:32:37+08:00"
+    },
+    {
+      "language": "ts",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 198,
+      "rulesUpdatedAt": "2026-10-16T17:32:38+08:00"
+    },
+    {
+      "language": "vbnet",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 55,
+      "rulesUpdatedAt": "2026-10-16T17:32:39+08:00"
+    },
+    {
+      "language": "web",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 34,
+      "rulesUpdatedAt": "2026-10-16T17:32:40+08:00"
+    },
+    {
+      "language": "xml",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 20,
+      "rulesUpdatedAt": "2026-10-16T17:32:41+08:00"
+    },
+    {
+      "language": "yaml",
+      "name": "AppFoundation PoC 1.0.0",
+      "activeRuleCount": 0,
+      "rulesUpdatedAt": "2026-10-16T17:32:42+08:00"
+    }
+  ],
+  "workflows": [
+    {
+      "id": 275805760,
+      "path": ".github/workflows/ci.yml",
+      "fileSha256": "69ccac1e8b2aab3e6e135f7aa7be2577bf3e7fc41fde37084513ea591bba9f33",
+      "sharedPath": "andregoepel/workflows/.github/workflows/ci-library.yml@main",
+      "sharedSha": "42933b4b269309c090c163608ba456ee441e5668",
+      "jobs": {
+        "ci / build-and-test": [
+          "Restore",
+          "Restore tools",
+          "Format check",
+          "Build",
+          "Test",
+          "Vulnerability scan"
+        ],
+        "servicedefaults-drift": [
+          "Compare against marten-identity's mirrored copy"
+        ]
+      }
+    },
+    {
+      "id": 307538719,
+      "path": ".github/workflows/e2e.yml",
+      "fileSha256": "8be0ddeea65c6499b7aec63832b92df9ce18037447344dbe0feeed4db8a62a9d",
+      "sharedPath": "andregoepel/workflows/.github/workflows/e2e.yml@main",
+      "sharedSha": "42933b4b269309c090c163608ba456ee441e5668",
+      "jobs": {
+        "e2e / end-to-end": [
+          "Build E2E project",
+          "Install Playwright browsers",
+          "Run E2E tests"
+        ]
+      }
+    }
+  ]
+}

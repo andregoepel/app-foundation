@@ -5,10 +5,11 @@ analysis on a **separate local SonarQube instance**. It uses the repository's SD
 and `AndreGoepel.Core.Result`. PowerShell and Bash provide equivalent launchers;
 there is no Python dependency.
 
-The tool never deploys, publishes packages, commits or pushes. Receipts always have
-`releaseEligible: false`. Central trusted-main analysis and release barriers remain
-in #243–#245. Existing Actions are unchanged; solution builds/tests automatically
-include the new console tool and its xUnit project.
+The tool never deploys, publishes packages, commits or pushes. Local receipts always
+have `releaseEligible: false`. The separate, initially disabled trusted-main entry
+point and its activation requirements are documented in [MAIN-READINESS.md](MAIN-READINESS.md).
+Existing Actions are unchanged; solution builds/tests automatically include the
+console tool and its xUnit project. Release enforcement remains in #244–#245.
 
 ## Prerequisites
 
@@ -78,8 +79,8 @@ scanner imports and retains warnings-as-errors; vulnerabilities at every severit
 block separately. CSharpier remains the formatter. Only generated output, scanner
 artifacts and vendored libraries are excluded; no authored coverage exclusions apply.
 
-The starting inventory is **219 tests**: 93 foundation, 29 mail, 8 Aspire,
-5 integration, 14 E2E, and 70 console-tool tests. `contract.json` records minimum
+The starting inventory is **337 tests**: 93 foundation, 29 mail, 8 Aspire,
+5 integration, 14 E2E, and 188 console-tool tests. `contract.json` records minimum
 counts. MTP discovers all tests; executed xUnit names must match exactly, with no
 skips/failures. New tests are automatically included.
 
@@ -107,7 +108,9 @@ workspace. Git and CSharpier ignore generated files. No artifact publishing is w
 Scanner calls require the analysis token as an argument; local process inspection
 can expose it, so use a private account. Logs redact both tokens, timeout errors
 omit arguments, and cleanup removes owned scanner state. Redirects/proxies are
-disabled. Central URLs, keys and the known central server ID are rejected.
+disabled. The default local entry point rejects central URLs, keys and the known
+central server ID. Only the explicit trusted-main entry point can use the pinned
+central target, after validating GitHub context and successful main CI/E2E evidence.
 Verification checks the submitted analysis, latest result, gate assignment and
 coverage import. Empty/unexpected gates or overwritten results fail.
 

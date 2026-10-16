@@ -35,6 +35,9 @@ internal sealed class ProcessRunner : IProcessRunner
 
         start.Environment.Remove("APPFOUNDATION_SONAR_TOKEN");
         start.Environment.Remove("APPFOUNDATION_SONAR_VERIFY_TOKEN");
+        start.Environment.Remove("APPFOUNDATION_GITHUB_TOKEN");
+        start.Environment.Remove("GITHUB_TOKEN");
+        start.Environment.Remove("GH_TOKEN");
         start.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
         start.Environment["NO_COLOR"] = "1";
 

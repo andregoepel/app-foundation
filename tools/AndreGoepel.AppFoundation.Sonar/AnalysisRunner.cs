@@ -6,7 +6,11 @@ using AndreGoepel.Core;
 
 namespace AndreGoepel.AppFoundation.Sonar;
 
-internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarClient sonar)
+internal sealed partial class AnalysisRunner(
+    IProcessRunner processes,
+    ISonarClient sonar,
+    IAnalysisTrust? trust = null
+)
 {
     internal async Task<Result> RunAsync(
         AnalysisOptions options,
@@ -16,12 +20,19 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
         CancellationToken cancellationToken
     )
     {
-        var target = options.ValidateTarget();
+        var target = trust?.ValidateTarget(options) ?? options.ValidateTarget();
         if (target.IsFailure)
             return target;
 
         if (string.IsNullOrEmpty(scanToken) || string.IsNullOrEmpty(verifyToken))
-            return Result.Fail("Both local Sonar credentials are required.");
+            return Result.Fail("Both Sonar credentials are required.");
+
+        if (trust is not null)
+        {
+            var boundary = await trust.CheckAsync(cancellationToken);
+            if (boundary.IsFailure)
+                return boundary;
+        }
 
         var status = await sonar.GetAsync("system/status", null, cancellationToken);
         if (
@@ -29,7 +40,7 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             || status.GetProperty("status").GetString() != "UP"
             || status.GetProperty("version").GetString() != contract.ServerVersion
         )
-            return Result.Fail("Unexpected local server identity, version or status.");
+            return Result.Fail("Unexpected Sonar server identity, version or status.");
 
         var lockPath = Path.Combine(options.Root, ".sonar-analysis.lock");
         FileStream runLock;
@@ -56,7 +67,8 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                 scanToken,
                 verifyToken,
                 processes,
-                sonar
+                sonar,
+                trust
             );
 
             Result outcome;
@@ -91,7 +103,8 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
         string scanToken,
         string verifyToken,
         IProcessRunner processes,
-        ISonarClient sonar
+        ISonarClient sonar,
+        IAnalysisTrust? trust
     )
     {
         private readonly string output = Path.Combine(
@@ -205,6 +218,13 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
             if (await SourceFiles.SnapshotAsync(options.Root, ct) != summary.SourceSha256)
                 return Result.Fail("Sources changed during analysis; upload refused.");
 
+            if (trust is not null)
+            {
+                var boundary = await trust.CheckAsync(ct);
+                if (boundary.IsFailure)
+                    return boundary;
+            }
+
             var end = await CommandAsync(
                 "scanner-end",
                 ["dotnet", "sonarscanner", "end", "/d:sonar.token=" + scanToken],
@@ -291,6 +311,13 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
 
         private async Task<Result> BeginAsync(string merged, CancellationToken ct)
         {
+            if (trust is not null)
+            {
+                var boundary = await trust.CheckAsync(ct);
+                if (boundary.IsFailure)
+                    return boundary;
+            }
+
             var settings = await sonar.GetAsync(
                 "settings/values",
                 scanToken,
@@ -327,7 +354,14 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
                     "/d:sonar.host.url=" + options.Url.AbsoluteUri,
                     "/d:sonar.token=" + scanToken,
                     "/d:sonar.scanner.scanAll=true",
-                    "/d:sonar.scm.disabled=true",
+                    .. trust is null
+                        ? ["/d:sonar.scm.disabled=true"]
+                        : new[]
+                        {
+                            "/d:sonar.scm.disabled=false",
+                            "/d:sonar.scm.revision=" + trust.Revision,
+                            "/d:sonar.buildString=" + trust.BuildString,
+                        },
                     "/d:sonar.qualitygate.wait=true",
                     "/d:sonar.qualitygate.timeout=300",
                     "/d:sonar.exclusions=" + string.Join(',', contract.SourceExclusions),
@@ -582,6 +616,13 @@ internal sealed partial class AnalysisRunner(IProcessRunner processes, ISonarCli
 
             if (end.ExitCode != 0 || gate.GetProperty("status").GetString() != "OK")
                 return Result.Fail("Full analysis completed, but the quality gate failed.");
+
+            if (trust is not null)
+            {
+                var verification = await trust.VerifyAsync(summary, latest[0], ct);
+                if (verification.IsFailure)
+                    return verification;
+            }
 
             summary.State = "complete";
             return Result.Ok();
