@@ -5,7 +5,7 @@
 
 # Claude Code
 .sonarqube/
-.sonar-analysis.lock/
+.sonar-analysis.lock
 .claude/worktrees/
 .claude/settings.local.json
 
