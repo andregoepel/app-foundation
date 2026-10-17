@@ -12,6 +12,12 @@ internal sealed class MainSonarPolicy(
     string verifyToken
 )
 {
+    private static readonly string[] ProfileTimestampFormats =
+    [
+        "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz",
+        "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'",
+    ];
+
     internal async Task<Result> CheckDefinitionAsync(CancellationToken ct)
     {
         var gate = await client.GetAsync("qualitygates/show", verifyToken, ct, ("name", gateName));
@@ -36,12 +42,13 @@ internal sealed class MainSonarPolicy(
             ct,
             ("project", MainPolicy.Project)
         );
-        var actual = profiles
-            .GetProperty("profiles")
-            .Deserialize<ProfilePolicy[]>(JsonFormat.Options)!;
+        var actual = ReadProfiles(profiles);
+        if (actual.IsFailure)
+            return Result.Fail(actual.Error!);
+
         if (
             !actual
-                .OrderBy(p => p.Language, StringComparer.Ordinal)
+                .Value!.OrderBy(p => p.Language, StringComparer.Ordinal)
                 .SequenceEqual(policy.Profiles.OrderBy(p => p.Language, StringComparer.Ordinal))
         )
             return Result.Fail("Assigned profile names, rule counts or rule revisions changed.");
@@ -78,6 +85,37 @@ internal sealed class MainSonarPolicy(
             return Result.Fail("The small-change exemption must be disabled.");
 
         return Result.Ok();
+    }
+
+    private static Result<ProfilePolicy[]> ReadProfiles(JsonElement response)
+    {
+        var profiles = new List<ProfilePolicy>();
+        foreach (var profile in response.GetProperty("profiles").EnumerateArray())
+        {
+            if (
+                !DateTimeOffset.TryParseExact(
+                    profile.GetProperty("rulesUpdatedAt").GetString(),
+                    ProfileTimestampFormats,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal,
+                    out var rulesUpdatedAt
+                )
+            )
+                return Result.Fail<ProfilePolicy[]>(
+                    "A central profile has an invalid rule revision timestamp."
+                );
+
+            profiles.Add(
+                new ProfilePolicy(
+                    profile.GetProperty("language").GetString()!,
+                    profile.GetProperty("name").GetString()!,
+                    profile.GetProperty("activeRuleCount").GetInt32(),
+                    rulesUpdatedAt
+                )
+            );
+        }
+
+        return Result.Ok(profiles.ToArray());
     }
 
     internal async Task<Result> VerifyAnalysisAsync(

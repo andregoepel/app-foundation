@@ -34,7 +34,7 @@ internal sealed class MainFixture : IGitHubClient, ISonarClient
                 new("new_duplicated_lines_density", "GT", "3"),
                 new("new_security_hotspots_reviewed", "LT", "100"),
             ],
-            [new("cs", GateName, 121, Now.AddDays(-1))],
+            [new("cs", GateName, 121, new DateTimeOffset(2026, 10, 16, 9, 32, 20, TimeSpan.Zero))],
             [
                 new(
                     10,
@@ -108,6 +108,8 @@ internal sealed class MainFixture : IGitHubClient, ISonarClient
 
         Responses["qualitygates/show"] = Node(new { conditions = Policy.Conditions });
         Responses["qualityprofiles/search"] = Node(new { profiles = Policy.Profiles });
+        Responses["qualityprofiles/search"]["profiles"]![0]!["rulesUpdatedAt"] =
+            "2026-10-16T17:32:20+0800";
         Responses["settings/values"] = Node(
             new
             {

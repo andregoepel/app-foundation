@@ -28,6 +28,51 @@ public sealed class MainSonarPolicyTests
     }
 
     [Theory]
+    [InlineData("2026-10-16T17:32:20+0800")]
+    [InlineData("2026-10-16T04:02:20-0530")]
+    [InlineData("2026-10-16T09:32:20+0000")]
+    [InlineData("2026-10-16T17:32:20+08:00")]
+    [InlineData("2026-10-16T09:32:20Z")]
+    [InlineData("2026-10-16T09:32:20.0000000+00:00")]
+    public async Task CheckDefinition_EquivalentRuleRevisionFormats_Accepts(string timestamp)
+    {
+        // Arrange
+        var fixture = new MainFixture();
+        fixture.Responses["qualityprofiles/search"]["profiles"]![0]!["rulesUpdatedAt"] = timestamp;
+
+        // Act
+        var result = await fixture
+            .Sonar()
+            .CheckDefinitionAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.True(result.IsSuccess, result.Error);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("invalid")]
+    [InlineData("2026-10-16")]
+    [InlineData("2026-10-16T09:32:20")]
+    [InlineData("2026-10-16T17:32:20+2500")]
+    [InlineData("2026-13-16T17:32:20+0800")]
+    public async Task CheckDefinition_InvalidRuleRevision_Rejects(string? timestamp)
+    {
+        // Arrange
+        var fixture = new MainFixture();
+        fixture.Responses["qualityprofiles/search"]["profiles"]![0]!["rulesUpdatedAt"] = timestamp;
+
+        // Act
+        var result = await fixture
+            .Sonar()
+            .CheckDefinitionAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal("A central profile has an invalid rule revision timestamp.", result.Error);
+    }
+
+    [Theory]
     [InlineData("threshold")]
     [InlineData("metric")]
     [InlineData("profile-name")]
@@ -55,7 +100,7 @@ public sealed class MainSonarPolicyTests
                 break;
             case "profile-revision":
                 fixture.Responses["qualityprofiles/search"]["profiles"]![0]!["rulesUpdatedAt"] =
-                    "2000-01-01T00:00:00Z";
+                    "2026-10-16T17:32:21+0800";
                 break;
             case "exemption":
                 fixture.Responses["settings/values"]["settings"]![0]!["value"] = "true";
