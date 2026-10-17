@@ -10,6 +10,15 @@ Console.CancelKeyPress += (_, signal) =>
 
 try
 {
+    if (args.Contains("--nuget-dry-run", StringComparer.Ordinal))
+    {
+        var dryRun = await NuGetCommand.RunAsync(args, cancellation.Token);
+        if (dryRun.IsFailure)
+            await Console.Error.WriteLineAsync(dryRun.Error);
+
+        return dryRun.IsSuccess ? 0 : 1;
+    }
+
     if (args is ["--root", var root, "--trusted-main"])
     {
         var main = await MainCommand.RunAsync(root, cancellation.Token);

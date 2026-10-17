@@ -4,7 +4,7 @@
   "gate": "AppFoundation PoC 1.0.0",
   "solution": "AndreGoepel.AppFoundation.slnx",
   "tests": {
-    "AndreGoepel.AppFoundation.Sonar.Tests": 200,
+    "AndreGoepel.AppFoundation.Sonar.Tests": 324,
     "AndreGoepel.AppFoundation.Tests": 93,
     "AndreGoepel.AppFoundation.MailService.Tests": 29,
     "AndreGoepel.AppFoundation.Aspire.Tests": 8,
