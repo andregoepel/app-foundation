@@ -67,13 +67,19 @@ explicit zero denominators: both new lines/conditions to cover for coverage, new
 lines for duplication, or new security hotspots for hotspot review. Missing measures
 are never interpreted as zero. Overall coverage and issue conditions are mandatory.
 
-`baselineAnalysisId` intentionally starts as `null`. The existing transport smoke
-test is unsuitable. The first complete trusted-main analysis can be retained for
-baseline review, but the tool fails readiness until a reviewed `SPECIFIC_ANALYSIS`
-baseline is installed and its ID is committed to the policy. The tool never selects
-or changes a baseline automatically. The baseline must differ from the current
-analysis. The scanner account reads the baseline API; Browse-only access to that
-API is denied by the installed server and is not broadened.
+The baseline selected in `main-policy.json` is the first complete trusted-main
+analysis, `899f364a-65bb-4f5e-9840-103b3ecc7825`, for commit
+`4752d6dbc0e6c39c824a3ce11e72008410d524e3`. The
+[initial central run](https://github.com/andregoepel/app-foundation/actions/runs/38997584666)
+passed all 349 tests across six suites, analyzed all 15 projects and reported 84.8%
+coverage with zero issues and hotspots. Its Sonar gate passed; readiness was blocked
+because the initial committed baseline was null. The transport smoke test is not used.
+
+Readiness requires the server's `SPECIFIC_ANALYSIS` setting to match the committed
+baseline ID. Selecting the ID in this file does not change that server setting.
+The tool never selects or changes a baseline automatically, and the baseline must
+differ from the current analysis. The scanner account reads the baseline API;
+Browse-only access to that API is denied by the installed server and is not broadened.
 
 ## Receipts and downstream obligations
 
