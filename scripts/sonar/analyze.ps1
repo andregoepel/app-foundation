@@ -5,9 +5,11 @@ $bootstrapRoot = Join-Path $root 'artifacts/sonar-bootstrap'
 $bootstrap = Join-Path $bootstrapRoot ([Guid]::NewGuid().ToString('N'))
 $scanToken = $env:APPFOUNDATION_SONAR_TOKEN
 $verifyToken = $env:APPFOUNDATION_SONAR_VERIFY_TOKEN
+$githubToken = $env:APPFOUNDATION_GITHUB_TOKEN
 try {
     $env:APPFOUNDATION_SONAR_TOKEN = $null
     $env:APPFOUNDATION_SONAR_VERIFY_TOKEN = $null
+    $env:APPFOUNDATION_GITHUB_TOKEN = $null
     Push-Location $root
     dotnet restore $project --locked-mode
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -15,11 +17,13 @@ try {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     $env:APPFOUNDATION_SONAR_TOKEN = $scanToken
     $env:APPFOUNDATION_SONAR_VERIFY_TOKEN = $verifyToken
+    $env:APPFOUNDATION_GITHUB_TOKEN = $githubToken
     dotnet (Join-Path $bootstrap 'AndreGoepel.AppFoundation.Sonar.dll') --root $root @args
     exit $LASTEXITCODE
 } finally {
     $env:APPFOUNDATION_SONAR_TOKEN = $scanToken
     $env:APPFOUNDATION_SONAR_VERIFY_TOKEN = $verifyToken
+    $env:APPFOUNDATION_GITHUB_TOKEN = $githubToken
     Pop-Location
     if ((Test-Path -LiteralPath $bootstrap) -and [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($bootstrap)) -eq $bootstrapRoot) {
         Remove-Item -LiteralPath $bootstrap -Recurse -Force

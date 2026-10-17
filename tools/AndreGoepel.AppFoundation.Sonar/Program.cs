@@ -1,30 +1,38 @@
 using System.Text.Json;
 using AndreGoepel.AppFoundation.Sonar;
 
-var parsed = AnalysisOptions.Parse(args);
-if (parsed.IsFailure)
-{
-    await Console.Error.WriteLineAsync(parsed.Error);
-    return 1;
-}
-
-var options = parsed.Value!;
-var scanToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN") ?? "";
-var verifyToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN") ?? "";
-Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN", null);
-Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN", null);
-
-using var cancellation = new CancellationTokenSource();
+using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(75));
 Console.CancelKeyPress += (_, signal) =>
 {
     signal.Cancel = true;
     cancellation.Cancel();
 };
 
-using var client = SonarClient.CreateHttpClient();
-
 try
 {
+    if (args is ["--root", var root, "--trusted-main"])
+    {
+        var main = await MainCommand.RunAsync(root, cancellation.Token);
+        if (main.IsFailure)
+            await Console.Error.WriteLineAsync(main.Error);
+
+        return main.IsSuccess ? 0 : 1;
+    }
+
+    var parsed = AnalysisOptions.Parse(args);
+    if (parsed.IsFailure)
+    {
+        await Console.Error.WriteLineAsync(parsed.Error);
+        return 1;
+    }
+
+    var options = parsed.Value!;
+    var scanToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN") ?? "";
+    var verifyToken = Environment.GetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN") ?? "";
+    Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_TOKEN", null);
+    Environment.SetEnvironmentVariable("APPFOUNDATION_SONAR_VERIFY_TOKEN", null);
+
+    using var client = SonarClient.CreateHttpClient();
     var contract = JsonSerializer.Deserialize<AnalysisContract>(
         await File.ReadAllTextAsync(
             Path.Combine(options.Root, "scripts/sonar/contract.json"),

@@ -1,0 +1,77 @@
+name: Sonar main readiness
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: app-foundation-central-sonar
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    if: >-
+      vars.SONAR_MAIN_ENABLED == 'true' &&
+      github.repository == 'andregoepel/app-foundation' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    environment: sonar-main
+    timeout-minutes: 90
+    steps:
+      - name: Require successful CI for the current main revision
+        env:
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_SHA" = "$CANDIDATE_SHA"
+          test "$GITHUB_WORKFLOW_SHA" = "$CANDIDATE_SHA"
+          test "$CI_CONCLUSION" = success
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+
+      - name: Prepare native browser dependencies and development certificate
+        run: |
+          dotnet dev-certs https
+          dotnet restore AndreGoepel.AppFoundation.slnx --locked-mode
+          dotnet build tests/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj -c Release --no-restore -p:SonarQubeTargetsImported=true
+          pwsh tests/AndreGoepel.AppFoundation.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Verify main evidence and perform full central analysis
+        env:
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: bash scripts/sonar/analyze.sh --trusted-main
+
+      - name: Preserve sanitized analysis diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sonar-analysis-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/sonar/main-${{ github.run_id }}-${{ github.run_attempt }}/publish/summary.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish verified readiness evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sonar-readiness-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/sonar/main-${{ github.run_id }}-${{ github.run_attempt }}/publish/readiness.json
+          if-no-files-found: error
+          retention-days: 1
