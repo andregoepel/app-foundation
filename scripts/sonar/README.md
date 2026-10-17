@@ -5,7 +5,9 @@ analysis on a **separate local SonarQube instance**. It uses the repository's SD
 and `AndreGoepel.Core.Result`. PowerShell and Bash provide equivalent launchers;
 there is no Python dependency.
 
-The tool never deploys, publishes packages, commits or pushes. Local receipts always
+The tool never deploys, publishes packages, commits or pushes. The separate
+[NuGet dry run](NUGET-READINESS.md) prepares the #244 publication barrier without
+changing active Actions. Local receipts always
 have `releaseEligible: false`. The separate, initially disabled trusted-main entry
 point and its activation requirements are documented in [MAIN-READINESS.md](MAIN-READINESS.md).
 Existing Actions are unchanged; solution builds/tests automatically include the

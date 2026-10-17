@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
+for argument in "$@"; do
+    if [[ "$argument" == --nuget-dry-run ]]; then
+        for name in ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL NUGET_API_KEY NUGET_AUTH_TOKEN NUGET_SYMBOL_API_KEY; do
+            if [[ -n "${!name:-}" ]]; then
+                echo 'Run preparation without OIDC access or NuGet publication credentials.' >&2
+                exit 1
+            fi
+        done
+    fi
+done
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root"
 project="tools/AndreGoepel.AppFoundation.Sonar/AndreGoepel.AppFoundation.Sonar.csproj"
