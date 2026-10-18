@@ -37,7 +37,12 @@ internal sealed record MainPolicy(
     internal const string ServerId = "AA2DD71C-AaFDycIuQLOXJXX6YWNZ";
 
     internal string Fingerprint() =>
-        SourceFiles.Hash(JsonSerializer.SerializeToUtf8Bytes(this, JsonFormat.Options));
+        SourceFiles.Hash(
+            JsonSerializer.SerializeToUtf8Bytes(
+                this,
+                new JsonSerializerOptions(JsonFormat.Options) { NewLine = "\n" }
+            )
+        );
 }
 
 internal sealed record MainRunIdentity(

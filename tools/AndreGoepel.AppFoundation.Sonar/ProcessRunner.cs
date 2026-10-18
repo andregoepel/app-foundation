@@ -38,6 +38,11 @@ internal sealed class ProcessRunner : IProcessRunner
         start.Environment.Remove("APPFOUNDATION_GITHUB_TOKEN");
         start.Environment.Remove("GITHUB_TOKEN");
         start.Environment.Remove("GH_TOKEN");
+        start.Environment.Remove("ACTIONS_ID_TOKEN_REQUEST_TOKEN");
+        start.Environment.Remove("ACTIONS_ID_TOKEN_REQUEST_URL");
+        start.Environment.Remove("NUGET_API_KEY");
+        start.Environment.Remove("NUGET_AUTH_TOKEN");
+        start.Environment.Remove("NUGET_SYMBOL_API_KEY");
         start.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
         start.Environment["NO_COLOR"] = "1";
 

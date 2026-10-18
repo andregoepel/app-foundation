@@ -31,7 +31,10 @@ internal sealed class GitHubEvidence(
         );
     }
 
-    internal async Task<Result<WorkflowEvidence[]>> ReadAsync(CancellationToken ct)
+    internal async Task<Result<WorkflowEvidence[]>> ReadAsync(
+        CancellationToken ct,
+        bool requireCompletedProducer = false
+    )
     {
         var current = await client.GetAsync("git/ref/heads/main", ct);
         if (current.GetProperty("object").GetProperty("sha").GetString() != identity.Sha)
@@ -43,7 +46,12 @@ internal sealed class GitHubEvidence(
         if (
             !MatchesSource(ownRun, "workflow_run", MainPolicy.WorkflowPath)
             || ownRun.GetProperty("run_attempt").GetInt32() != identity.Attempt
-            || ownRun.GetProperty("status").GetString() != "in_progress"
+            || ownRun.GetProperty("status").GetString()
+                != (requireCompletedProducer ? "completed" : "in_progress")
+            || (
+                requireCompletedProducer
+                && ownRun.GetProperty("conclusion").GetString() != "success"
+            )
         )
             return Result.Fail<WorkflowEvidence[]>(
                 "Unexpected readiness workflow identity or attempt."

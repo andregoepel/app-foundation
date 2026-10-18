@@ -1,4 +1,11 @@
 $ErrorActionPreference = 'Stop'
+if ($args -contains '--nuget-dry-run') {
+    foreach ($name in @('ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_URL', 'NUGET_API_KEY', 'NUGET_AUTH_TOKEN', 'NUGET_SYMBOL_API_KEY')) {
+        if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($name))) {
+            throw 'Run preparation without OIDC access or NuGet publication credentials.'
+        }
+    }
+}
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $project = Join-Path $root 'tools/AndreGoepel.AppFoundation.Sonar/AndreGoepel.AppFoundation.Sonar.csproj'
 $bootstrapRoot = Join-Path $root 'artifacts/sonar-bootstrap'
