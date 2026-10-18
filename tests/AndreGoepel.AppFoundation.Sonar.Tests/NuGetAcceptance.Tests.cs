@@ -272,9 +272,9 @@ public sealed class NuGetAcceptanceTests
 
         // Assert
         if (fault == "malformed-json")
-            Assert.IsAssignableFrom<JsonException>(error);
+            Assert.IsType<JsonException>(error, exactMatch: false);
         else if (fault == "cancelled")
-            Assert.IsAssignableFrom<OperationCanceledException>(error);
+            Assert.IsType<OperationCanceledException>(error, exactMatch: false);
         else
             Assert.IsType<InvalidDataException>(error);
         Assert.Empty(fixture.Builder.Commands);
