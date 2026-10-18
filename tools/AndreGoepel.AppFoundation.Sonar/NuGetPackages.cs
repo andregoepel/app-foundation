@@ -48,7 +48,7 @@ internal static class NuGetPackages
                     "Invalid package metadata or duplicate archive entries."
                 );
 
-            await using var xml = metadata[0].Open();
+            await using var xml = await metadata[0].OpenAsync(ct);
             var document = await XDocument.LoadAsync(xml, LoadOptions.None, ct);
             var ns = document.Root!.Name.Namespace;
             var package = document.Root.Element(ns + "metadata")!;
@@ -98,7 +98,7 @@ internal static class NuGetPackages
                     "A package or its matching built binary is missing."
                 );
 
-            await using var payload = binary.Open();
+            await using var payload = await binary.OpenAsync(ct);
             using var buffer = new MemoryStream();
             await payload.CopyToAsync(buffer, ct);
             if (

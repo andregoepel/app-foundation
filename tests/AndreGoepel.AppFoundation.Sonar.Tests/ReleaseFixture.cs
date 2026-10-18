@@ -7,6 +7,11 @@ namespace AndreGoepel.AppFoundation.Sonar.Tests;
 
 internal sealed class ReleaseFixture : IGitHubArtifacts, IProcessRunner, IDisposable
 {
+    private static readonly string[] AnalyzedProjects =
+    [
+        "tests/Example.E2ETests/Example.E2ETests.csproj",
+    ];
+
     internal MainFixture Main { get; } = new();
     internal string Root { get; } =
         Path.Combine(Path.GetTempPath(), "nuget-tests-" + Guid.NewGuid().ToString("N"));
@@ -27,7 +32,7 @@ internal sealed class ReleaseFixture : IGitHubArtifacts, IProcessRunner, IDispos
     internal string Head { get; set; } = MainFixture.Sha;
     internal Action<string>? OnReadArtifact { get; set; }
     internal List<string> Downloads { get; } = [];
-    internal string ProducerInventory =>
+    internal static string ProducerInventory =>
         $"actions/workflows/{NuGetRelease.ReadinessWorkflowId}/runs?branch=main&event=workflow_run&head_sha={MainFixture.Sha}&per_page=100";
     internal JsonNode Producer => Main.Responses["actions/runs/100"];
     internal JsonNode ArtifactInventory =>
@@ -74,7 +79,7 @@ internal sealed class ReleaseFixture : IGitHubArtifacts, IProcessRunner, IDispos
                 taskId = "task-id",
                 analysisId = "analysis-id",
                 gate = Main.Gate(),
-                analyzedProjects = new[] { "tests/Example.E2ETests/Example.E2ETests.csproj" },
+                analyzedProjects = AnalyzedProjects,
                 measures = new Dictionary<string, string>(),
                 tests = new Dictionary<string, object>
                 {
