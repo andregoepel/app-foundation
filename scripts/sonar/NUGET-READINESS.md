@@ -1,7 +1,7 @@
 # NuGet publication barrier preparation (#244)
 
-Status: dry-run implementation and negative acceptance tests merged; transferred
-batch verification prepared locally;
+Status: dry-run implementation, negative acceptance tests and transferred-batch
+verification merged; non-publishing sequence rehearsal prepared;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -224,6 +224,44 @@ changes during final verification and expired retries. Tests copy a batch produc
 by the real dry-run orchestration with synthetic build output into a separate
 receiving directory. No public package or actual tag is created.
 
+## Non-publishing sequence rehearsal
+
+`NuGetPublicationRehearsal` connects the receiving verifier to an instrumented
+`INuGetRehearsalSink`. The only sink implementation is in the test project: its
+login and upload methods record events and supplied bytes. There is no NuGet
+client, OIDC exchange, credential, network upload, CLI entry point or workflow
+integration. A successful receipt remains `dryRun: true`, `releaseEligible: false`.
+
+The sequence verifies the complete transferred batch, captures the selected
+package bytes in private memory and checks their hashes, then repeats the complete
+handoff verification before simulated login. It verifies the full batch again
+before each simulated file upload. The sink receives a read-only stream over the
+captured bytes, so replacing a source file at the upload boundary cannot substitute
+the content already selected for that upload. A changed file or evidence stops
+subsequent uploads. These distributed checks do not constitute an atomic lock on
+GitHub or Sonar state; the future credential-bearing adapter must preserve this
+ordering and byte ownership through the actual upload.
+
+A manual rehearsal can select an explicit, unique subset of manifest files,
+including symbols only. Every invocation starts with full live verification of
+the original twelve-file batch; an earlier success or partial acceptance is never
+reused as authorization. A missing package therefore also blocks a symbol-only
+retry. Unknown, duplicate or path-traversing selections are rejected before login.
+
+Login or upload failure stops the sequence with no automatic retry. The test sink
+records only acknowledged accepts. An exception or lost response does not prove
+that an upload was rejected: a future operator must reconcile the remote outcome
+before selecting remaining files. Partial acceptance cannot be rolled back, and
+the rehearsal does not persist or authenticate a production retry ledger.
+
+Thirty-eight cases exercise ordering with the real handoff and readiness
+verifiers, invalid or changing evidence, exact-byte transfer, login/upload failure,
+partial and symbol-only retries, cancellation and uncertain upload outcomes. The
+fixture prepares and transfers synthetic packages through the existing builder;
+all API responses and sink effects remain in memory. These tests prove the local
+orchestration, not enforcement by the unchanged publisher or authenticated
+provenance of the inputs.
+
 ## Acceptance evidence and remaining integration
 
 The positive intended-runner drill passed on Ubuntu 24.04:
@@ -287,8 +325,11 @@ Before closing #244, the separately approved production integration must still:
    acquisition. Integrate the local receiving verifier with authenticated producer
    provenance and test OIDC/login/upload ordering against a non-publishing sink
    attached to that real handoff.
-3. Exercise partial publication and manual/symbol retry behavior without a real
-   upload; require fresh verification and the same validated bytes for each retry.
+3. Integrate the tested non-publishing sequence with the actual credential/upload
+   adapter and authenticated preparation boundary. Preserve fresh verification and
+   byte ownership for each upload and manual/symbol retry; reconcile uncertain
+   remote outcomes and persist trusted partial-publication records. The current
+   recording sink establishes local ordering only.
 4. Inventory the account-level trusted-publisher policies and alternative keys for
    all six packages. The repository secret inventory contains only `NUGET_USER`;
    this does not prove that no organization/environment or external NuGet account
