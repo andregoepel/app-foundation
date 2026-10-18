@@ -1,9 +1,10 @@
 # NuGet publication barrier preparation (#244)
 
-Status: local implementation for review; **not activated**. Existing Actions,
+Status: dry-run implementation merged; additional local acceptance tests prepared;
+**not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
-#244 stays open until the trusted-runner and integration criteria below pass.
+#244 stays open until the remaining publication integration criteria below pass.
 
 ## Publication inventory
 
@@ -180,21 +181,78 @@ Prepare the eventual flow in this order:
 
 The active Actions files are intentionally not edited or replaced here.
 
-## Acceptance still required before closing #244
+## Acceptance evidence and remaining integration
 
-Local unit tests exercise positive evidence, source/run/artifact substitution,
-expired receipts, missing E2E, failed gates, policy drift, tag movement, package and
-symbol mismatches, and the final verification boundary. A local versioned build and
-pack smoke test can use a clearly marked test harness without claiming trusted
-readiness for uncommitted work.
+The positive intended-runner drill passed on Ubuntu 24.04:
+[run 39101513675, attempt 1](https://github.com/andregoepel/app-foundation/actions/runs/39101513675).
+It checked main commit `a0451c10af7232bdb63e3b75d7b3dc5568d3d4d1` against readiness
+run `39100314932`, prepared all six packages and six symbol packages, and produced
+only a manifest with `dryRun: true` and `releaseEligible: false`. No package was
+published. Its temporary workflow branch, protected environment and token copies
+were deleted; the workflow was never merged. This historical result does not
+extend the receipt's lifetime.
 
-After review and merge, run the actual verifier on the intended trusted runner with
-fresh main readiness, against a non-publishing sink, for all six packages. Repeat
-the negative matrix and instrument credential/upload calls to prove zero calls on
-every rejected path. Test package-transfer tampering, tag-event/retarget binding,
-expiry during preparation and manual/symbol retries. Activate only after approving
-the existing-workflow and credential-policy changes. Keep #244 open until these
-checks and every issue acceptance criterion are fulfilled.
+The local acceptance suite now connects the actual `NuGetDryRun`,
+`ReleaseReadiness`, GitHub and Sonar HTTP clients, archive reader, package builder,
+report validation and package validator. A recording HTTP handler supplies
+synthetic API responses and real ZIP bytes; a recording process adapter supplies
+synthetic build/test output and package files. Unexpected destinations, non-GET
+requests and commands outside the preparation allowlist fail the tests. No real
+credentials, network services, package uploads or release tags are used by these
+automated tests. Separate CLI tests execute the built console tool and each
+platform's bootstrap script in child processes.
+
+| Scenario | Required result | Test coverage |
+| --- | --- | --- |
+| Complete evidence, with or without an existing tag | Six package/symbol pairs; initial and final live checks; non-authorizing manifest | `NuGetAcceptanceTests.Run_CompleteEvidence_ValidatesAllPackagesWithoutPublication` |
+| Failed gate, wrong SHA, unmerged/dirty source, stale/missing evidence, missing E2E, unknown workflow/revision | Stop before build, test or pack | `Run_InvalidInitialEvidence_StopsBeforePreparation` |
+| Older attempt, newer failed producer, modified source/summary, changed policy/baseline or wrong tag | Reject without falling back to an earlier green result | `Run_InvalidInitialEvidence_StopsBeforePreparation` |
+| Evidence expires or main/tag, gate, CI/E2E evidence, policy or baseline changes during packing | Reject the whole prepared batch; no success manifest | `Run_EvidenceChangesDuringPacking_RejectsPreparedPackages` |
+| Version-dependent inputs, failed build/audit/discovery/tests, skipped tests | Stop before packing | `Run_VersionedPreparationFails_StopsBeforePacking` |
+| Missing symbols, extra package, wrong version/commit/dependency/binary/symbols, duplicate ZIP entry | Reject the whole package set | `Run_InvalidPackageSet_RejectsWholeBatch` |
+| Package or symbol bytes change during final verification | Reject final manifest | `Run_PackageChangesDuringFinalVerification_RejectsManifest` |
+| HTTP 401/403/429/503, corrupted archive, untrusted storage redirect, malformed JSON or cancellation | Fail without preparation or a success manifest | `Run_ApiFailure_StopsBeforePreparation`, `Run_UnreadableEvidence_StopsBeforePreparation` |
+| Previous successful manifest exists but current evidence is missing/expired | Reject without reusing or renewing the earlier manifest | `Run_PreviousSuccessfulManifest_DoesNotReplaceFreshVerification` |
+| OIDC request variables or package/symbol credentials already present | CLI rejects before configuration; bootstrap rejects before restore/build | `NuGetCommandTests.Run_PublicationCredential_ExitsBeforeReadingConfiguration`, `Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild` |
+| Manual publish, alternate package/symbol feed, API key, stale override or inconsistent tag option | CLI rejects before preparation | `Run_ManualPublicationOrBypassOption_ExitsBeforePreparation` |
+| Missing read credentials | CLI rejects without package preparation | `Run_MissingReadCredentials_ExitsWithoutPreparingPackages` |
+
+The 72 additional cases passed locally on Windows and Linux, bringing the tooling
+suite to 396 passing tests with no skips. Windows exercised the PowerShell
+bootstrap; Linux exercised Bash. The Linux container had no Docker socket or host
+network access and was removed afterward. Additional operator checks ran the real
+CLI against a clean main checkout and the edited checkout: wrong SHA, dirty source
+and an unrelated producer run all returned exit code 1 before creating any package
+preparation directory. Only the unrelated-producer check needed live GitHub reads;
+none required a Sonar request or Sonar credentials.
+
+These tests establish rejection and ordering in the implemented preparation path.
+They do not establish enforcement by the unchanged production publisher: that
+path still has no call to this verifier, and the current CLI has no credential
+exchange or upload operation. The simulated build output is not another real
+versioned build; the separate successful intended-runner drill supplies that
+positive evidence.
+
+Before closing #244, the separately approved production integration must still:
+
+1. Bind the actual tag event and immutable tag object through the repository-local
+   credential-bearing job, including retargeting checks. The current optional-tag
+   verifier checks the resolved commit; it does not yet bind an event's tag object.
+2. Validate the exact transferred package/symbol batch and manifest independently
+   in that job, with fresh live readiness and hashes immediately before credential
+   acquisition. Test transfer tampering and OIDC/login/upload ordering against a
+   non-publishing sink attached to that real handoff.
+3. Exercise partial publication and manual/symbol retry behavior without a real
+   upload; require fresh verification and the same validated bytes for each retry.
+4. Inventory the account-level trusted-publisher policies and alternative keys for
+   all six packages. The repository secret inventory contains only `NUGET_USER`;
+   this does not prove that no organization/environment or external NuGet account
+   key exists. Restrict alternative paths through the account owner before activation.
+5. Review and run the changed tests and eventual integration on the trusted runner
+   after their own approved commit/merge steps. Existing Actions and other
+   repositories remain unchanged during this local preparation.
+
+Do not close #244 or activate publication based solely on the local test matrix.
 
 Implementation references:
 [GitHub artifact API](https://docs.github.com/en/rest/actions/artifacts),
