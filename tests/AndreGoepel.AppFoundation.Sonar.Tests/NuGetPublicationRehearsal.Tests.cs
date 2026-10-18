@@ -392,7 +392,7 @@ public sealed class NuGetPublicationRehearsalTests
         public void Dispose() => Handoff.Dispose();
     }
 
-    private sealed class RecordingSink(Func<int> checks) : INuGetRehearsalSink
+    internal sealed class RecordingSink(Func<int> checks) : INuGetRehearsalSink
     {
         internal List<string> Events { get; } = [];
         internal List<(PackageEvidence Package, string Hash)> Accepted { get; } = [];

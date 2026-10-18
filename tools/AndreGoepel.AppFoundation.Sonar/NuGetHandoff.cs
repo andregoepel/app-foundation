@@ -16,13 +16,18 @@ internal sealed record NuGetHandoffReceipt(PackageEvidence[] Packages)
     public bool ReleaseEligible { get; } = false;
 }
 
+internal interface INuGetHandoff
+{
+    Task<Result<NuGetHandoffReceipt>> VerifyAsync(NuGetHandoffInput input, CancellationToken ct);
+}
+
 internal sealed class NuGetHandoff(
     IReleaseReadiness readiness,
     IGitHubClient github,
     TimeProvider clock
-)
+) : INuGetHandoff
 {
-    internal async Task<Result<NuGetHandoffReceipt>> VerifyAsync(
+    public async Task<Result<NuGetHandoffReceipt>> VerifyAsync(
         NuGetHandoffInput input,
         CancellationToken ct
     )

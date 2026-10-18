@@ -14,7 +14,7 @@ internal sealed record NuGetRehearsalReceipt(PackageEvidence[] Accepted)
     public bool ReleaseEligible { get; } = false;
 }
 
-internal sealed class NuGetPublicationRehearsal(NuGetHandoff handoff, INuGetRehearsalSink sink)
+internal sealed class NuGetPublicationRehearsal(INuGetHandoff handoff, INuGetRehearsalSink sink)
 {
     internal async Task<Result<NuGetRehearsalReceipt>> RunAsync(
         NuGetHandoffInput input,
