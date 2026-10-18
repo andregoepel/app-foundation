@@ -80,9 +80,12 @@ internal static class NuGetCommand
                 github,
                 TimeProvider.System
             ).RunAsync(input.Preparation, ct);
-            if (origin.IsSuccess)
-                Console.WriteLine(JsonSerializer.Serialize(origin.Value, JsonFormat.Options));
-            return origin;
+            return await NuGetWorkflowOutput.CompleteAsync(
+                origin,
+                input.Preparation,
+                Environment.GetEnvironmentVariable,
+                ct
+            );
         }
 
         var result = await dryRun.RunAsync(release, ct);

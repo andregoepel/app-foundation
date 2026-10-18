@@ -2,7 +2,8 @@
 
 Status: dry-run implementation, transferred-batch verification and non-publishing
 sequence rehearsal merged; authenticated preparation-origin verification and
-tag-event origin preparation implemented;
+tag-event origin preparation and consumer implemented; producer workflow prepared
+with its only job explicitly disabled;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -330,7 +331,8 @@ Before closing #244, the separately approved production integration must still:
    checks an explicitly supplied tag-object identity, and the prepared provenance
    layer authenticates its origin artifact. The `--nuget-prepare` command now
    captures the event and writes its origin after final batch verification; the
-   actual workflow invocation and tag-payload proof remain missing from production.
+   producer workflow now exists with a hard-disabled job. Actual workflow invocation
+   and tag-payload proof remain missing from production.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. The `--nuget-rehearse` consumer now composes the provenance and
