@@ -1,6 +1,7 @@
 # NuGet publication barrier preparation (#244)
 
-Status: dry-run implementation merged; additional local acceptance tests prepared;
+Status: dry-run implementation and negative acceptance tests merged; transferred
+batch verification prepared locally;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -181,6 +182,48 @@ Prepare the eventual flow in this order:
 
 The active Actions files are intentionally not edited or replaced here.
 
+## Local transferred-batch verification
+
+`NuGetHandoff` prepares the verification component for a later publication job.
+It is currently reachable only from tests: there is no CLI entry point, workflow
+call, OIDC exchange or upload adapter. Its result retains `dryRun: true` and
+`releaseEligible: false` and must not authorize publication.
+
+The input requires a verified main candidate, its exact release tag, a manifest
+SHA-256 digest and the original Git tag object's SHA. The digest and tag-object
+identity must come from a separately authenticated preparation/event boundary;
+reading these values from the same untrusted transfer would provide no provenance.
+That production producer/event boundary is still pending integration.
+
+The verifier checks the following before returning a successful rehearsal result:
+
+1. The remote tag still has the original object SHA and peels to the candidate
+   commit, for both lightweight and annotated tags. Replacing an annotated tag
+   with another object pointing to the same commit is rejected too.
+2. Current main readiness passes the existing live verifier.
+3. `dry-run.json` matches the pinned digest and has the expected schema, dry-run
+   flags, source, version, readiness run/attempt and unchanged expiry. A receipt
+   cannot extend readiness lifetime or turn itself into publication authorization.
+4. The manifest and transferred directory contain exactly the six package/symbol
+   pairs, correct IDs/versions, allowlisted feed and valid hashes. Missing/extra
+   files, nested directories, linked paths and modified bytes are rejected. No
+   rebuild or repack is performed in the receiving directory.
+5. Readiness, tag identity, manifest and all package hashes are checked again,
+   followed by another expiry check. A later retry starts the checks again and
+   cannot reuse a previous successful result after evidence expires.
+
+The receiving verifier relies on the pinned manifest from the existing producer's
+versioned build and package-content validation. It does not independently prove
+that an arbitrary caller-supplied digest came from a trusted GitHub run. The future
+consumer must verify the preparation workflow/run/attempt and artifact provenance,
+then bind the exact verified bytes through credential acquisition and upload.
+
+Forty-five local tests cover the receiving component, including annotated tag
+retargeting, manifest/package/symbol tampering, malicious inventory/feed entries,
+changes during final verification and expired retries. Tests copy a batch produced
+by the real dry-run orchestration with synthetic build output into a separate
+receiving directory. No public package or actual tag is created.
+
 ## Acceptance evidence and remaining integration
 
 The positive intended-runner drill passed on Ubuntu 24.04:
@@ -236,12 +279,14 @@ positive evidence.
 Before closing #244, the separately approved production integration must still:
 
 1. Bind the actual tag event and immutable tag object through the repository-local
-   credential-bearing job, including retargeting checks. The current optional-tag
-   verifier checks the resolved commit; it does not yet bind an event's tag object.
+   credential-bearing job, including retargeting checks. The local handoff verifier
+   checks an explicitly supplied tag-object identity; the actual event-to-input
+   binding is still missing from production.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
-   acquisition. Test transfer tampering and OIDC/login/upload ordering against a
-   non-publishing sink attached to that real handoff.
+   acquisition. Integrate the local receiving verifier with authenticated producer
+   provenance and test OIDC/login/upload ordering against a non-publishing sink
+   attached to that real handoff.
 3. Exercise partial publication and manual/symbol retry behavior without a real
    upload; require fresh verification and the same validated bytes for each retry.
 4. Inventory the account-level trusted-publisher policies and alternative keys for
