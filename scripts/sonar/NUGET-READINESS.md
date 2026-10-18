@@ -3,7 +3,7 @@
 Status: dry-run implementation, transferred-batch verification and non-publishing
 sequence rehearsal merged; authenticated preparation-origin verification and
 tag-event origin preparation and consumer implemented; producer workflow prepared
-with its only job explicitly disabled;
+with its only job explicitly disabled and that revision registered in the consumer policy;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -271,8 +271,10 @@ provenance of the inputs.
 The preparation-origin verifier and its production wiring requirements are
 documented in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). It adds 66 cases around
 the existing rehearsal and artifact reader. There is still no active preparation
-workflow or publication CLI: no workflow ID or file hash has been registered as
-an approved production preparation policy.
+workflow or publication CLI. The assigned workflow ID, disabled file revision
+and four required successful steps are registered in `nuget-policy.json`.
+Registration cannot make a skipped job valid, and enabling the producer requires
+another review of the changed workflow hash. It does not activate the NuGet barrier.
 
 The positive intended-runner drill passed on Ubuntu 24.04:
 [run 39101513675, attempt 1](https://github.com/andregoepel/app-foundation/actions/runs/39101513675).
@@ -336,8 +338,8 @@ Before closing #244, the separately approved production integration must still:
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. The `--nuget-rehearse` consumer now composes the provenance and
-   handoff verifiers with a discard sink, but its producer policy is unregistered.
-   Connect it to the approved producer on the intended runner and test
+   handoff verifiers with a discard sink; its policy pins the disabled producer
+   revision. Review the enabled revision, connect it on the intended runner and test
    OIDC/login/upload ordering against that real workflow handoff.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and

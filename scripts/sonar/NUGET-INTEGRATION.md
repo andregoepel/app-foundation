@@ -1,9 +1,9 @@
 # NuGet preparation provenance and production integration (#244)
 
 Status: verifier, tag-event capture, origin preparation and non-publishing consumer
-commands prepared, with a disabled producer workflow. Production activation is pending;
-the NuGet barrier remains inactive. No existing Actions, policy or credential is
-changed by these components.
+commands prepared, with a disabled producer workflow and its identity registered
+in the consumer policy. Production activation is pending; the NuGet barrier
+remains inactive. Workflow files and credentials are unchanged by registration.
 
 ## Implemented preparation-origin verification
 
@@ -154,11 +154,9 @@ This selection simulates a retry; it is not a trusted publication ledger and
 does not assert that any previous upload succeeded.
 
 The policy is read only from `scripts/sonar/nuget-policy.json` in the trusted
-checkout, before read credentials or network access. The checked-in file has
-workflow ID `0`, an empty workflow hash and no required jobs: registration is
-deliberately absent and the command fails closed. Register the actual GitHub
-workflow ID, independently reviewed SHA-256 and required jobs/steps through a
-later reviewed change. There is no CLI policy path, workflow identity override,
+checkout, before read credentials or network access. It now pins the independently
+registered identity below. Missing, zero or malformed registration still fails
+closed. There is no CLI policy path, workflow identity override,
 alternate feed, publish switch or bypass option. A file in a locally edited
 checkout is not evidence that the workflow has been approved; the future runner
 must bootstrap the reviewed tool and policy from the trusted main candidate.
@@ -174,7 +172,40 @@ and authenticated artifact ZIPs, including all twelve files, symbol-only
 selection, failed gate, tampered bytes, unapproved/superseded provenance and
 changes during consumption. CLI/bootstrap tests verify rejection before network
 or build work and prevent credential values from appearing in diagnostic output.
-Live runner acceptance remains pending until the producer and policy exist.
+Live producer/consumer acceptance remains pending while the producer job is disabled.
+
+## Registered producer identity
+
+GitHub assigned workflow ID `388401675` after PR #269 merged at
+`f5a21c922d69846a6b3a0796acdd707adaadd8e0`. The workflow file at that exact commit
+was retrieved through the GitHub contents API and compared byte-for-byte by hash
+with the checkout before registration:
+
+| Consumer policy field | Reviewed value |
+| --- | --- |
+| Workflow path | `.github/workflows/nuget-prepare.yml` |
+| Workflow ID | `388401675` |
+| Workflow SHA-256 | `696637113d981093a5d1ceb6389f3bb5deadc06f487e1592223f37eeeb8ea4e2` |
+| Maximum producer age | 120 minutes; existing readiness expiry still applies independently |
+| Required job | `prepare` |
+| Required successful steps | `Verify tag push`, `Prepare NuGet batch`, `Publish package batch`, `Publish origin` |
+
+This registers the **disabled revision**, not an executable production producer.
+GitHub's workflow registry reports `state: active`, but the job's literal
+`if: ${{ false }}` still prevents execution. The consumer rejects a skipped job
+even when the overall run reports success. No environment, secret, trigger,
+permission or publishing route is changed by this policy registration.
+
+Removing the guard changes the workflow hash and must be accompanied by a newly
+reviewed policy hash. Do not compute or trust that replacement automatically at
+runtime. The current registration cannot be reused as approval for activation.
+
+The registered-policy tests load the actual checked-in policy and workflow bytes
+and run the real provenance/handoff/rehearsal composition with synthetic service
+responses. They verify all twelve files in the synthetic success case and reject
+unsuccessful jobs, each missing/skipped required step, and a changed enablement
+guard before artifact download or simulated login. The synthetic success metadata
+does not claim that this disabled workflow has run successfully on GitHub.
 
 ## Disabled producer workflow: `.github/workflows/nuget-prepare.yml`
 
@@ -228,9 +259,9 @@ The remaining integration prerequisites are:
    origin must refer to the actual attempt and manifest bytes. Required producer
    step names are `Verify tag push`, `Prepare NuGet batch`, `Publish package batch`
    and `Publish origin`, in job `prepare`; review and pin the complete workflow bytes.
-5. Obtain the assigned workflow ID from GitHub and register it with the reviewed
-   workflow hash and bounded maximum age in trusted consumer configuration. No
-   guessed ID, self-declared hash or automatic trust-on-first-use is allowed.
+5. The assigned workflow ID and disabled revision are now registered as described
+   above. Review and pin the final enabled revision separately. No guessed ID,
+   self-declared hash or automatic trust-on-first-use is allowed.
 
 ## Required repository-local consumer in `ci.yml`
 
@@ -268,8 +299,8 @@ ordering, expiry, tampering and retry cases. Keep synthetic event fixtures clear
 identified; they cannot replace evidence that the real trigger and environment
 protections bind the same inputs. A real release remains separately authorized.
 
-The remaining work is producer enablement and actual tag-payload proof, trusted policy registration,
-credential/upload adapter, protected environments and account
+The remaining work is producer enablement and actual tag-payload proof, review of
+the enabled workflow's policy hash, credential/upload adapter, protected environments and account
 controls, followed by the runner acceptance and activation PR. This document is
 not a claim that #244 is complete.
 

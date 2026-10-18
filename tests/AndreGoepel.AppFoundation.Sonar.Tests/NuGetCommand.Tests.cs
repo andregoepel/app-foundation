@@ -211,9 +211,9 @@ public sealed class NuGetCommandTests
                 NuGetPreparationPolicy.ConfigurationPath,
                 state == "malformed"
                     ? "{"
-                    : File.ReadAllText(
-                        Path.Combine(RepositoryRoot(), NuGetPreparationPolicy.ConfigurationPath)
-                    )
+                    : """
+                    {"workflowId":0,"workflowSha256":"","maximumAgeMinutes":120,"jobs":{}}
+                    """
             );
         var start = Start(fixture.Root, "--nuget-rehearse");
         start.Environment["APPFOUNDATION_GITHUB_TOKEN"] = Sentinel;
@@ -289,7 +289,7 @@ public sealed class NuGetCommandTests
         return start;
     }
 
-    private static string RepositoryRoot()
+    internal static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (

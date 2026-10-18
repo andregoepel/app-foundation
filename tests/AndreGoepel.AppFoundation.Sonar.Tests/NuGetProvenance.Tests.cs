@@ -254,6 +254,7 @@ public sealed class NuGetProvenanceTests
     internal sealed class ProvenanceFixture : HttpMessageHandler
     {
         private readonly HttpClient client;
+        private readonly byte[] workflow;
         private byte[] archive = [];
         internal NuGetHandoffTests.HandoffFixture Handoff { get; } = new();
         internal NuGetPublicationRehearsalTests.RecordingSink Sink { get; }
@@ -276,14 +277,16 @@ public sealed class NuGetProvenanceTests
         internal string Filename { get; set; } = "origin.json";
         internal string? RawOrigin { get; set; }
         internal bool FailApi { get; set; }
-        private static string RunsPath =>
-            $"actions/workflows/900/runs?branch=v2.2.0&event=push&head_sha={MainFixture.Sha}&per_page=100";
+        private string RunsPath =>
+            $"actions/workflows/{Policy.WorkflowId}/runs?branch=v2.2.0&event=push&head_sha={MainFixture.Sha}&per_page=100";
         private static string WorkflowPath =>
             $"contents/{NuGetPreparationPolicy.WorkflowPath}?ref={MainFixture.Sha}";
         private const string JobsPath = "actions/runs/500/attempts/1/jobs?per_page=100";
 
-        internal ProvenanceFixture()
+        internal ProvenanceFixture(NuGetPreparationPolicy? policy = null, byte[]? workflow = null)
         {
+            Policy = policy ?? Policy;
+            this.workflow = workflow ?? "reviewed-workflow"u8.ToArray();
             client = new HttpClient(this, disposeHandler: false);
             Sink = new(() => Handoff.Checks);
         }
@@ -309,7 +312,7 @@ public sealed class NuGetProvenanceTests
                 new
                 {
                     id = 500,
-                    workflow_id = 900,
+                    workflow_id = Policy.WorkflowId,
                     run_attempt = 1,
                     path = NuGetPreparationPolicy.WorkflowPath,
                     head_sha = MainFixture.Sha,
@@ -324,11 +327,7 @@ public sealed class NuGetProvenanceTests
                 }
             );
             responses[WorkflowPath] = MainFixture.Node(
-                new
-                {
-                    encoding = "base64",
-                    content = Convert.ToBase64String("reviewed-workflow"u8.ToArray()),
-                }
+                new { encoding = "base64", content = Convert.ToBase64String(workflow) }
             );
             responses[JobsPath] = MainFixture.Node(
                 new
