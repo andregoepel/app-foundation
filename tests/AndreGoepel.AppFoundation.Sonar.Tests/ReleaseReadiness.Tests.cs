@@ -82,10 +82,12 @@ public sealed class ReleaseReadinessTests
                 fixture.Producer["workflow_id"] = 999;
                 break;
             case "new-producer":
-                fixture.Main.Responses[fixture.ProducerInventory]["workflow_runs"]![0]!["id"] = 101;
+                fixture.Main.Responses[ReleaseFixture.ProducerInventory]["workflow_runs"]![0]![
+                    "id"
+                ] = 101;
                 break;
             case "incomplete-inventory":
-                fixture.Main.Responses[fixture.ProducerInventory]["total_count"] = 2;
+                fixture.Main.Responses[ReleaseFixture.ProducerInventory]["total_count"] = 2;
                 break;
             case "foreign-repository":
                 fixture.Producer["repository"]!["full_name"] = "someone/fork";

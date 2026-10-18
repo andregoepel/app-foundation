@@ -79,7 +79,7 @@ internal sealed class GitHubArtifacts(HttpClient client, string token) : IGitHub
                 "Unexpected or duplicate files in the readiness artifact."
             );
 
-        await using var stream = zip.Entries[0].Open();
+        await using var stream = await zip.Entries[0].OpenAsync(ct);
         return await ReadBoundedAsync(stream, ct);
     }
 

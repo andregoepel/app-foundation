@@ -36,13 +36,13 @@ internal sealed record MainPolicy(
     internal const string Project = "app-foundation";
     internal const string ServerId = "AA2DD71C-AaFDycIuQLOXJXX6YWNZ";
 
+    private static readonly JsonSerializerOptions FingerprintOptions = new(JsonFormat.Options)
+    {
+        NewLine = "\n",
+    };
+
     internal string Fingerprint() =>
-        SourceFiles.Hash(
-            JsonSerializer.SerializeToUtf8Bytes(
-                this,
-                new JsonSerializerOptions(JsonFormat.Options) { NewLine = "\n" }
-            )
-        );
+        SourceFiles.Hash(JsonSerializer.SerializeToUtf8Bytes(this, FingerprintOptions));
 }
 
 internal sealed record MainRunIdentity(

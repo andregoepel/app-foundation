@@ -64,6 +64,8 @@ public sealed class NuGetPackageBuilderTests
 
     private sealed class BuildRunner(NuGetRelease release, string fault) : IProcessRunner
     {
+        private static readonly string[] Vulnerabilities = ["CVE"];
+
         internal List<string[]> Commands { get; } = [];
 
         public async Task<Result<CommandOutput>> RunAsync(
@@ -113,7 +115,7 @@ public sealed class NuGetPackageBuilderTests
                                                 new
                                                 {
                                                     vulnerabilities = fault == "vulnerability"
-                                                        ? new[] { "CVE" }
+                                                        ? Vulnerabilities
                                                         : [],
                                                 },
                                             },
