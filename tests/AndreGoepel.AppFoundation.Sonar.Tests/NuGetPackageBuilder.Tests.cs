@@ -62,11 +62,13 @@ public sealed class NuGetPackageBuilderTests
         );
     }
 
-    private sealed class BuildRunner(NuGetRelease release, string fault) : IProcessRunner
+    internal sealed class BuildRunner(NuGetRelease release, string fault) : IProcessRunner
     {
         private static readonly string[] Vulnerabilities = ["CVE"];
 
         internal List<string[]> Commands { get; } = [];
+        internal string PackageFault { get; set; } = "";
+        internal Action<string>? OnPacked { get; set; }
 
         public async Task<Result<CommandOutput>> RunAsync(
             string root,
@@ -149,7 +151,8 @@ public sealed class NuGetPackageBuilderTests
                 case "pack":
                     var packages = args[Array.IndexOf(args, "-o") + 1];
                     if (Directory.GetFiles(packages).Length == 0)
-                        NuGetPackagesTests.CreatePackages(release, packages);
+                        NuGetPackagesTests.CreatePackages(release, packages, PackageFault);
+                    OnPacked?.Invoke(packages);
                     break;
             }
             return Result.Ok(new CommandOutput(0, text));
