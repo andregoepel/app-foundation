@@ -299,7 +299,7 @@ public sealed class NuGetHandoffTests
         Assert.Equal(3, fixture.Checks);
     }
 
-    private sealed class HandoffFixture : IReleaseReadiness, IDisposable
+    internal sealed class HandoffFixture : IReleaseReadiness, IDisposable
     {
         internal const string TagObject = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         internal ReleaseFixture Evidence { get; } = new();
