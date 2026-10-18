@@ -1,0 +1,105 @@
+name: NuGet preparation (inactive)
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: app-foundation-nuget-prepare-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    # Removing this guard requires producer acceptance and a separate reviewed PR.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    environment: sonar-nuget-prepare
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Verify tag push
+        id: event
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_REF_TYPE" = tag
+          test "$GITHUB_REF" = "refs/tags/$GITHUB_REF_NAME"
+          test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-prepare.yml@$GITHUB_REF"
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
+          jq -e --arg ref "$GITHUB_REF" '
+            .repository.full_name == "andregoepel/app-foundation" and
+            .ref == $ref and .created == true and .deleted == false and .forced == false and
+            .before == "0000000000000000000000000000000000000000" and
+            (.after | test("^[a-f0-9]{40}$")) and .after != .before
+          ' "$GITHUB_EVENT_PATH" > /dev/null
+          main_sha=$(gh api repos/andregoepel/app-foundation/git/ref/heads/main --jq '.object.sha')
+          test "$main_sha" = "$GITHUB_SHA"
+          readiness_run=$(gh api --method GET repos/andregoepel/app-foundation/actions/workflows/387320916/runs \
+            -f branch=main -f event=workflow_run -f head_sha="$GITHUB_SHA" -f per_page=100 \
+            --jq '.workflow_runs | if length > 0 then max_by(.id).id else error("No main readiness run") end')
+          [[ "$readiness_run" =~ ^[1-9][0-9]*$ ]]
+          event_digest=$(sha256sum -- "$GITHUB_EVENT_PATH")
+          printf 'readiness-run=%s\nevent-sha256=%s\n' "$readiness_run" "${event_digest%% *}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+
+      - name: Prepare native browser dependencies and development certificate
+        run: |
+          dotnet dev-certs https
+          dotnet restore AndreGoepel.AppFoundation.slnx --locked-mode
+          dotnet build tests/AndreGoepel.AppFoundation.E2ETests/AndreGoepel.AppFoundation.E2ETests.csproj -c Release --no-restore -p:SonarQubeTargetsImported=true
+          pwsh tests/AndreGoepel.AppFoundation.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Prepare NuGet batch
+        id: batch
+        env:
+          READINESS_RUN: ${{ steps.event.outputs.readiness-run }}
+          EVENT_SHA256: ${{ steps.event.outputs.event-sha256 }}
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: |
+          set -euo pipefail
+          event_digest=$(sha256sum -- "$GITHUB_EVENT_PATH")
+          test "${event_digest%% *}" = "$EVENT_SHA256"
+          bash scripts/sonar/analyze.sh --nuget-prepare \
+            --sha "$GITHUB_SHA" --version "${GITHUB_REF_NAME#v}" \
+            --readiness-run "$READINESS_RUN" --tag "$GITHUB_REF_NAME"
+
+      - name: Publish package batch
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.batch.outputs.batch-artifact-name }}
+          path: |
+            ${{ steps.batch.outputs.manifest-path }}
+            ${{ steps.batch.outputs.packages-path }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Publish origin
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.batch.outputs.origin-artifact-name }}
+          path: ${{ steps.batch.outputs.origin-path }}
+          if-no-files-found: error
+          retention-days: 1

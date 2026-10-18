@@ -207,7 +207,7 @@ public sealed class NuGetPreparationTests
         Assert.Empty(fixture.Origins());
     }
 
-    private sealed class PreparationFixture : IReleaseReadiness, INuGetPackageBuilder, IDisposable
+    internal sealed class PreparationFixture : IReleaseReadiness, INuGetPackageBuilder, IDisposable
     {
         internal ReleaseFixture Evidence { get; } = new();
         internal NuGetRelease Release => Evidence.Release with { Tag = "v2.2.0" };

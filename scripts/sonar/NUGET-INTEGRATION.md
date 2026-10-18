@@ -1,7 +1,7 @@
 # NuGet preparation provenance and production integration (#244)
 
 Status: verifier, tag-event capture, origin preparation and non-publishing consumer
-commands prepared. Production workflow wiring is pending;
+commands prepared, with a disabled producer workflow. Production activation is pending;
 the NuGet barrier remains inactive. No existing Actions, policy or credential is
 changed by these components.
 
@@ -107,6 +107,16 @@ manifest and all twelve package/symbol files, and only after command success.
 No artifact upload, NuGet login, tag creation or package publication occurs in
 the command itself.
 
+When `GITHUB_OUTPUT` is present, successful preparation also writes five step
+outputs: `manifest-path`, `packages-path`, `origin-path`, `origin-artifact-name`
+and `batch-artifact-name`. The runner output file must already exist, be empty,
+unlinked and inside `RUNNER_TEMP`. Export requires the expected batch/origin
+layout under the checkout's `artifacts/sonar`, matching artifact identity and
+existing unlinked files/directories. Line breaks and artifact glob characters
+are rejected. Failed preparation never exports paths; an export failure fails
+the command. A standalone invocation without `GITHUB_OUTPUT` retains JSON output.
+These outputs locate files only; they confer no publication authority.
+
 Runner variables and a local event file are not independently authenticated
 credentials. The reviewed workflow and protected environment must establish
 their source, including a trusted tool bootstrap before this command runs.
@@ -166,10 +176,36 @@ changes during consumption. CLI/bootstrap tests verify rejection before network
 or build work and prevent credential values from appearing in diagnostic output.
 Live runner acceptance remains pending until the producer and policy exist.
 
-## Required producer workflow: `.github/workflows/nuget-prepare.yml`
+## Disabled producer workflow: `.github/workflows/nuget-prepare.yml`
 
-This file does not exist yet. The following is the concrete integration contract
-for its later reviewed implementation, not a workflow that can be enabled as-is.
+The file is now prepared with `if: ${{ false }}` on its only job. No repository
+variable or dispatch input can enable it. Removing that guard requires a separate
+reviewed change after the prerequisites below. Existing workflows remain unchanged;
+no protected environment, token copy or policy registration is created by this file.
+An intentionally skipped job is not successful preparation evidence.
+
+The workflow targets `v*` tag pushes only and grants `contents: read` and
+`actions: read`. It pins checkout, .NET setup and artifact upload actions, uses
+Ubuntu 24.04, disables checkout credential persistence and serializes runs per
+tag. Before checkout/build, `Verify tag push` validates repository, ref, stable
+version, workflow revision, original event creation flags and current main SHA.
+It selects the newest returned readiness run for that SHA without filtering away
+failed/running attempts; the existing readiness verifier must authenticate it.
+The event-file digest is captured and checked again before calling preparation.
+
+Read credentials are scoped to their individual steps. The batch step uses the
+existing preparation command and its structured outputs. `Publish package batch`
+uploads only `dry-run.json` and `packages/`, preserving their common parent as the
+artifact root; `Publish origin` then uploads only `origin.json`, separately.
+Both uploads require command success and existing files, retain artifacts for one
+day, and use names bound to SHA/run/attempt. Neither uses an `always()` condition.
+No reports, build logs, credentials, NuGet login or publishing action are included.
+
+The intentional constant-false guard is the sole expected actionlint diagnostic;
+local validation suppresses only that exact diagnostic, retaining all other checks.
+The guard must remain present in this preparation PR.
+
+The remaining integration prerequisites are:
 
 1. Trigger on explicit version-tag pushes only. Do not trigger preparation or
    publishing from successful main analysis. Capture and validate the runner
@@ -190,8 +226,8 @@ for its later reviewed implementation, not a workflow that can be enabled as-is.
    authentic runner inputs; the command does not authenticate itself.
 4. Upload the exact manifest/package batch and the separate origin artifact. The
    origin must refer to the actual attempt and manifest bytes. Required producer
-   step names should be `Verify tag push`, `Prepare NuGet batch`, and
-   `Publish origin`, in job `prepare`; review and pin the complete workflow bytes.
+   step names are `Verify tag push`, `Prepare NuGet batch`, `Publish package batch`
+   and `Publish origin`, in job `prepare`; review and pin the complete workflow bytes.
 5. Obtain the assigned workflow ID from GitHub and register it with the reviewed
    workflow hash and bounded maximum age in trusted consumer configuration. No
    guessed ID, self-declared hash or automatic trust-on-first-use is allowed.
@@ -232,7 +268,7 @@ ordering, expiry, tampering and retry cases. Keep synthetic event fixtures clear
 identified; they cannot replace evidence that the real trigger and environment
 protections bind the same inputs. A real release remains separately authorized.
 
-The remaining work is the producer workflow and actual tag-payload proof, trusted policy registration,
+The remaining work is producer enablement and actual tag-payload proof, trusted policy registration,
 credential/upload adapter, protected environments and account
 controls, followed by the runner acceptance and activation PR. This document is
 not a claim that #244 is complete.
@@ -240,4 +276,7 @@ not a claim that #244 is complete.
 References: [GitHub workflow-run API](https://docs.github.com/en/rest/actions/workflow-runs),
 [GitHub artifact API](https://docs.github.com/en/rest/actions/artifacts),
 [GitHub push payload](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push),
-[GitHub context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context).
+[GitHub context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context),
+[job conditions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions),
+[step outputs](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-output-parameter),
+[artifact upload paths](https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions).
