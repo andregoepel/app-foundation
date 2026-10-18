@@ -10,7 +10,10 @@ Console.CancelKeyPress += (_, signal) =>
 
 try
 {
-    if (args.Contains("--nuget-dry-run", StringComparer.Ordinal))
+    if (
+        args.Contains("--nuget-dry-run", StringComparer.Ordinal)
+        || args.Contains("--nuget-prepare", StringComparer.Ordinal)
+    )
     {
         var dryRun = await NuGetCommand.RunAsync(args, cancellation.Token);
         if (dryRun.IsFailure)

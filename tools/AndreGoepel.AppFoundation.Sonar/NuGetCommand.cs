@@ -15,6 +15,19 @@ internal static class NuGetCommand
             return boundary;
 
         var release = parsed.Value!;
+        NuGetPreparationContext? preparation = null;
+        if (args.Contains("--nuget-prepare", StringComparer.Ordinal))
+        {
+            var captured = await NuGetPreparationContext.ReadAsync(
+                release,
+                Environment.GetEnvironmentVariable,
+                ct
+            );
+            if (captured.IsFailure)
+                return captured;
+            preparation = captured.Value!;
+        }
+
         var policy = JsonSerializer.Deserialize<MainPolicy>(
             await File.ReadAllTextAsync(
                 Path.Combine(release.Root, "scripts/sonar/main-policy.json"),
@@ -43,8 +56,9 @@ internal static class NuGetCommand
 
         using var client = SonarClient.CreateHttpClient();
         var processes = new ProcessRunner();
+        var github = new GitHubClient(client, githubToken);
         var readiness = new ReleaseReadiness(
-            new GitHubClient(client, githubToken),
+            github,
             new GitHubArtifacts(client, githubToken),
             new SonarClient(client, new Uri(MainPolicy.SonarUrl)),
             processes,
@@ -54,10 +68,21 @@ internal static class NuGetCommand
             scanToken,
             verifyToken
         );
-        var result = await new NuGetDryRun(
-            readiness,
-            new NuGetPackageBuilder(processes, contract)
-        ).RunAsync(release, ct);
+        var dryRun = new NuGetDryRun(readiness, new NuGetPackageBuilder(processes, contract));
+        if (preparation is not null)
+        {
+            var origin = await new NuGetPreparation(
+                dryRun,
+                new NuGetHandoff(readiness, github, TimeProvider.System),
+                github,
+                TimeProvider.System
+            ).RunAsync(preparation, ct);
+            if (origin.IsSuccess)
+                Console.WriteLine(JsonSerializer.Serialize(origin.Value, JsonFormat.Options));
+            return origin;
+        }
+
+        var result = await dryRun.RunAsync(release, ct);
         if (result.IsSuccess)
             Console.WriteLine(
                 $"NuGet dry run complete: {result.Value}. No publication was performed or authorized."

@@ -6,6 +6,34 @@ namespace AndreGoepel.AppFoundation.Sonar.Tests;
 public sealed class NuGetReleaseTests
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Parse_PreparationMode_RequiresExactVersionTag(bool includeTag)
+    {
+        // Arrange
+        string[] args =
+        [
+            "--root",
+            Path.GetTempPath(),
+            "--nuget-prepare",
+            "--sha",
+            MainFixture.Sha,
+            "--version",
+            "2.2.0",
+            "--readiness-run",
+            "100",
+        ];
+        if (includeTag)
+            args = [.. args, "--tag", "v2.2.0"];
+
+        // Act
+        var result = NuGetRelease.Parse(args);
+
+        // Assert
+        Assert.Equal(includeTag, result.IsSuccess);
+    }
+
+    [Theory]
     [InlineData("2.2.0", true)]
     [InlineData("2.2.0-beta.1", false)]
     [InlineData("02.2.0", false)]

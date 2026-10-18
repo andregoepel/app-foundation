@@ -1,7 +1,8 @@
 # NuGet publication barrier preparation (#244)
 
 Status: dry-run implementation, transferred-batch verification and non-publishing
-sequence rehearsal merged; authenticated preparation-origin verification prepared;
+sequence rehearsal merged; authenticated preparation-origin verification and
+tag-event origin preparation implemented;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -327,8 +328,9 @@ Before closing #244, the separately approved production integration must still:
 1. Bind the actual tag event and immutable tag object through the repository-local
    credential-bearing job, including retargeting checks. The local handoff verifier
    checks an explicitly supplied tag-object identity, and the prepared provenance
-   layer authenticates its origin artifact. The actual event capture and
-   event-to-origin binding are still missing from production.
+   layer authenticates its origin artifact. The `--nuget-prepare` command now
+   captures the event and writes its origin after final batch verification; the
+   actual workflow invocation and tag-payload proof remain missing from production.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. Connect the prepared provenance verifier to the approved producer
