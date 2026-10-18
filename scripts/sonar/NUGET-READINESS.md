@@ -1,7 +1,7 @@
 # NuGet publication barrier preparation (#244)
 
-Status: dry-run implementation, negative acceptance tests and transferred-batch
-verification merged; non-publishing sequence rehearsal prepared;
+Status: dry-run implementation, transferred-batch verification and non-publishing
+sequence rehearsal merged; authenticated preparation-origin verification prepared;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -193,7 +193,9 @@ The input requires a verified main candidate, its exact release tag, a manifest
 SHA-256 digest and the original Git tag object's SHA. The digest and tag-object
 identity must come from a separately authenticated preparation/event boundary;
 reading these values from the same untrusted transfer would provide no provenance.
-That production producer/event boundary is still pending integration.
+`NuGetPreparedHandoff` now authenticates those pins against a preparation-origin
+artifact before using the receiving verifier. The production producer/event
+boundary and its activation remain pending; see the integration design below.
 
 The verifier checks the following before returning a successful rehearsal result:
 
@@ -264,6 +266,12 @@ provenance of the inputs.
 
 ## Acceptance evidence and remaining integration
 
+The preparation-origin verifier and its production wiring requirements are
+documented in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). It adds 66 cases around
+the existing rehearsal and artifact reader. There is still no active preparation
+workflow or publication CLI: no workflow ID or file hash has been registered as
+an approved production preparation policy.
+
 The positive intended-runner drill passed on Ubuntu 24.04:
 [run 39101513675, attempt 1](https://github.com/andregoepel/app-foundation/actions/runs/39101513675).
 It checked main commit `a0451c10af7232bdb63e3b75d7b3dc5568d3d4d1` against readiness
@@ -318,13 +326,14 @@ Before closing #244, the separately approved production integration must still:
 
 1. Bind the actual tag event and immutable tag object through the repository-local
    credential-bearing job, including retargeting checks. The local handoff verifier
-   checks an explicitly supplied tag-object identity; the actual event-to-input
-   binding is still missing from production.
+   checks an explicitly supplied tag-object identity, and the prepared provenance
+   layer authenticates its origin artifact. The actual event capture and
+   event-to-origin binding are still missing from production.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
-   acquisition. Integrate the local receiving verifier with authenticated producer
-   provenance and test OIDC/login/upload ordering against a non-publishing sink
-   attached to that real handoff.
+   acquisition. Connect the prepared provenance verifier to the approved producer
+   and consumer entry points, and test OIDC/login/upload ordering against a
+   non-publishing sink attached to that real workflow handoff.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and
    byte ownership for each upload and manual/symbol retry; reconcile uncertain
