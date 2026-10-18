@@ -7,26 +7,15 @@ internal static class NuGetCommand
 {
     internal static async Task<Result> RunAsync(string[] args, CancellationToken ct)
     {
-        var parsed = NuGetRelease.Parse(args);
-        if (parsed.IsFailure)
-            return parsed;
         var boundary = NuGetRelease.CheckCredentialBoundary(Environment.GetEnvironmentVariable);
         if (boundary.IsFailure)
             return boundary;
 
-        var release = parsed.Value!;
-        NuGetPreparationContext? preparation = null;
-        if (args.Contains("--nuget-prepare", StringComparer.Ordinal))
-        {
-            var captured = await NuGetPreparationContext.ReadAsync(
-                release,
-                Environment.GetEnvironmentVariable,
-                ct
-            );
-            if (captured.IsFailure)
-                return captured;
-            preparation = captured.Value!;
-        }
+        var parsed = await NuGetCommandInput.ReadAsync(args, ct);
+        if (parsed.IsFailure)
+            return parsed;
+        var input = parsed.Value!;
+        var release = input.Release;
 
         var policy = JsonSerializer.Deserialize<MainPolicy>(
             await File.ReadAllTextAsync(
@@ -68,15 +57,29 @@ internal static class NuGetCommand
             scanToken,
             verifyToken
         );
+        if (input.Rehearsal is not null)
+        {
+            var consumed = await new NuGetConsumer(
+                readiness,
+                github,
+                new GitHubArtifacts(client, githubToken),
+                input.Policy!,
+                TimeProvider.System
+            ).RunAsync(input.Rehearsal, ct);
+            if (consumed.IsSuccess)
+                Console.WriteLine(JsonSerializer.Serialize(consumed.Value, JsonFormat.Options));
+            return consumed;
+        }
+
         var dryRun = new NuGetDryRun(readiness, new NuGetPackageBuilder(processes, contract));
-        if (preparation is not null)
+        if (input.Preparation is not null)
         {
             var origin = await new NuGetPreparation(
                 dryRun,
                 new NuGetHandoff(readiness, github, TimeProvider.System),
                 github,
                 TimeProvider.System
-            ).RunAsync(preparation, ct);
+            ).RunAsync(input.Preparation, ct);
             if (origin.IsSuccess)
                 Console.WriteLine(JsonSerializer.Serialize(origin.Value, JsonFormat.Options));
             return origin;
@@ -96,5 +99,57 @@ internal static class NuGetCommand
         var value = Environment.GetEnvironmentVariable(name) ?? "";
         Environment.SetEnvironmentVariable(name, null);
         return value;
+    }
+}
+
+internal sealed record NuGetCommandInput(
+    NuGetRelease Release,
+    NuGetRehearsalOptions? Rehearsal,
+    NuGetPreparationPolicy? Policy,
+    NuGetPreparationContext? Preparation
+)
+{
+    internal static async Task<Result<NuGetCommandInput>> ReadAsync(
+        string[] args,
+        CancellationToken ct
+    )
+    {
+        if (args.Contains("--nuget-rehearse", StringComparer.Ordinal))
+        {
+            var options = NuGetRehearsalOptions.Parse(args);
+            if (options.IsFailure)
+                return Result.Fail<NuGetCommandInput>(options.Error);
+            var rehearsal = options.Value!;
+            var registered = await NuGetPreparationPolicy.ReadAsync(
+                rehearsal.Input.Release.Root,
+                ct
+            );
+            return registered.IsSuccess
+                ? Result.Ok(
+                    new NuGetCommandInput(
+                        rehearsal.Input.Release,
+                        rehearsal,
+                        registered.Value!,
+                        null
+                    )
+                )
+                : Result.Fail<NuGetCommandInput>(registered.Error);
+        }
+
+        var parsed = NuGetRelease.Parse(args);
+        if (parsed.IsFailure)
+            return Result.Fail<NuGetCommandInput>(parsed.Error);
+        var release = parsed.Value!;
+        if (!args.Contains("--nuget-prepare", StringComparer.Ordinal))
+            return Result.Ok(new NuGetCommandInput(release, null, null, null));
+
+        var captured = await NuGetPreparationContext.ReadAsync(
+            release,
+            Environment.GetEnvironmentVariable,
+            ct
+        );
+        return captured.IsSuccess
+            ? Result.Ok(new NuGetCommandInput(release, null, null, captured.Value!))
+            : Result.Fail<NuGetCommandInput>(captured.Error);
     }
 }

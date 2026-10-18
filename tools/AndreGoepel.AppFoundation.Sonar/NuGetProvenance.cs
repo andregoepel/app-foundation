@@ -3,16 +3,6 @@ using AndreGoepel.Core;
 
 namespace AndreGoepel.AppFoundation.Sonar;
 
-internal sealed record NuGetPreparationPolicy(
-    long WorkflowId,
-    string WorkflowSha256,
-    int MaximumAgeMinutes,
-    Dictionary<string, string[]> Jobs
-)
-{
-    internal const string WorkflowPath = ".github/workflows/nuget-prepare.yml";
-}
-
 internal sealed record NuGetPreparationOrigin(
     int SchemaVersion,
     string Repository,
@@ -44,16 +34,7 @@ internal sealed class NuGetProvenance(
         CancellationToken ct
     )
     {
-        if (
-            runId <= 0
-            || expectedAttempt <= 0
-            || policy.WorkflowId <= 0
-            || policy.MaximumAgeMinutes is <= 0 or > 120
-            || policy.WorkflowSha256.Length != 64
-            || !policy.WorkflowSha256.All(char.IsAsciiHexDigit)
-            || policy.Jobs.Count == 0
-            || policy.Jobs.Any(job => string.IsNullOrWhiteSpace(job.Key) || job.Value.Length == 0)
-        )
+        if (runId <= 0 || expectedAttempt <= 0 || policy.Validate().IsFailure)
             return Result.Fail<NuGetProvenanceReceipt>(
                 "A reviewed preparation policy is required."
             );

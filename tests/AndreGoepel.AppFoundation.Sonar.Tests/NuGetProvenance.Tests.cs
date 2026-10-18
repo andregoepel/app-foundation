@@ -251,7 +251,7 @@ public sealed class NuGetProvenanceTests
         Assert.Empty(fixture.Sink.Events);
     }
 
-    private sealed class ProvenanceFixture : HttpMessageHandler
+    internal sealed class ProvenanceFixture : HttpMessageHandler
     {
         private readonly HttpClient client;
         private byte[] archive = [];
@@ -287,6 +287,15 @@ public sealed class NuGetProvenanceTests
             client = new HttpClient(this, disposeHandler: false);
             Sink = new(() => Handoff.Checks);
         }
+
+        internal NuGetConsumer Consumer() =>
+            new(
+                Handoff,
+                Handoff.Evidence.Main,
+                new GitHubArtifacts(client, "fixture-read"),
+                Policy,
+                Handoff.Clock
+            );
 
         internal async Task InitializeAsync(CancellationToken ct)
         {

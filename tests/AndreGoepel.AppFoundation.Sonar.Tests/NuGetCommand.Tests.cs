@@ -26,6 +26,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-prepare")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-prepare")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-prepare")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-rehearse")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-rehearse")]
+    [InlineData("NUGET_API_KEY", "--nuget-rehearse")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-rehearse")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-rehearse")]
     public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(
         string name,
         string mode
@@ -60,6 +65,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-prepare")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-prepare")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-prepare")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-rehearse")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-rehearse")]
+    [InlineData("NUGET_API_KEY", "--nuget-rehearse")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-rehearse")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-rehearse")]
     public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(
         string name,
         string mode
@@ -117,8 +127,10 @@ public sealed class NuGetCommandTests
         Assert.False(Directory.Exists(Path.Combine(fixture.Root, "artifacts")));
     }
 
-    [Fact]
-    public async Task Run_MissingReadCredentials_ExitsWithoutPreparingPackages()
+    [Theory]
+    [InlineData("--nuget-dry-run")]
+    [InlineData("--nuget-rehearse")]
+    public async Task Run_MissingReadCredentials_ExitsWithoutPreparingPackages(string mode)
     {
         // Arrange
         using var fixture = new RunnerFixture();
@@ -129,7 +141,14 @@ public sealed class NuGetCommandTests
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Copy(Path.Combine(repository, path), target, overwrite: true);
         }
-        var start = Start(fixture.Root);
+        fixture.Write(
+            NuGetPreparationPolicy.ConfigurationPath,
+            System.Text.Json.JsonSerializer.Serialize(
+                NuGetPreparationPolicyTests.Approved(),
+                JsonFormat.Options
+            )
+        );
+        var start = Start(fixture.Root, mode);
 
         // Act
         var output = await ExecuteAsync(start, TestContext.Current.CancellationToken);
@@ -179,8 +198,73 @@ public sealed class NuGetCommandTests
         Assert.DoesNotContain("IOException", output.Text);
     }
 
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("unregistered")]
+    [InlineData("malformed")]
+    public async Task Run_UnregisteredConsumer_ExitsBeforeMainConfigurationOrNetwork(string state)
+    {
+        // Arrange
+        using var fixture = new RunnerFixture();
+        if (state != "missing")
+            fixture.Write(
+                NuGetPreparationPolicy.ConfigurationPath,
+                state == "malformed"
+                    ? "{"
+                    : File.ReadAllText(
+                        Path.Combine(RepositoryRoot(), NuGetPreparationPolicy.ConfigurationPath)
+                    )
+            );
+        var start = Start(fixture.Root, "--nuget-rehearse");
+        start.Environment["APPFOUNDATION_GITHUB_TOKEN"] = Sentinel;
+        start.Environment["APPFOUNDATION_SONAR_TOKEN"] = Sentinel;
+        start.Environment["APPFOUNDATION_SONAR_VERIFY_TOKEN"] = Sentinel;
+
+        // Act
+        var output = await ExecuteAsync(start, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(1, output.ExitCode);
+        Assert.Contains(
+            state == "malformed" ? "JsonException" : "A reviewed preparation policy is required.",
+            output.Text
+        );
+        Assert.DoesNotContain(Sentinel, output.Text);
+        Assert.False(Directory.Exists(Path.Combine(fixture.Root, "artifacts")));
+    }
+
+    [Theory]
+    [InlineData("--publish", "true")]
+    [InlineData("--policy", "untrusted.json")]
+    [InlineData("--api-key", Sentinel)]
+    public async Task Run_ConsumerOverride_RejectsWithoutEchoingValue(string flag, string value)
+    {
+        // Arrange
+        using var fixture = new RunnerFixture();
+        var start = Start(fixture.Root, "--nuget-rehearse");
+        start.ArgumentList.Add(flag);
+        start.ArgumentList.Add(value);
+
+        // Act
+        var output = await ExecuteAsync(start, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(1, output.ExitCode);
+        Assert.Contains(NuGetRehearsalOptions.Usage, output.Text);
+        Assert.DoesNotContain(value, output.Text);
+    }
+
     private static ProcessStartInfo Start(string root, string mode = "--nuget-dry-run")
     {
+        if (mode == "--nuget-rehearse")
+            return ProcessRunner.CreateStartInfo(
+                root,
+                [
+                    "dotnet",
+                    typeof(NuGetRelease).Assembly.Location,
+                    .. NuGetRehearsalOptionsTests.Arguments(root),
+                ]
+            );
         var start = ProcessRunner.CreateStartInfo(
             root,
             [

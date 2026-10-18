@@ -13,6 +13,7 @@ try
     if (
         args.Contains("--nuget-dry-run", StringComparer.Ordinal)
         || args.Contains("--nuget-prepare", StringComparer.Ordinal)
+        || args.Contains("--nuget-rehearse", StringComparer.Ordinal)
     )
     {
         var dryRun = await NuGetCommand.RunAsync(args, cancellation.Token);
