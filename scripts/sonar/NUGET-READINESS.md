@@ -333,9 +333,10 @@ Before closing #244, the separately approved production integration must still:
    actual workflow invocation and tag-payload proof remain missing from production.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
-   acquisition. Connect the prepared provenance verifier to the approved producer
-   and consumer entry points, and test OIDC/login/upload ordering against a
-   non-publishing sink attached to that real workflow handoff.
+   acquisition. The `--nuget-rehearse` consumer now composes the provenance and
+   handoff verifiers with a discard sink, but its producer policy is unregistered.
+   Connect it to the approved producer on the intended runner and test
+   OIDC/login/upload ordering against that real workflow handoff.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and
    byte ownership for each upload and manual/symbol retry; reconcile uncertain

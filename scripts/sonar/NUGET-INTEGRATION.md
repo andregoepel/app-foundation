@@ -1,7 +1,7 @@
 # NuGet preparation provenance and production integration (#244)
 
-Status: verifier, tag-event capture, origin preparation command and recording-sink
-tests prepared. Production workflow wiring is pending;
+Status: verifier, tag-event capture, origin preparation and non-publishing consumer
+commands prepared. Production workflow wiring is pending;
 the NuGet barrier remains inactive. No existing Actions, policy or credential is
 changed by these components.
 
@@ -114,6 +114,58 @@ The consumer's independently registered workflow ID/hash and GitHub artifact
 verification remain essential; setting these variables locally is not acceptance
 evidence or publication authorization.
 
+## Implemented non-publishing consumer command
+
+The console tool and both bootstraps accept this exact argument order:
+
+```text
+--nuget-rehearse --sha SHA --version X.Y.Z --readiness-run ID --tag vX.Y.Z --handoff ABSOLUTE_DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER [--files FILE ...]
+```
+
+The console tool requires `--root ROOT` first; the bootstraps supply it. The
+handoff directory contains `dry-run.json` and `packages/` with all six package and
+six symbol files. The caller supplies candidate pins, which are independently
+matched against the authenticated origin artifact; local files cannot establish
+their own authority. No local `origin.json` is trusted or consumed.
+
+`NuGetConsumer` composes `NuGetPreparedHandoff` with the publication rehearsal and
+a fixed `NuGetDiscardSink`. Provenance, current main readiness, original tag
+object and the complete batch are checked before simulated login and before
+every simulated upload. The sink consumes the immutable snapshot stream and
+checks its SHA-256. It has no HTTP client, process runner, credential acquisition,
+package output or upload operation. Successful JSON lists `accepted` file evidence
+and explicitly retains `dryRun: true`, `releaseEligible: false`. Failure returns
+exit code 1 without a success receipt; cancellation stops the sequence.
+
+Without `--files`, all twelve files are exercised. An explicit selection must
+contain unique, exact filenames from this version's six package/symbol pairs;
+the entire transferred batch still has to verify, even for a symbol-only retry.
+This selection simulates a retry; it is not a trusted publication ledger and
+does not assert that any previous upload succeeded.
+
+The policy is read only from `scripts/sonar/nuget-policy.json` in the trusted
+checkout, before read credentials or network access. The checked-in file has
+workflow ID `0`, an empty workflow hash and no required jobs: registration is
+deliberately absent and the command fails closed. Register the actual GitHub
+workflow ID, independently reviewed SHA-256 and required jobs/steps through a
+later reviewed change. There is no CLI policy path, workflow identity override,
+alternate feed, publish switch or bypass option. A file in a locally edited
+checkout is not evidence that the workflow has been approved; the future runner
+must bootstrap the reviewed tool and policy from the trusted main candidate.
+
+Both bootstraps reject OIDC and NuGet credentials before restore/build, and the
+console repeats that check. The consumer uses the existing read credentials and
+removes them from the process environment before running the read-only Git
+checks. It does not build or repack the transferred packages. This command does
+not alter the current tag publisher or activate the publishing barrier.
+
+Tests exercise the real consumer composition with synthetic service responses
+and authenticated artifact ZIPs, including all twelve files, symbol-only
+selection, failed gate, tampered bytes, unapproved/superseded provenance and
+changes during consumption. CLI/bootstrap tests verify rejection before network
+or build work and prevent credential values from appearing in diagnostic output.
+Live runner acceptance remains pending until the producer and policy exist.
+
 ## Required producer workflow: `.github/workflows/nuget-prepare.yml`
 
 This file does not exist yet. The following is the concrete integration contract
@@ -152,11 +204,10 @@ This section requires a separately reviewed change to the existing publisher.
    ungated tag publication route when activating; leaving it available would
    bypass the new barrier. Bind the completed preparation event's run/attempt to
    the approved producer and current main before consuming its artifacts.
-2. Bootstrap only reviewed tools from the trusted main candidate, with immutable
-   action revisions. Add an explicit consumer CLI that composes
-   `NuGetPreparedHandoff` and the publication sequence. The current console
-   entry point still exposes only the preparation dry run; it must not silently
-   turn a rehearsal receipt into publication authorization.
+2. Bootstrap only reviewed tools and `nuget-policy.json` from the trusted main
+   candidate, with immutable action revisions. Exercise `--nuget-rehearse` against
+   the authenticated preparation handoff first. A later publishing adapter needs
+   separate review; a rehearsal receipt never grants publication authorization.
 3. Verify original tag/event identity, producer provenance, main readiness and all
    transferred bytes before NuGet login. The credential-bearing boundary needs
    scoped read credentials without widening `sonar-main` access. Repository build
@@ -182,7 +233,7 @@ identified; they cannot replace evidence that the real trigger and environment
 protections bind the same inputs. A real release remains separately authorized.
 
 The remaining work is the producer workflow and actual tag-payload proof, trusted policy registration,
-consumer CLI and credential/upload adapter, protected environments and account
+credential/upload adapter, protected environments and account
 controls, followed by the runner acceptance and activation PR. This document is
 not a claim that #244 is complete.
 
