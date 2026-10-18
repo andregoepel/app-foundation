@@ -1,6 +1,7 @@
 # NuGet preparation provenance and production integration (#244)
 
-Status: verifier and recording-sink tests prepared. Production wiring is pending;
+Status: verifier, tag-event capture, origin preparation command and recording-sink
+tests prepared. Production workflow wiring is pending;
 the NuGet barrier remains inactive. No existing Actions, policy or credential is
 changed by these components.
 
@@ -50,7 +51,70 @@ stale or replaced artifacts, malformed or mismatched origins, and races during
 download, readiness, login and subsequent uploads. No real tag or package upload
 is created. These are verifier integration tests, not live producer proof.
 
-## Required producer: `.github/workflows/nuget-prepare.yml`
+## Implemented producer command
+
+The console tool and both bootstrap scripts accept:
+
+```text
+--nuget-prepare --sha SHA --version X.Y.Z --readiness-run ID --tag vX.Y.Z
+```
+
+The console tool additionally requires `--root ROOT` before these arguments;
+`analyze.ps1` and `analyze.sh` supply their repository root automatically. This
+mode is reserved for the future reviewed `.github/workflows/nuget-prepare.yml`
+tag-push job. It does not register or enable that workflow. The ordinary
+`--nuget-dry-run` remains available without a tag-push context and does not write
+an origin artifact.
+
+Both bootstraps reject OIDC and NuGet publication credentials before restore or
+build. The command repeats that check and captures `GITHUB_EVENT_PATH` and the
+runner context before configuration, network checks or package preparation. The
+event must create the exact version-tag ref in this repository, with a zero
+previous SHA, `created: true`, `deleted: false` and `forced: false`. Repository,
+workspace, ref type, workflow path/revision, candidate SHA, run ID and attempt
+must agree. The event file is bounded to 1 MiB; malformed/missing data fails
+before preparation. Captured values are held in memory and are not reread from
+the event file after packing.
+
+The command preserves the original event's `after` value and requires it to match
+the live tag object's SHA before any packing. It resolves that object to the
+candidate commit and repeats the object check through `NuGetHandoff` after
+packing. A tag changed to another annotated object for the same commit is rejected.
+It never fills a missing original object identity from a later ref lookup.
+
+GitHub describes `after` as the commit SHA after the push. Actual annotated-tag
+payload behavior is still an acceptance dependency: this implementation accepts
+only events whose `after` value pins the exact ref object. If an annotated-tag
+event supplies only the peeled commit, preparation rejects it. Synthetic tests
+exercise both exact-object fixtures and this rejection; they do not establish
+which payload GitHub sends for annotated tags. Do not claim production support
+for that case until the intended-runner evidence exists. There is no permissive
+fallback or manual override.
+
+After the existing versioned dry run, the command independently validates the
+complete manifest/package batch with fresh readiness and the captured tag object.
+Only then does it write `origin/origin.json` beside `dry-run.json`. It writes a
+pending file first and renames it after serialization, refuses an existing origin
+directory, and never overwrites an earlier origin. Failures before origin creation
+can leave diagnostic package/dry-run output; those files confer no authority.
+The consumer still independently verifies live readiness and every transferred
+byte, so an origin file alone cannot authorize publication.
+
+Successful output is JSON with `manifestPath`, `originPath`, `artifactName`,
+`dryRun: true` and `releaseEligible: false`. The future workflow must upload only
+`origin.json` at the root of the named origin artifact, separately from the
+manifest and all twelve package/symbol files, and only after command success.
+No artifact upload, NuGet login, tag creation or package publication occurs in
+the command itself.
+
+Runner variables and a local event file are not independently authenticated
+credentials. The reviewed workflow and protected environment must establish
+their source, including a trusted tool bootstrap before this command runs.
+The consumer's independently registered workflow ID/hash and GitHub artifact
+verification remain essential; setting these variables locally is not acceptance
+evidence or publication authorization.
+
+## Required producer workflow: `.github/workflows/nuget-prepare.yml`
 
 This file does not exist yet. The following is the concrete integration contract
 for its later reviewed implementation, not a workflow that can be enabled as-is.
@@ -69,9 +133,9 @@ for its later reviewed implementation, not a workflow that can be enabled as-is.
 3. Resolve the candidate to the current main tip and current trusted readiness.
    Prepare all six package/symbol pairs with the existing dry-run builder, then
    check the original tag object and readiness again before writing the origin.
-   The event-capture/origin writer must be implemented and tested; the present
-   verifier does not create an origin or make producer assertions trustworthy by
-   itself.
+   Use the implemented `--nuget-prepare` command to capture the event, prepare the
+   batch and write its origin. The reviewed workflow must invoke it and establish
+   authentic runner inputs; the command does not authenticate itself.
 4. Upload the exact manifest/package batch and the separate origin artifact. The
    origin must refer to the actual attempt and manifest bytes. Required producer
    step names should be `Verify tag push`, `Prepare NuGet batch`, and
@@ -117,11 +181,12 @@ ordering, expiry, tampering and retry cases. Keep synthetic event fixtures clear
 identified; they cannot replace evidence that the real trigger and environment
 protections bind the same inputs. A real release remains separately authorized.
 
-The remaining work is the producer/event writer, trusted policy registration,
+The remaining work is the producer workflow and actual tag-payload proof, trusted policy registration,
 consumer CLI and credential/upload adapter, protected environments and account
 controls, followed by the runner acceptance and activation PR. This document is
 not a claim that #244 is complete.
 
 References: [GitHub workflow-run API](https://docs.github.com/en/rest/actions/workflow-runs),
 [GitHub artifact API](https://docs.github.com/en/rest/actions/artifacts),
+[GitHub push payload](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push),
 [GitHub context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context).

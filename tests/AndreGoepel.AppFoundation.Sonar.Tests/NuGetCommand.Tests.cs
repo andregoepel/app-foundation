@@ -16,16 +16,24 @@ public sealed class NuGetCommandTests
     ];
 
     [Theory]
-    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN")]
-    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL")]
-    [InlineData("NUGET_API_KEY")]
-    [InlineData("NUGET_AUTH_TOKEN")]
-    [InlineData("NUGET_SYMBOL_API_KEY")]
-    public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(string name)
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-dry-run")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-dry-run")]
+    [InlineData("NUGET_API_KEY", "--nuget-dry-run")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-dry-run")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-dry-run")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-prepare")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-prepare")]
+    [InlineData("NUGET_API_KEY", "--nuget-prepare")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-prepare")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-prepare")]
+    public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(
+        string name,
+        string mode
+    )
     {
         // Arrange
         using var fixture = new RunnerFixture();
-        var start = Start(fixture.Root);
+        var start = Start(fixture.Root, mode);
         start.Environment[name] = Sentinel;
 
         // Act
@@ -42,12 +50,20 @@ public sealed class NuGetCommandTests
     }
 
     [Theory]
-    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN")]
-    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL")]
-    [InlineData("NUGET_API_KEY")]
-    [InlineData("NUGET_AUTH_TOKEN")]
-    [InlineData("NUGET_SYMBOL_API_KEY")]
-    public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(string name)
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-dry-run")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-dry-run")]
+    [InlineData("NUGET_API_KEY", "--nuget-dry-run")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-dry-run")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-dry-run")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-prepare")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-prepare")]
+    [InlineData("NUGET_API_KEY", "--nuget-prepare")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-prepare")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-prepare")]
+    public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(
+        string name,
+        string mode
+    )
     {
         // Arrange
         using var fixture = new RunnerFixture();
@@ -55,8 +71,8 @@ public sealed class NuGetCommandTests
         var copy = Path.Combine(fixture.Root, "scripts/sonar", script);
         File.Copy(Path.Combine(RepositoryRoot(), "scripts/sonar", script), copy);
         string[] command = OperatingSystem.IsWindows()
-            ? ["pwsh", "-NoProfile", "-File", copy, "--nuget-dry-run"]
-            : ["bash", copy, "--nuget-dry-run"];
+            ? ["pwsh", "-NoProfile", "-File", copy, mode]
+            : ["bash", copy, mode];
         var start = ProcessRunner.CreateStartInfo(fixture.Root, command);
         start.Environment[name] = Sentinel;
 
@@ -127,15 +143,52 @@ public sealed class NuGetCommandTests
         Assert.False(Directory.Exists(Path.Combine(fixture.Root, "artifacts")));
     }
 
-    private static ProcessStartInfo Start(string root) =>
-        ProcessRunner.CreateStartInfo(
+    [Theory]
+    [InlineData("missing-event")]
+    [InlineData("malformed-event")]
+    [InlineData("manual-context")]
+    [InlineData("retarget-event")]
+    public async Task Run_InvalidPreparationContext_ExitsBeforeConfigurationOrNetwork(string fault)
+    {
+        // Arrange
+        using var fixture = new RunnerFixture();
+        var start = Start(fixture.Root, "--nuget-prepare");
+        var release = NuGetPreparationContextTests.Release() with { Root = fixture.Root };
+        foreach (var pair in NuGetPreparationContextTests.EnvironmentFor(release))
+            start.Environment[pair.Key] = pair.Value;
+        var path = Path.Combine(fixture.Root, "event.json");
+        start.Environment["GITHUB_EVENT_PATH"] = path;
+        var payload = NuGetPreparationContextTests.Payload(false);
+        if (fault == "manual-context")
+            start.Environment["GITHUB_EVENT_NAME"] = "workflow_dispatch";
+        if (fault == "retarget-event")
+            payload["created"] = false;
+        if (fault != "missing-event")
+            await File.WriteAllTextAsync(
+                path,
+                fault == "malformed-event" ? "{" : payload.ToJsonString(),
+                TestContext.Current.CancellationToken
+            );
+
+        // Act
+        var output = await ExecuteAsync(start, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(1, output.ExitCode);
+        Assert.False(Directory.Exists(Path.Combine(fixture.Root, "artifacts")));
+        Assert.DoesNotContain("IOException", output.Text);
+    }
+
+    private static ProcessStartInfo Start(string root, string mode = "--nuget-dry-run")
+    {
+        var start = ProcessRunner.CreateStartInfo(
             root,
             [
                 "dotnet",
                 typeof(NuGetRelease).Assembly.Location,
                 "--root",
                 root,
-                "--nuget-dry-run",
+                mode,
                 "--sha",
                 MainFixture.Sha,
                 "--version",
@@ -144,6 +197,13 @@ public sealed class NuGetCommandTests
                 "100",
             ]
         );
+        if (mode == "--nuget-prepare")
+        {
+            start.ArgumentList.Add("--tag");
+            start.ArgumentList.Add("v2.2.0");
+        }
+        return start;
+    }
 
     private static string RepositoryRoot()
     {

@@ -77,41 +77,18 @@ internal sealed class NuGetHandoff(
         return Result.Ok(new NuGetHandoffReceipt(packages));
     }
 
-    private async Task<Result> CheckTagAsync(NuGetHandoffInput input, CancellationToken ct)
+    private Task<Result> CheckTagAsync(NuGetHandoffInput input, CancellationToken ct)
     {
         if (
             input.Release.Tag != "v" + input.Release.Version
             || !IsHex(input.TagObjectSha, 40)
             || !IsHex(input.ManifestSha256, 64)
         )
-            return Result.Fail(
-                "Handoff requires a pinned manifest and immutable release tag object."
+            return Task.FromResult(
+                Result.Fail("Handoff requires a pinned manifest and immutable release tag object.")
             );
 
-        var reference = await github.GetAsync(
-            "git/ref/tags/" + Uri.EscapeDataString(input.Release.Tag),
-            ct
-        );
-        var target = reference.GetProperty("object");
-        if (target.GetProperty("sha").GetString() != input.TagObjectSha)
-            return Result.Fail("The release tag object changed.");
-
-        for (var depth = 0; depth < 8; depth++)
-        {
-            var type = target.GetProperty("type").GetString();
-            var sha = target.GetProperty("sha").GetString();
-            if (type == "commit")
-                return sha == input.Release.Sha
-                    ? Result.Ok()
-                    : Result.Fail("The pinned tag does not resolve to the candidate commit.");
-            if (type != "tag" || sha is null || !IsHex(sha, 40))
-                break;
-
-            var annotated = await github.GetAsync("git/tags/" + sha, ct);
-            target = annotated.GetProperty("object");
-        }
-
-        return Result.Fail("The pinned tag could not be resolved to a commit.");
+        return NuGetTag.VerifyAsync(github, input.Release, input.TagObjectSha, ct);
     }
 
     private async Task<Result<NuGetDryRunReceipt>> ReadManifestAsync(

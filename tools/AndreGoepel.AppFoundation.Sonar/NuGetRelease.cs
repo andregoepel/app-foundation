@@ -30,7 +30,7 @@ internal sealed partial record NuGetRelease(
                 is not [
                     "--root",
                     var root,
-                    "--nuget-dry-run",
+                    var mode,
                     "--sha",
                     var sha,
                     "--version",
@@ -39,6 +39,8 @@ internal sealed partial record NuGetRelease(
                     var run,
                     .. var tail,
                 ]
+            || mode is not ("--nuget-dry-run" or "--nuget-prepare")
+            || (mode == "--nuget-prepare" && tail.Length == 0)
             || !ShaPattern().IsMatch(sha)
             || !VersionPattern().IsMatch(version)
             || !long.TryParse(run, out var runId)
@@ -47,7 +49,7 @@ internal sealed partial record NuGetRelease(
             || (tail.Length != 0 && (tail is not ["--tag", var tag] || tag != "v" + version))
         )
             return Result.Fail<NuGetRelease>(
-                "Use --root ROOT --nuget-dry-run --sha SHA --version X.Y.Z --readiness-run ID [--tag vX.Y.Z]."
+                "Use --root ROOT --nuget-dry-run --sha SHA --version X.Y.Z --readiness-run ID [--tag vX.Y.Z], or --nuget-prepare with a required --tag vX.Y.Z."
             );
 
         return Result.Ok(
