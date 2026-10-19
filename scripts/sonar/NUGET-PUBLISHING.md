@@ -196,11 +196,17 @@ reuse an earlier green result as authorization. Reruns and symbol-only retries n
 fresh verification and a newly approved selection. Durable outcome records and
 account-level bypass controls remain acceptance requirements for #244.
 
-The disabled fragment currently rejects workflow reruns and a second invocation
-in the same working directory. Its local `attempts.tsv` captures diagnostic
-started/CLI-result rows only. It is not a durable authenticated journal and cannot
-authorize retries or prevent replay across separate runs. Trusted records and
-manual/symbol recovery must be implemented before enabling the fragment.
+The disabled fragment rejects workflow reruns and a second invocation in the same
+working directory. It now prepares separate intent/outcome artifacts using the
+official `actions/upload-artifact` action. Intent storage must succeed before a
+fresh verification and login; outcome storage precedes cleanup. The
+[record contract and failure semantics](templates/README.md#intent-and-outcome-records)
+preserve uncertainty when logs or the runner disappear. `attempts.tsv` remains
+local diagnostic input. The records never authorize retries or prove remote
+acceptance. Artifact retention/deletion, independent record authentication,
+cross-run replay protection and manual/symbol reconciliation remain unresolved
+before activation. Offline tests simulate artifact storage; no new live publishing
+or artifact workflow is registered.
 
 ## Validation boundary
 

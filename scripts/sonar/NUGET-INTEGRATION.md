@@ -394,12 +394,17 @@ single-HTTP-request guarantee is claimed. The examples do not supply production
 verification wiring, account controls or a durable publication journal.
 
 The [disabled step fragment](templates/README.md) now prepares the verifier/login/
-per-file push sequence for review. Its actual shell blocks pass 25 offline cases
+per-file push sequence for review. Its actual shell blocks pass 45 offline cases
 with local command substitutes and no network, plus actionlint/ShellCheck. These
 checks establish shell ordering, argument/credential separation and fail-closed
 behavior, not GitHub scheduling, OIDC exchange or remote upload semantics. Existing
-Actions do not reference the fragment. Its local diagnostic log does not satisfy
-the durable publication-record requirement.
+Actions do not reference the fragment. The fragment now prepares official artifact
+steps for a complete intent before login and bound CLI observations after the push
+step, including failure/cancellation. The expanded cases cover persistence failures,
+reverification after intent storage, damaged logs and uncertainty. Uploads and login
+remain simulated. The local log is not recovery authority; independent artifact
+authentication, retention, cross-run replay prevention and remote reconciliation
+still need implementation and live acceptance.
 
 ## Remaining production integration (#244)
 
