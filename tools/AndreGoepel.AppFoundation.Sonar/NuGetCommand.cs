@@ -57,18 +57,16 @@ internal static class NuGetCommand
             scanToken,
             verifyToken
         );
-        if (input.Rehearsal is not null)
+        if (input.Handoff is not null)
         {
-            var consumed = await new NuGetConsumer(
+            var consumer = new NuGetConsumer(
                 readiness,
                 github,
                 new GitHubArtifacts(client, githubToken),
                 input.Policy!,
                 TimeProvider.System
-            ).RunAsync(input.Rehearsal, ct);
-            if (consumed.IsSuccess)
-                Console.WriteLine(JsonSerializer.Serialize(consumed.Value, JsonFormat.Options));
-            return consumed;
+            );
+            return await RunHandoffAsync(consumer, input.Handoff, Console.Out, ct);
         }
 
         var dryRun = new NuGetDryRun(readiness, new NuGetPackageBuilder(processes, contract));
@@ -97,6 +95,33 @@ internal static class NuGetCommand
         return result;
     }
 
+    internal static async Task<Result> RunHandoffAsync(
+        NuGetConsumer consumer,
+        NuGetHandoffOptions options,
+        TextWriter output,
+        CancellationToken ct
+    )
+    {
+        if (options.VerifyOnly)
+        {
+            var verified = await consumer.VerifyAsync(options, ct);
+            if (verified.IsSuccess)
+                await output.WriteLineAsync(
+                    JsonSerializer.Serialize(verified.Value, JsonFormat.Options).AsMemory(),
+                    ct
+                );
+            return verified;
+        }
+
+        var consumed = await consumer.RunAsync(options, ct);
+        if (consumed.IsSuccess)
+            await output.WriteLineAsync(
+                JsonSerializer.Serialize(consumed.Value, JsonFormat.Options).AsMemory(),
+                ct
+            );
+        return consumed;
+    }
+
     private static string TakeCredential(string name)
     {
         var value = Environment.GetEnvironmentVariable(name) ?? "";
@@ -107,7 +132,7 @@ internal static class NuGetCommand
 
 internal sealed record NuGetCommandInput(
     NuGetRelease Release,
-    NuGetRehearsalOptions? Rehearsal,
+    NuGetHandoffOptions? Handoff,
     NuGetPreparationPolicy? Policy,
     NuGetPreparationContext? Preparation
 )
@@ -117,24 +142,19 @@ internal sealed record NuGetCommandInput(
         CancellationToken ct
     )
     {
-        if (args.Contains("--nuget-rehearse", StringComparer.Ordinal))
+        if (
+            args.Contains("--nuget-rehearse", StringComparer.Ordinal)
+            || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
+        )
         {
-            var options = NuGetRehearsalOptions.Parse(args);
+            var options = NuGetHandoffOptions.Parse(args);
             if (options.IsFailure)
                 return Result.Fail<NuGetCommandInput>(options.Error);
-            var rehearsal = options.Value!;
-            var registered = await NuGetPreparationPolicy.ReadAsync(
-                rehearsal.Input.Release.Root,
-                ct
-            );
+            var handoff = options.Value!;
+            var registered = await NuGetPreparationPolicy.ReadAsync(handoff.Input.Release.Root, ct);
             return registered.IsSuccess
                 ? Result.Ok(
-                    new NuGetCommandInput(
-                        rehearsal.Input.Release,
-                        rehearsal,
-                        registered.Value!,
-                        null
-                    )
+                    new NuGetCommandInput(handoff.Input.Release, handoff, registered.Value!, null)
                 )
                 : Result.Fail<NuGetCommandInput>(registered.Error);
         }

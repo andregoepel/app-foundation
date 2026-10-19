@@ -31,6 +31,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-rehearse")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-rehearse")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-rehearse")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-verify-handoff")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-verify-handoff")]
+    [InlineData("NUGET_API_KEY", "--nuget-verify-handoff")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-handoff")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-handoff")]
     public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(
         string name,
         string mode
@@ -70,6 +75,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-rehearse")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-rehearse")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-rehearse")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-verify-handoff")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-verify-handoff")]
+    [InlineData("NUGET_API_KEY", "--nuget-verify-handoff")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-handoff")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-handoff")]
     public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(
         string name,
         string mode
@@ -130,6 +140,7 @@ public sealed class NuGetCommandTests
     [Theory]
     [InlineData("--nuget-dry-run")]
     [InlineData("--nuget-rehearse")]
+    [InlineData("--nuget-verify-handoff")]
     public async Task Run_MissingReadCredentials_ExitsWithoutPreparingPackages(string mode)
     {
         // Arrange
@@ -199,10 +210,16 @@ public sealed class NuGetCommandTests
     }
 
     [Theory]
-    [InlineData("missing")]
-    [InlineData("unregistered")]
-    [InlineData("malformed")]
-    public async Task Run_UnregisteredConsumer_ExitsBeforeMainConfigurationOrNetwork(string state)
+    [InlineData("missing", "--nuget-rehearse")]
+    [InlineData("unregistered", "--nuget-rehearse")]
+    [InlineData("malformed", "--nuget-rehearse")]
+    [InlineData("missing", "--nuget-verify-handoff")]
+    [InlineData("unregistered", "--nuget-verify-handoff")]
+    [InlineData("malformed", "--nuget-verify-handoff")]
+    public async Task Run_UnregisteredConsumer_ExitsBeforeMainConfigurationOrNetwork(
+        string state,
+        string mode
+    )
     {
         // Arrange
         using var fixture = new RunnerFixture();
@@ -215,7 +232,7 @@ public sealed class NuGetCommandTests
                     {"workflowId":0,"workflowSha256":"","maximumAgeMinutes":120,"jobs":{}}
                     """
             );
-        var start = Start(fixture.Root, "--nuget-rehearse");
+        var start = Start(fixture.Root, mode);
         start.Environment["APPFOUNDATION_GITHUB_TOKEN"] = Sentinel;
         start.Environment["APPFOUNDATION_SONAR_TOKEN"] = Sentinel;
         start.Environment["APPFOUNDATION_SONAR_VERIFY_TOKEN"] = Sentinel;
@@ -234,14 +251,22 @@ public sealed class NuGetCommandTests
     }
 
     [Theory]
-    [InlineData("--publish", "true")]
-    [InlineData("--policy", "untrusted.json")]
-    [InlineData("--api-key", Sentinel)]
-    public async Task Run_ConsumerOverride_RejectsWithoutEchoingValue(string flag, string value)
+    [InlineData("--publish", "true", "--nuget-rehearse")]
+    [InlineData("--policy", "untrusted.json", "--nuget-rehearse")]
+    [InlineData("--api-key", Sentinel, "--nuget-rehearse")]
+    [InlineData("--publish", "true", "--nuget-verify-handoff")]
+    [InlineData("--policy", "untrusted.json", "--nuget-verify-handoff")]
+    [InlineData("--api-key", Sentinel, "--nuget-verify-handoff")]
+    [InlineData("--files", "untrusted.nupkg", "--nuget-verify-handoff")]
+    public async Task Run_ConsumerOverride_RejectsWithoutEchoingValue(
+        string flag,
+        string value,
+        string mode
+    )
     {
         // Arrange
         using var fixture = new RunnerFixture();
-        var start = Start(fixture.Root, "--nuget-rehearse");
+        var start = Start(fixture.Root, mode);
         start.ArgumentList.Add(flag);
         start.ArgumentList.Add(value);
 
@@ -250,19 +275,19 @@ public sealed class NuGetCommandTests
 
         // Assert
         Assert.Equal(1, output.ExitCode);
-        Assert.Contains(NuGetRehearsalOptions.Usage, output.Text);
+        Assert.Contains(NuGetHandoffOptions.Usage, output.Text);
         Assert.DoesNotContain(value, output.Text);
     }
 
     private static ProcessStartInfo Start(string root, string mode = "--nuget-dry-run")
     {
-        if (mode == "--nuget-rehearse")
+        if (mode is "--nuget-rehearse" or "--nuget-verify-handoff")
             return ProcessRunner.CreateStartInfo(
                 root,
                 [
                     "dotnet",
                     typeof(NuGetRelease).Assembly.Location,
-                    .. NuGetRehearsalOptionsTests.Arguments(root),
+                    .. NuGetHandoffOptionsTests.Arguments(root, mode),
                 ]
             );
         var start = ProcessRunner.CreateStartInfo(

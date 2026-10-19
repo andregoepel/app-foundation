@@ -12,22 +12,30 @@ internal sealed class NuGetConsumer(
 )
 {
     internal Task<Result<NuGetRehearsalReceipt>> RunAsync(
-        NuGetRehearsalOptions options,
+        NuGetHandoffOptions options,
         CancellationToken ct
     )
     {
-        var handoff = new NuGetPreparedHandoff(
-            new NuGetProvenance(github, artifacts, policy, clock),
-            new NuGetHandoff(readiness, github, clock),
-            options.PreparationRunId,
-            options.PreparationAttempt
-        );
+        var handoff = CreateHandoff(options);
         return new NuGetPublicationRehearsal(handoff, new NuGetDiscardSink()).RunAsync(
             options.Input,
             options.Files,
             ct
         );
     }
+
+    internal Task<Result<NuGetHandoffReceipt>> VerifyAsync(
+        NuGetHandoffOptions options,
+        CancellationToken ct
+    ) => CreateHandoff(options).VerifyAsync(options.Input, ct);
+
+    private NuGetPreparedHandoff CreateHandoff(NuGetHandoffOptions options) =>
+        new(
+            new NuGetProvenance(github, artifacts, policy, clock),
+            new NuGetHandoff(readiness, github, clock),
+            options.PreparationRunId,
+            options.PreparationAttempt
+        );
 }
 
 internal sealed class NuGetDiscardSink : INuGetRehearsalSink
