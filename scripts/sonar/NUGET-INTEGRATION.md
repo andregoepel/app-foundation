@@ -3,8 +3,10 @@
 Status: verifier, tag-event capture, origin preparation and non-publishing consumer
 commands implemented, with acceptance-only producer and handoff workflows. The
 runner-test producer revision is registered in the consumer policy. Production
-activation is pending; the NuGet barrier remains inactive. Other Actions and existing credentials
-remain unchanged. The runner test still needs PR review, merge and protected access.
+activation is pending; the NuGet barrier remains inactive. PR #273 is merged and
+the protected, non-publishing runner drills passed on 2026-10-19. Temporary tags,
+test environments and token copies were removed afterward. The dormant official
+NuGet client adapter below is exercised only by offline tests.
 
 ## Implemented preparation-origin verification
 
@@ -83,14 +85,13 @@ candidate commit and repeats the object check through `NuGetHandoff` after
 packing. A tag changed to another annotated object for the same commit is rejected.
 It never fills a missing original object identity from a later ref lookup.
 
-GitHub describes `after` as the commit SHA after the push. Actual annotated-tag
-payload behavior is still an acceptance dependency: this implementation accepts
-only events whose `after` value pins the exact ref object. If an annotated-tag
-event supplies only the peeled commit, preparation rejects it. Synthetic tests
-exercise both exact-object fixtures and this rejection; they do not establish
-which payload GitHub sends for annotated tags. Do not claim production support
-for that case until the intended-runner evidence exists. There is no permissive
-fallback or manual override.
+GitHub describes `after` as the commit SHA after the push. This implementation
+accepts only events whose `after` value pins the exact ref object. The actual
+annotated-tag drill below supplied that object, distinct from its peeled commit,
+and passed without a fallback. An event containing only the peeled commit still
+fails. Synthetic tests exercise that rejection; the successful runner evidence
+establishes the observed payload for the recorded push, not an override for other
+payloads.
 
 After the existing versioned dry run, the command independently validates the
 complete manifest/package batch with fresh readiness and the captured tag object.
@@ -173,8 +174,7 @@ and authenticated artifact ZIPs, including all twelve files, symbol-only
 selection, failed gate, tampered bytes, unapproved/superseded provenance and
 changes during consumption. CLI/bootstrap tests verify rejection before network
 or build work and prevent credential values from appearing in diagnostic output.
-Live producer/consumer acceptance remains pending until this revision is merged,
-protected environments exist and the actual drill passes.
+Live producer/consumer acceptance for the merged revision is recorded below.
 
 ## Non-release acceptance tags
 
@@ -276,16 +276,47 @@ only the generated directory under `RUNNER_TEMP`, rejects symlinks/traversal and
 runs after success or failure. Rehearsal output is diagnostic and is not uploaded
 as release authority.
 
-## Operator sequence after review and merge
+## Completed intended-runner acceptance
 
-This PR changes only the two former disabled workflows, their producer policy
-hash, tests and documentation. Other Actions, `main-policy.json`, central Sonar
-policy/baseline and all other repositories remain unchanged. The checked-in job
-conditions permit the runner test after merge; there is no variable/dispatch
-switch. This PR creates no environment, token, remote tag or NuGet release.
+PR #273 merged as `1458c535e8af9d8ba476fc2e24a6e4b8c6bd52ad`.
+[CI](https://github.com/andregoepel/app-foundation/actions/runs/39191397818)
+passed 886 tests, [E2E](https://github.com/andregoepel/app-foundation/actions/runs/39191397820)
+passed 14, and [Sonar readiness](https://github.com/andregoepel/app-foundation/actions/runs/39191535403)
+validated all 900 with gate OK and zero issues/hotspots. The central baseline was
+unchanged. These historical receipts have expired and cannot authorize a new run.
 
-1. Review and merge the PR. Verify CI, E2E and trusted Sonar readiness for that
-   exact new main SHA. Confirm the registered workflow IDs/paths and producer file
+Both GitHub-hosted Ubuntu 24.04 drills prepared six packages and six symbol files;
+the consumer independently verified their complete identities/hashes and discarded
+the bytes. Every receipt retained `dryRun: true`, `releaseEligible: false`.
+
+| Tag kind | Producer, attempt 1 | Consumer, attempt 1 | Result |
+| --- | --- | --- | --- |
+| Lightweight | [39192189177](https://github.com/andregoepel/app-foundation/actions/runs/39192189177/attempts/1) | [39192627767](https://github.com/andregoepel/app-foundation/actions/runs/39192627767/attempts/1) | All twelve files verified |
+| Annotated | [39193143150](https://github.com/andregoepel/app-foundation/actions/runs/39193143150/attempts/1) | [39193529177](https://github.com/andregoepel/app-foundation/actions/runs/39193529177/attempts/1) | All twelve files verified; original object `8a9337dc50761ebffe0f76082acea319be71429e` preserved |
+
+The lightweight producer's second attempt was deliberately cancelled before
+preparation. Its automatic consumer was skipped. Replaying the original consumer
+as [attempt 2](https://github.com/andregoepel/app-foundation/actions/runs/39192627767/attempts/2)
+failed at artifact download because no valid origin remained; rehearsal was skipped
+and cleanup succeeded. This proves the live missing-origin boundary. It does not
+independently prove the deeper C# attempt check, which was never reached.
+
+Both protected test environments allowed only the documented refs, disabled
+administrator bypass and held copies of the existing scoped Sonar tokens. Both
+environments, token copies and test tags were removed after verification.
+`sonar-main`, original tokens, other Actions, repository rules and central Sonar
+policy remained unchanged. No OIDC login, NuGet upload or release tag occurred.
+The ignored local evidence is retained under
+`artifacts/sonar/acceptance-244/live-runner-273/`.
+
+## Operator sequence for repeating the runner test
+
+The two acceptance-only workflows and reviewed producer hash are on main. Their
+job conditions permit the test namespace; there is no variable/dispatch switch.
+Protected environments must be recreated for a separately authorized repeat.
+
+1. Verify CI, E2E and trusted Sonar readiness for the
+   exact current main SHA. Confirm the registered workflow IDs/paths and producer file
    hash against GitHub. An earlier main receipt cannot authorize the new revision.
 2. Configure protected environments before creating tags:
 
@@ -298,8 +329,8 @@ switch. This PR creates no environment, token, remote tag or NuGet release.
    Use the existing `APPFOUNDATION_SONAR_TOKEN` and
    `APPFOUNDATION_SONAR_VERIFY_TOKEN` names. Review environment access/reviewer and
    tag-protection rules with the operator; do not broaden Sonar permissions or add
-   OIDC/NuGet publishing credentials. The new environments do not exist as part
-   of this PR. Fresh readiness is required after any approval delay causes expiry.
+   OIDC/NuGet publishing credentials. Fresh readiness is required after any approval
+   delay causes expiry.
 3. Recheck that the unchanged publisher cannot match the test namespace. For a
    lightweight drill, create one new test tag on the exact current main commit;
    record the original ref object and push event. Wait for preparation and consumer
@@ -341,12 +372,67 @@ proof. Both YAML files also pass actionlint and ShellCheck without suppressions.
 These checks do not execute GitHub trigger, job-condition or environment policy
 semantics; those remain part of the actual runner acceptance.
 
+## Dormant official NuGet upload adapter
+
+`NuGetUploadAdapter` uses the pinned official `NuGet.Protocol` 7.9.0 package.
+It is an internal transport component with no CLI entry point. Neither runner
+workflow nor `NuGetConsumer` calls it; the production rehearsal retains its fixed
+discard sink. Existing CLI/bootstrap credential rejection is unchanged.
+
+The adapter accepts one `PackageEvidence`, its verified byte stream and an
+in-memory temporary credential. It requires one of the six approved package IDs,
+a stable version, an exact package/symbol filename, a lowercase SHA-256 and the
+fixed NuGet.org feed. It bounds the snapshot to 250 MiB, hashes it while copying
+to a unique temporary directory, then reopens and rehashes the staged file while
+holding a read-only handle during the official client's path-based upload. It
+does not repack. The staging directory is removed on completion. This assumes
+an isolated trusted runner; it is not protection against a compromised host.
+
+The official client constructs the request, headers and multipart payload. The
+adapter fixes the HTTPS package and symbol endpoints, disables redirects,
+proxies, cookies and ambient credentials, and permits only one outbound PUT per
+invocation. The NuGet library can attempt retries internally; the guard rejects
+every subsequent dispatch before it reaches the HTTP transport. Package and symbol
+files are separate calls, so a package call cannot silently upload symbols too.
+The caller's cancellation token reaches the outbound request.
+
+Only HTTP 201/202 is recorded as `Accepted`, meaning the endpoint acknowledged
+the upload, not that indexing or validation has completed. Once dispatch starts,
+other responses (including 409), transport errors and cancellation yield
+`Unknown` with `RequiresReconciliation: true`. There is no skip-duplicate option
+or automatic resend. A successful `Result<NuGetUploadAttempt>` means an outcome
+was recorded; callers must inspect that outcome before continuing. Pre-dispatch
+failures return a failed result without raw SDK/server diagnostics. NuGet logging
+is disabled, and credential serialization/string conversion exposes no key.
+
+The credential wrapper enforces a supplied expiry within one hour and rejects
+empty/control-character keys; it cannot establish who issued the key. Disposal
+releases its reference but cannot erase immutable .NET strings. A future
+credential-bearing job must use the reviewed official NuGet/login action only
+after fresh verification. No OIDC exchange or home-grown login client is added.
+The existing central `System.Security.Cryptography.Pkcs` 10.0.13 version is also
+referenced explicitly to avoid NuGet.Protocol's vulnerable older transitive floor.
+
+`NuGetUploadAdapterTests` exercise the actual official client against an in-memory
+HTTP handler, using synthetic credentials. `NuGetUploadIntegrationTests` join it
+to the existing authenticated provenance/handoff/rehearsal through a **test-only**
+bridge. They verify all twelve file hashes and destinations, fresh checks before
+synthetic login and each request, changed evidence, whole-batch verification for
+symbol selections, and stopping after partial or uncertain results. No test
+contacts NuGet.org or publishes a package. Their in-memory outcome list is not
+a durable, authenticated publication journal.
+
+References: [NuGet.Protocol](https://www.nuget.org/packages/NuGet.Protocol/7.9.0),
+[official push implementation](https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Protocol/Resources/PackageUpdateResource.cs),
+[trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
+
 ## Remaining production integration (#244)
 
-1. Implement and test the credential/upload adapter against a non-publishing sink.
-   Preserve independent verification immediately before credentials and each file,
-   immutable bytes, and trusted recording/reconciliation of partial or uncertain
-   outcomes. There is currently no production publishing mode.
+1. Connect the dormant upload adapter to a reviewed credential-bearing boundary,
+   preserving independent verification before credentials and each file. Implement
+   trusted recording/reconciliation of partial or uncertain outcomes before any
+   production wiring. The current integration tests use synthetic credentials and
+   in-memory HTTP; no production publishing mode exists.
 2. Audit all six packages' trusted-publisher policies and alternative API keys,
    including manual and symbol-only routes. Repository secret inventory alone
    cannot prove account-level controls; restrict bypasses with the account owner.
