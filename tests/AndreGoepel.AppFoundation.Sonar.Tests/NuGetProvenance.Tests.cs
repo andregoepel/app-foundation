@@ -420,7 +420,11 @@ public sealed class NuGetProvenanceTests
             Artifact["size_in_bytes"] = archive.Length;
         }
 
-        internal Task<Result<NuGetRehearsalReceipt>> RunAsync(CancellationToken ct)
+        internal Task<Result<NuGetRehearsalReceipt>> RunAsync(
+            CancellationToken ct,
+            INuGetRehearsalSink? sink = null,
+            string[]? files = null
+        )
         {
             var provenance = new NuGetProvenance(
                 Handoff.Evidence.Main,
@@ -434,7 +438,11 @@ public sealed class NuGetProvenanceTests
                 500,
                 1
             );
-            return new NuGetPublicationRehearsal(prepared, Sink).RunAsync(Handoff.Input, null, ct);
+            return new NuGetPublicationRehearsal(prepared, sink ?? Sink).RunAsync(
+                Handoff.Input,
+                files,
+                ct
+            );
         }
 
         internal void Invalidate(string fault)

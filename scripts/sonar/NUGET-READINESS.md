@@ -276,9 +276,10 @@ the full identity through every check. This prepares real tag-event acceptance
 without triggering the unchanged `v*` publisher. No tag is created or workflow
 enabled by this support. See the
 [acceptance-tag constraints and runner steps](NUGET-INTEGRATION.md#non-release-acceptance-tags).
-The runner-test PR adapts both former disabled workflows to this namespace. Actual
-runner evidence still requires merge, fresh main readiness and protected environment
-configuration before creating test tags; no tag or environment is created by the PR.
+PR #273 adapted both former disabled workflows to this namespace. The lightweight
+and annotated-tag producer/consumer drills passed on the intended runner on
+2026-10-19, followed by controlled cancellation/replay rejection and cleanup.
+See the [recorded runs and evidence limits](NUGET-INTEGRATION.md#completed-intended-runner-acceptance).
 
 The preparation-origin verifier and its production wiring requirements are
 documented in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). It adds 66 cases around
@@ -345,21 +346,24 @@ Before closing #244, the separately approved production integration must still:
    checks an explicitly supplied tag-object identity, and the prepared provenance
    layer authenticates its origin artifact. The `--nuget-prepare` command now
    captures the event and writes its origin after final batch verification; the
-   producer now targets only non-release acceptance tags. Actual workflow invocation
-   and tag-payload proof remain pending after the runner-test PR and protected access.
+   producer targets only non-release acceptance tags. Actual lightweight and
+   annotated-tag invocation now passed; release-tag wiring remains a separate
+   activation change.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. The `--nuget-rehearse` consumer now composes the provenance and
    handoff verifiers with a discard sink; its policy pins the runner-test producer
    revision. The rehearsal workflow connects artifact downloads and the consumer
-   invocation without publishing. After review and merge, connect them on the
-   intended runner with protected access and test
-   OIDC/login/upload ordering against that real workflow handoff.
+   invocation without publishing, and that handoff passed on the protected runner.
+   Credential-bearing OIDC/login/upload wiring still needs its own review and
+   acceptance.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and
    byte ownership for each upload and manual/symbol retry; reconcile uncertain
-   remote outcomes and persist trusted partial-publication records. The current
-   recording sink establishes local ordering only.
+   remote outcomes and persist trusted partial-publication records. The dormant
+   official `NuGet.Protocol` adapter is tested with synthetic credentials and
+   in-memory HTTP through the real provenance/handoff sequence. These tests do
+   not supply a production credential boundary or trusted retry journal.
 4. Inventory the account-level trusted-publisher policies and alternative keys for
    all six packages. The repository secret inventory contains only `NUGET_USER`;
    this does not prove that no organization/environment or external NuGet account
