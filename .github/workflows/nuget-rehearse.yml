@@ -1,0 +1,134 @@
+name: NuGet handoff rehearsal (inactive)
+
+on:
+  workflow_run:
+    workflows: ["NuGet preparation (inactive)"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: app-foundation-nuget-rehearse-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    # Removing this guard requires intended-runner acceptance and a separate reviewed PR.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    environment: sonar-nuget-rehearse
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Verify preparation event
+        id: event
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
+          test "$GITHUB_EVENT_NAME" = workflow_run
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-rehearse.yml@refs/heads/main"
+          test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          jq -e --arg sha "$GITHUB_SHA" '
+            .action == "completed" and .repository.full_name == "andregoepel/app-foundation" and
+            (.workflow_run | .repository.full_name == "andregoepel/app-foundation" and
+              .head_repository.full_name == "andregoepel/app-foundation" and
+              .workflow_id == 388401675 and .path == ".github/workflows/nuget-prepare.yml" and
+              .event == "push" and .status == "completed" and .conclusion == "success" and
+              .head_sha == $sha and
+              (.head_branch | test("^v(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})$")) and
+              (.id | type == "number" and . > 0 and . < 9007199254740992 and . == floor) and
+              (.run_attempt | type == "number" and . > 0 and . <= 2147483647 and . == floor))
+          ' "$GITHUB_EVENT_PATH" > /dev/null
+          main_sha=$(gh api repos/andregoepel/app-foundation/git/ref/heads/main --jq '.object.sha')
+          test "$main_sha" = "$GITHUB_SHA"
+          run=$(jq -r '.workflow_run.id' "$GITHUB_EVENT_PATH")
+          attempt=$(jq -r '.workflow_run.run_attempt' "$GITHUB_EVENT_PATH")
+          tag=$(jq -r '.workflow_run.head_branch' "$GITHUB_EVENT_PATH")
+          printf 'sha=%s\nrun=%s\nattempt=%s\ntag=%s\n' "$GITHUB_SHA" "$run" "$attempt" "$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.event.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+
+      - name: Download preparation artifacts
+        id: download
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ steps.event.outputs.sha }}
+          PREPARATION_RUN: ${{ steps.event.outputs.run }}
+          PREPARATION_ATTEMPT: ${{ steps.event.outputs.attempt }}
+          RELEASE_TAG: ${{ steps.event.outputs.tag }}
+        run: |
+          set -euo pipefail
+          handoff=$(mktemp -d "$RUNNER_TEMP/nuget-rehearsal.XXXXXXXX")
+          printf 'root=%s\n' "$handoff" >> "$GITHUB_OUTPUT"
+          gh run download "$PREPARATION_RUN" --repo andregoepel/app-foundation \
+            --name "nuget-origin-$CANDIDATE_SHA-$PREPARATION_RUN-$PREPARATION_ATTEMPT" --dir "$handoff/origin"
+          origin="$handoff/origin/origin.json"
+          test -f "$origin" && test ! -L "$origin"
+          test "$(stat -c %s -- "$origin")" -le 1048576
+          jq -e --arg sha "$CANDIDATE_SHA" --arg tag "$RELEASE_TAG" \
+            --argjson run "$PREPARATION_RUN" --argjson attempt "$PREPARATION_ATTEMPT" '
+            .schemaVersion == 1 and .repository == "andregoepel/app-foundation" and
+            .sha == $sha and .tag == $tag and .runId == $run and .attempt == $attempt and
+            .dryRun == true and .releaseEligible == false and
+            (.readinessRunId | type == "number" and . > 0 and . < 9007199254740992 and . == floor) and
+            (.tagObjectSha | test("^[a-f0-9]{40}$")) and
+            (.manifestSha256 | test("^[a-f0-9]{64}$"))
+          ' "$origin" > /dev/null
+          readiness=$(jq -r '.readinessRunId' "$origin")
+          tag_object=$(jq -r '.tagObjectSha' "$origin")
+          manifest=$(jq -r '.manifestSha256' "$origin")
+          gh run download "$PREPARATION_RUN" --repo andregoepel/app-foundation \
+            --name "nuget-batch-$CANDIDATE_SHA-$PREPARATION_RUN-$PREPARATION_ATTEMPT" --dir "$handoff/batch"
+          printf 'readiness=%s\ntag-object=%s\nmanifest=%s\n' "$readiness" "$tag_object" "$manifest" >> "$GITHUB_OUTPUT"
+
+      - name: Rehearse verified package batch
+        env:
+          CANDIDATE_SHA: ${{ steps.event.outputs.sha }}
+          PREPARATION_RUN: ${{ steps.event.outputs.run }}
+          PREPARATION_ATTEMPT: ${{ steps.event.outputs.attempt }}
+          RELEASE_TAG: ${{ steps.event.outputs.tag }}
+          HANDOFF_ROOT: ${{ steps.download.outputs.root }}
+          READINESS_RUN: ${{ steps.download.outputs.readiness }}
+          TAG_OBJECT: ${{ steps.download.outputs.tag-object }}
+          MANIFEST_SHA256: ${{ steps.download.outputs.manifest }}
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash scripts/sonar/analyze.sh --nuget-rehearse \
+            --sha "$CANDIDATE_SHA" --version "${RELEASE_TAG#v}" \
+            --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+            --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+            --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+            --preparation-attempt "$PREPARATION_ATTEMPT"
+
+      - name: Remove downloaded artifacts
+        if: ${{ always() && steps.download.outputs.root != '' }}
+        env:
+          HANDOFF_ROOT: ${{ steps.download.outputs.root }}
+        run: |
+          set -euo pipefail
+          parent=$(dirname -- "$HANDOFF_ROOT")
+          leaf=$(basename -- "$HANDOFF_ROOT")
+          test "$parent" = "$RUNNER_TEMP"
+          [[ "$leaf" =~ ^nuget-rehearsal\.[A-Za-z0-9]{8}$ ]]
+          test -d "$HANDOFF_ROOT" && test ! -L "$HANDOFF_ROOT"
+          test "$(realpath -e -- "$HANDOFF_ROOT")" = "$HANDOFF_ROOT"
+          rm -rf -- "$HANDOFF_ROOT"

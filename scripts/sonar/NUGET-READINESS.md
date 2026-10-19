@@ -4,6 +4,7 @@ Status: dry-run implementation, transferred-batch verification and non-publishin
 sequence rehearsal merged; authenticated preparation-origin verification and
 tag-event origin preparation and consumer implemented; producer workflow prepared
 with its only job explicitly disabled and that revision registered in the consumer policy;
+a separate handoff-rehearsal workflow is also prepared with its only job disabled;
 **not activated**. Existing Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
@@ -339,7 +340,9 @@ Before closing #244, the separately approved production integration must still:
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. The `--nuget-rehearse` consumer now composes the provenance and
    handoff verifiers with a discard sink; its policy pins the disabled producer
-   revision. Review the enabled revision, connect it on the intended runner and test
+   revision. The new disabled rehearsal workflow prepares artifact downloads and
+   the consumer invocation without publishing. Review the enabled revisions,
+   connect them on the intended runner and test
    OIDC/login/upload ordering against that real workflow handoff.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and

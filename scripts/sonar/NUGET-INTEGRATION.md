@@ -1,9 +1,10 @@
 # NuGet preparation provenance and production integration (#244)
 
 Status: verifier, tag-event capture, origin preparation and non-publishing consumer
-commands prepared, with a disabled producer workflow and its identity registered
-in the consumer policy. Production activation is pending; the NuGet barrier
-remains inactive. Workflow files and credentials are unchanged by registration.
+commands prepared, with disabled producer and handoff-rehearsal workflows. The
+producer identity is registered in the consumer policy. Production activation is
+pending; the NuGet barrier remains inactive. Existing workflows and credentials
+are unchanged by the new rehearsal workflow.
 
 ## Implemented preparation-origin verification
 
@@ -263,6 +264,65 @@ The remaining integration prerequisites are:
    above. Review and pin the final enabled revision separately. No guessed ID,
    self-declared hash or automatic trust-on-first-use is allowed.
 
+## Disabled handoff rehearsal: `.github/workflows/nuget-rehearse.yml`
+
+This new workflow prepares the intended-runner connection between the two existing
+commands. Its only job also has `if: ${{ false }}`. It cannot be enabled through a
+variable or dispatch input. It listens only for completed runs of the named
+preparation workflow, not successful CI or main analysis. It has `contents: read`
+and `actions: read`, no OIDC permission and no NuGet credential or upload step.
+
+Before checkout, `Verify preparation event` requires the expected repository and
+workflow context on main, the assigned producer ID/path, a successful tag-push
+run, a stable version tag, positive run/attempt IDs and the exact current main SHA.
+The consumer workflow revision must match that candidate. It checks out that
+immutable SHA with credential persistence disabled and uses the pinned .NET setup
+action. It never checks out or executes files from an artifact.
+
+`Download preparation artifacts` uses the installed GitHub CLI to download the
+exact origin and batch artifact names from the event's run/attempt into a unique
+temporary directory outside the checkout. The batch retains `dry-run.json` and
+`packages/` at its root. The bounded origin JSON supplies candidate manifest,
+tag-object and readiness pins after syntax/context checks. Those downloaded pins
+remain untrusted: they do not grant permission or replace the authenticated origin
+that the C# verifier independently fetches and checks against the reviewed policy.
+
+`Rehearse verified package batch` invokes `--nuget-rehearse` for all twelve files,
+using the captured run and attempt rather than selecting a newer attempt or an
+older successful run. Its read credentials are scoped to that step. The existing
+consumer validates live producer identity/revision/jobs, authenticated origin,
+current main readiness, original tag and every transferred byte before the
+discard sink's simulated login and each simulated upload. A rerun, expired evidence,
+changed main, failed verification or command failure fails the job with no fallback.
+It does not repack or add a second GitHub API client.
+
+Cleanup runs after success or failure and only removes the generated directory
+after checking its parent, name and resolved path. No downloaded batch or rehearsal
+receipt is uploaded as release authority. The normal command output is diagnostic
+and remains `dryRun: true`, `releaseEligible: false`.
+
+Before enabling this job, create a separately protected, **main-only**
+`sonar-nuget-rehearse` environment with the existing two scoped Sonar read-token
+copies. The producer's proposed `sonar-nuget-prepare` environment remains tag-only;
+`sonar-main` remains unchanged. Neither new environment exists yet. Review the
+producer enablement/hash and consumer guard removal together, then demonstrate
+the actual event, artifact layout, protections and negative cases on the intended
+runner. Offline shell fixtures and the existing C# consumer tests are preparation
+evidence only. No actual artifact handoff has run through this disabled workflow.
+
+To repeat the offline shell checks on Linux with PowerShell, Bash and jq installed:
+
+```sh
+pwsh -NoProfile -File tests/AndreGoepel.AppFoundation.Sonar.Tests/Workflows/Verify-NuGetRehearsalWorkflow.ps1
+```
+
+The script extracts the workflow's actual shell blocks and substitutes local
+GitHub/download and verifier commands. It checks event rejection, exact artifact
+names and CLI arguments, malformed origins, download/verifier failures and cleanup
+boundaries without credentials or network access. It writes a diagnostic result
+under `artifacts/sonar/workflow-tests` and removes its temporary fixtures. This
+standalone check leaves existing CI/E2E workflows unchanged.
+
 ## Required repository-local consumer in `ci.yml`
 
 This section requires a separately reviewed change to the existing publisher.
@@ -272,8 +332,9 @@ This section requires a separately reviewed change to the existing publisher.
    bypass the new barrier. Bind the completed preparation event's run/attempt to
    the approved producer and current main before consuming its artifacts.
 2. Bootstrap only reviewed tools and `nuget-policy.json` from the trusted main
-   candidate, with immutable action revisions. Exercise `--nuget-rehearse` against
-   the authenticated preparation handoff first. A later publishing adapter needs
+   candidate, with immutable action revisions. The disabled handoff workflow now
+   prepares the `--nuget-rehearse` invocation; demonstrate its actual authenticated
+   preparation handoff first. A later publishing adapter needs
    separate review; a rehearsal receipt never grants publication authorization.
 3. Verify original tag/event identity, producer provenance, main readiness and all
    transferred bytes before NuGet login. The credential-bearing boundary needs
@@ -299,8 +360,8 @@ ordering, expiry, tampering and retry cases. Keep synthetic event fixtures clear
 identified; they cannot replace evidence that the real trigger and environment
 protections bind the same inputs. A real release remains separately authorized.
 
-The remaining work is producer enablement and actual tag-payload proof, review of
-the enabled workflow's policy hash, credential/upload adapter, protected environments and account
+The remaining work is producer/rehearsal enablement and actual tag-payload proof,
+review of the enabled producer's policy hash, credential/upload adapter, protected environments and account
 controls, followed by the runner acceptance and activation PR. This document is
 not a claim that #244 is complete.
 
@@ -310,4 +371,6 @@ References: [GitHub workflow-run API](https://docs.github.com/en/rest/actions/wo
 [GitHub context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context),
 [job conditions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions),
 [step outputs](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-output-parameter),
-[artifact upload paths](https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions).
+[artifact upload paths](https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions),
+[workflow-run triggers](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run),
+[GitHub CLI artifact downloads](https://cli.github.com/manual/gh_run_download).
