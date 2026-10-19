@@ -8,9 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AndreGoepel.Core" />
-    <PackageReference Include="NuGet.Protocol" />
-    <!-- Security floor for NuGet.Protocol's transitive signing dependency. -->
-    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <InternalsVisibleTo Include="AndreGoepel.AppFoundation.Sonar.Tests" />
   </ItemGroup>
 </Project>

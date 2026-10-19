@@ -245,8 +245,8 @@ before each simulated file upload. The sink receives a read-only stream over the
 captured bytes, so replacing a source file at the upload boundary cannot substitute
 the content already selected for that upload. A changed file or evidence stops
 subsequent uploads. These distributed checks do not constitute an atomic lock on
-GitHub or Sonar state; the future credential-bearing adapter must preserve this
-ordering and byte ownership through the actual upload.
+GitHub or Sonar state; the future credential-bearing workflow must preserve this
+ordering and byte ownership when invoking the official NuGet CLI.
 
 A manual rehearsal can select an explicit, unique subset of manifest files,
 including symbols only. Every invocation starts with full live verification of
@@ -357,13 +357,14 @@ Before closing #244, the separately approved production integration must still:
    invocation without publishing, and that handoff passed on the protected runner.
    Credential-bearing OIDC/login/upload wiring still needs its own review and
    acceptance.
-3. Integrate the tested non-publishing sequence with the actual credential/upload
-   adapter and authenticated preparation boundary. Preserve fresh verification and
-   byte ownership for each upload and manual/symbol retry; reconcile uncertain
-   remote outcomes and persist trusted partial-publication records. The dormant
-   official `NuGet.Protocol` adapter is tested with synthetic credentials and
-   in-memory HTTP through the real provenance/handoff sequence. These tests do
-   not supply a production credential boundary or trusted retry journal.
+3. Integrate the tested non-publishing sequence with the official `NuGet/login`
+   action and `dotnet nuget push`, retaining the authenticated preparation boundary.
+   Preserve fresh verification and byte ownership for each upload and manual/symbol
+   retry; reconcile uncertain outcomes and persist trusted partial-publication
+   records. The custom upload adapter and its dependency have been removed. The
+   [inactive official-tool examples](NUGET-PUBLISHING.md) document the required
+   ordering and CLI retry limitations; they do not activate publication or supply
+   a production credential boundary or trusted retry journal.
 4. Inventory the account-level trusted-publisher policies and alternative keys for
    all six packages. The repository secret inventory contains only `NUGET_USER`;
    this does not prove that no organization/environment or external NuGet account

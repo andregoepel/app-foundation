@@ -5,8 +5,8 @@ commands implemented, with acceptance-only producer and handoff workflows. The
 runner-test producer revision is registered in the consumer policy. Production
 activation is pending; the NuGet barrier remains inactive. PR #273 is merged and
 the protected, non-publishing runner drills passed on 2026-10-19. Temporary tags,
-test environments and token copies were removed afterward. The dormant official
-NuGet client adapter below is exercised only by offline tests.
+test environments and token copies were removed afterward. Future publication will
+use the official NuGet/login action and dotnet nuget push, as documented below.
 
 ## Implemented preparation-origin verification
 
@@ -351,7 +351,7 @@ Protected environments must be recreated for a separately authorized repeat.
    Verify cleanup.
 
 Successful acceptance proves non-publishing runner handoff. It does not activate
-NuGet protection or prove an actual credential/upload adapter. A future publisher
+NuGet protection or prove credential-bearing login/push integration. A future publisher
 must accept only release tags, never treat `IsPreparationTag` or a rehearsal
 receipt as publication authorization.
 
@@ -372,67 +372,28 @@ proof. Both YAML files also pass actionlint and ShellCheck without suppressions.
 These checks do not execute GitHub trigger, job-condition or environment policy
 semantics; those remain part of the actual runner acceptance.
 
-## Dormant official NuGet upload adapter
+## Official NuGet publishing tools
 
-`NuGetUploadAdapter` uses the pinned official `NuGet.Protocol` 7.9.0 package.
-It is an internal transport component with no CLI entry point. Neither runner
-workflow nor `NuGetConsumer` calls it; the production rehearsal retains its fixed
-discard sink. Existing CLI/bootstrap credential rejection is unchanged.
+The future repository-local publishing job will use the official `NuGet/login`
+action and `dotnet nuget push`. The custom upload adapter, credential wrapper,
+HTTP transport, direct NuGet.Protocol dependency and their 47 tests have been
+removed. The existing authenticated handoff and fixed discard-sink rehearsal
+remain unchanged.
 
-The adapter accepts one `PackageEvidence`, its verified byte stream and an
-in-memory temporary credential. It requires one of the six approved package IDs,
-a stable version, an exact package/symbol filename, a lowercase SHA-256 and the
-fixed NuGet.org feed. It bounds the snapshot to 250 MiB, hashes it while copying
-to a unique temporary directory, then reopens and rehashes the staged file while
-holding a read-only handle during the official client's path-based upload. It
-does not repack. The staging directory is removed on completion. This assumes
-an isolated trusted runner; it is not protection against a compromised host.
-
-The official client constructs the request, headers and multipart payload. The
-adapter fixes the HTTPS package and symbol endpoints, disables redirects,
-proxies, cookies and ambient credentials, and permits only one outbound PUT per
-invocation. The NuGet library can attempt retries internally; the guard rejects
-every subsequent dispatch before it reaches the HTTP transport. Package and symbol
-files are separate calls, so a package call cannot silently upload symbols too.
-The caller's cancellation token reaches the outbound request.
-
-Only HTTP 201/202 is recorded as `Accepted`, meaning the endpoint acknowledged
-the upload, not that indexing or validation has completed. Once dispatch starts,
-other responses (including 409), transport errors and cancellation yield
-`Unknown` with `RequiresReconciliation: true`. There is no skip-duplicate option
-or automatic resend. A successful `Result<NuGetUploadAttempt>` means an outcome
-was recorded; callers must inspect that outcome before continuing. Pre-dispatch
-failures return a failed result without raw SDK/server diagnostics. NuGet logging
-is disabled, and credential serialization/string conversion exposes no key.
-
-The credential wrapper enforces a supplied expiry within one hour and rejects
-empty/control-character keys; it cannot establish who issued the key. Disposal
-releases its reference but cannot erase immutable .NET strings. A future
-credential-bearing job must use the reviewed official NuGet/login action only
-after fresh verification. No OIDC exchange or home-grown login client is added.
-The existing central `System.Security.Cryptography.Pkcs` 10.0.13 version is also
-referenced explicitly to avoid NuGet.Protocol's vulnerable older transitive floor.
-
-`NuGetUploadAdapterTests` exercise the actual official client against an in-memory
-HTTP handler, using synthetic credentials. `NuGetUploadIntegrationTests` join it
-to the existing authenticated provenance/handoff/rehearsal through a **test-only**
-bridge. They verify all twelve file hashes and destinations, fresh checks before
-synthetic login and each request, changed evidence, whole-batch verification for
-symbol selections, and stopping after partial or uncertain results. No test
-contacts NuGet.org or publishes a package. Their in-memory outcome list is not
-a durable, authenticated publication journal.
-
-References: [NuGet.Protocol](https://www.nuget.org/packages/NuGet.Protocol/7.9.0),
-[official push implementation](https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Protocol/Resources/PackageUpdateResource.cs),
-[trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
+[NUGET-PUBLISHING.md](NUGET-PUBLISHING.md) describes the exact-file command
+examples, pre-login/per-file verification order, credential separation and
+partial-outcome handling. All examples are inactive and outside the Actions
+folder. The CLI owns its internal retries and transport behavior; no custom
+single-HTTP-request guarantee is claimed. The examples do not supply production
+verification wiring, account controls or a durable publication journal.
 
 ## Remaining production integration (#244)
 
-1. Connect the dormant upload adapter to a reviewed credential-bearing boundary,
-   preserving independent verification before credentials and each file. Implement
-   trusted recording/reconciliation of partial or uncertain outcomes before any
-   production wiring. The current integration tests use synthetic credentials and
-   in-memory HTTP; no production publishing mode exists.
+1. Wire the official `NuGet/login` action and `dotnet nuget push` into a reviewed
+   credential-bearing boundary, preserving independent verification before login
+   and each file. Implement trusted recording/reconciliation of partial or uncertain
+   outcomes. The inactive examples document this integration; no production
+   publishing mode or replacement uploader is implemented by the console tool.
 2. Audit all six packages' trusted-publisher policies and alternative API keys,
    including manual and symbol-only routes. Repository secret inventory alone
    cannot prove account-level controls; restrict bypasses with the account owner.
