@@ -2,10 +2,9 @@
 
 Status: dry-run implementation, transferred-batch verification and non-publishing
 sequence rehearsal merged; authenticated preparation-origin verification and
-tag-event origin preparation and consumer implemented; producer workflow prepared
-with its only job explicitly disabled and that revision registered in the consumer policy;
-a separate handoff-rehearsal workflow is also prepared with its only job disabled;
-**not activated**. Existing Actions,
+tag-event origin preparation and consumer implemented. The two runner-test workflows
+now accept only non-release test tags after review/merge, with the revised producer
+hash registered in the consumer policy. **NuGet protection is not activated**. Other Actions,
 NuGet credentials, feed settings and other repositories are unchanged. Nothing in
 this preparation publishes a package, creates a tag or starts a release. Issue
 #244 stays open until the remaining publication integration criteria below pass.
@@ -188,7 +187,7 @@ The active Actions files are intentionally not edited or replaced here.
 ## Local transferred-batch verification
 
 `NuGetHandoff` supplies the verification component used by preparation and the
-non-publishing consumer. Its CLI wiring and disabled workflow integration are
+non-publishing consumer. Its CLI wiring and runner-test workflow integration are
 described in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). There is no OIDC exchange
 or upload adapter. Its result retains `dryRun: true` and
 `releaseEligible: false` and must not authorize publication.
@@ -234,8 +233,8 @@ receiving directory. No public package or actual tag is created.
 
 `NuGetPublicationRehearsal` connects the receiving verifier to an
 `INuGetRehearsalSink`. Tests record simulated login/upload events and supplied
-bytes; the `--nuget-rehearse` command uses only `NuGetDiscardSink`. The disabled
-consumer workflow prepares that command's invocation. There is no NuGet client,
+bytes; the `--nuget-rehearse` command uses only `NuGetDiscardSink`. The runner-test
+consumer invokes that command after authenticating a completed preparation event. There is no NuGet client,
 OIDC exchange, publication credential or network upload. A successful receipt
 remains `dryRun: true`, `releaseEligible: false`.
 
@@ -277,15 +276,17 @@ the full identity through every check. This prepares real tag-event acceptance
 without triggering the unchanged `v*` publisher. No tag is created or workflow
 enabled by this support. See the
 [acceptance-tag constraints and runner steps](NUGET-INTEGRATION.md#non-release-acceptance-tags).
-Both disabled workflows still need an approved change before a real drill.
+The runner-test PR adapts both former disabled workflows to this namespace. Actual
+runner evidence still requires merge, fresh main readiness and protected environment
+configuration before creating test tags; no tag or environment is created by the PR.
 
 The preparation-origin verifier and its production wiring requirements are
 documented in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). It adds 66 cases around
-the existing rehearsal and artifact reader. There is still no active preparation
-workflow or publication CLI. The assigned workflow ID, disabled file revision
-and four required successful steps are registered in `nuget-policy.json`.
-Registration cannot make a skipped job valid, and enabling the producer requires
-another review of the changed workflow hash. It does not activate the NuGet barrier.
+the existing rehearsal and artifact reader. There is still no publication CLI.
+The assigned producer ID, acceptance-only file revision and four required successful
+steps are registered in `nuget-policy.json`. Registration cannot make a skipped
+job valid; any later workflow revision requires a separately reviewed hash update.
+This runner test does not activate the NuGet barrier.
 
 The positive intended-runner drill passed on Ubuntu 24.04:
 [run 39101513675, attempt 1](https://github.com/andregoepel/app-foundation/actions/runs/39101513675).
@@ -344,15 +345,15 @@ Before closing #244, the separately approved production integration must still:
    checks an explicitly supplied tag-object identity, and the prepared provenance
    layer authenticates its origin artifact. The `--nuget-prepare` command now
    captures the event and writes its origin after final batch verification; the
-   producer workflow now exists with a hard-disabled job. Actual workflow invocation
-   and tag-payload proof remain missing from production.
+   producer now targets only non-release acceptance tags. Actual workflow invocation
+   and tag-payload proof remain pending after the runner-test PR and protected access.
 2. Validate the exact transferred package/symbol batch and manifest independently
    in that job, with fresh live readiness and hashes immediately before credential
    acquisition. The `--nuget-rehearse` consumer now composes the provenance and
-   handoff verifiers with a discard sink; its policy pins the disabled producer
-   revision. The new disabled rehearsal workflow prepares artifact downloads and
-   the consumer invocation without publishing. Review the enabled revisions,
-   connect them on the intended runner and test
+   handoff verifiers with a discard sink; its policy pins the runner-test producer
+   revision. The rehearsal workflow connects artifact downloads and the consumer
+   invocation without publishing. After review and merge, connect them on the
+   intended runner with protected access and test
    OIDC/login/upload ordering against that real workflow handoff.
 3. Integrate the tested non-publishing sequence with the actual credential/upload
    adapter and authenticated preparation boundary. Preserve fresh verification and

@@ -1,8 +1,8 @@
-name: NuGet handoff rehearsal (inactive)
+name: NuGet handoff rehearsal (runner test)
 
 on:
   workflow_run:
-    workflows: ["NuGet preparation (inactive)"]
+    workflows: ["NuGet preparation (runner test)"]
     types: [completed]
 
 permissions:
@@ -15,8 +15,12 @@ concurrency:
 
 jobs:
   rehearse:
-    # Removing this guard requires intended-runner acceptance and a separate reviewed PR.
-    if: ${{ false }}
+    if: >-
+      github.repository == 'andregoepel/app-foundation' &&
+      github.event.workflow_run.workflow_id == 388401675 &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'sonar-poc/nuget/')
     runs-on: ubuntu-24.04
     environment: sonar-nuget-rehearse
     timeout-minutes: 20
@@ -43,7 +47,7 @@ jobs:
               .workflow_id == 388401675 and .path == ".github/workflows/nuget-prepare.yml" and
               .event == "push" and .status == "completed" and .conclusion == "success" and
               .head_sha == $sha and
-              (.head_branch | test("^v(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})$")) and
+              (.head_branch | test("^sonar-poc/nuget/[a-f0-9]{32}/v(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\z")) and
               (.id | type == "number" and . > 0 and . < 9007199254740992 and . == floor) and
               (.run_attempt | type == "number" and . > 0 and . <= 2147483647 and . == floor))
           ' "$GITHUB_EVENT_PATH" > /dev/null
@@ -52,7 +56,8 @@ jobs:
           run=$(jq -r '.workflow_run.id' "$GITHUB_EVENT_PATH")
           attempt=$(jq -r '.workflow_run.run_attempt' "$GITHUB_EVENT_PATH")
           tag=$(jq -r '.workflow_run.head_branch' "$GITHUB_EVENT_PATH")
-          printf 'sha=%s\nrun=%s\nattempt=%s\ntag=%s\n' "$GITHUB_SHA" "$run" "$attempt" "$tag" >> "$GITHUB_OUTPUT"
+          version="${tag##*/v}"
+          printf 'sha=%s\nrun=%s\nattempt=%s\ntag=%s\nversion=%s\n' "$GITHUB_SHA" "$run" "$attempt" "$tag" "$version" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -104,6 +109,7 @@ jobs:
           PREPARATION_ATTEMPT: ${{ steps.event.outputs.attempt }}
           RELEASE_TAG: ${{ steps.event.outputs.tag }}
           HANDOFF_ROOT: ${{ steps.download.outputs.root }}
+          PACKAGE_VERSION: ${{ steps.event.outputs.version }}
           READINESS_RUN: ${{ steps.download.outputs.readiness }}
           TAG_OBJECT: ${{ steps.download.outputs.tag-object }}
           MANIFEST_SHA256: ${{ steps.download.outputs.manifest }}
@@ -113,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/sonar/analyze.sh --nuget-rehearse \
-            --sha "$CANDIDATE_SHA" --version "${RELEASE_TAG#v}" \
+            --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
             --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
             --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
             --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
