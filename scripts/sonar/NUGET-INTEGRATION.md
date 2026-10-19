@@ -393,13 +393,22 @@ folder. The CLI owns its internal retries and transport behavior; no custom
 single-HTTP-request guarantee is claimed. The examples do not supply production
 verification wiring, account controls or a durable publication journal.
 
+The [disabled step fragment](templates/README.md) now prepares the verifier/login/
+per-file push sequence for review. Its actual shell blocks pass 25 offline cases
+with local command substitutes and no network, plus actionlint/ShellCheck. These
+checks establish shell ordering, argument/credential separation and fail-closed
+behavior, not GitHub scheduling, OIDC exchange or remote upload semantics. Existing
+Actions do not reference the fragment. Its local diagnostic log does not satisfy
+the durable publication-record requirement.
+
 ## Remaining production integration (#244)
 
 1. Wire the official `NuGet/login` action and `dotnet nuget push` into a reviewed
    credential-bearing boundary, preserving independent verification before login
    and each file. Implement trusted recording/reconciliation of partial or uncertain
-   outcomes. The verification command is available; the inactive examples document
-   its future placement around login and push. No production
+   outcomes. The verification command and tested disabled step fragment are
+   available; the fragment still needs a reviewed caller, trusted records and live
+   non-publishing runner acceptance. No production
    publishing mode or replacement uploader is implemented by the console tool.
 2. Audit all six packages' trusted-publisher policies and alternative API keys,
    including manual and symbol-only routes. Repository secret inventory alone

@@ -1,0 +1,110 @@
+# Disabled step fragment, not a registered workflow. See README.md before integration.
+steps:
+  - name: Verify full handoff before login
+    if: ${{ false && success() }}
+    id: verified-handoff
+    shell: bash
+    env:
+      APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+      APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+      APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+    run: |
+      set -euo pipefail
+      umask 077
+      test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
+      test "$GITHUB_RUN_ATTEMPT" = 1
+      [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
+      test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
+      test -f "$VERIFIER_DLL" && test ! -L "$VERIFIER_DLL"
+      work=$(mktemp -d "$RUNNER_TEMP/nuget-publish.XXXXXXXX")
+      printf 'root=%s\n' "$work" >> "$GITHUB_OUTPUT"
+      printf '<configuration />\n' > "$work/NuGet.Config"
+      env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+        -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+        dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+        --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+        --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+        --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+        --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+        --preparation-attempt "$PREPARATION_ATTEMPT" > "$work/verified.json"
+      jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$work/verified.json" > /dev/null
+      jq -S -c '.packages | sort_by(.file)' "$work/verified.json" > "$work/inventory.json"
+
+  - name: Obtain temporary NuGet credentials
+    if: ${{ false && success() }}
+    id: nuget-login
+    uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
+    with:
+      user: ${{ secrets.NUGET_USER }}
+
+  - name: Push each reverified package and symbol file
+    if: ${{ false && success() }}
+    shell: bash
+    env:
+      PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+      NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+      NUGET_SYMBOL_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+      APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+      APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+      APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+    run: |
+      set -euo pipefail
+      umask 077
+      : "${NUGET_API_KEY:?}" "${NUGET_SYMBOL_API_KEY:?}"
+      test "$GITHUB_RUN_ATTEMPT" = 1
+      test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+      [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+      test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+      test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+      test "$(cat -- "$PUBLISH_ROOT/NuGet.Config")" = '<configuration />'
+      test ! -e "$PUBLISH_ROOT/attempts.tsv"
+      : > "$PUBLISH_ROOT/attempts.tsv"
+      jq -er '.[].file' "$PUBLISH_ROOT/inventory.json" > "$PUBLISH_ROOT/files"
+      while IFS= read -r file; do
+        env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+          -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+          dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+          --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+          --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+          --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+          --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+          --preparation-attempt "$PREPARATION_ATTEMPT" > "$PUBLISH_ROOT/current.json"
+        jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$PUBLISH_ROOT/current.json" > /dev/null
+        jq -S -c '.packages | sort_by(.file)' "$PUBLISH_ROOT/current.json" > "$PUBLISH_ROOT/current-inventory.json"
+        cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/current-inventory.json"
+        expected=$(jq -er --arg file "$file" '.[] | select(.file == $file) | .sha256' "$PUBLISH_ROOT/inventory.json")
+        package="$HANDOFF_ROOT/batch/packages/$file"
+        test -f "$package" && test ! -L "$package"
+        arguments=(nuget push "$package" --source https://api.nuget.org/v3/index.json --configfile "$PUBLISH_ROOT/NuGet.Config" --timeout 300)
+        case "$file" in
+          *.snupkg) arguments+=(--symbol-source https://www.nuget.org/api/v2/symbolpackage --no-service-endpoint) ;;
+          *.nupkg) arguments+=(--no-symbols) ;;
+          *) exit 1 ;;
+        esac
+        printf '%s\tstarted\n' "$file" >> "$PUBLISH_ROOT/attempts.tsv"
+        actual=$(sha256sum -- "$package")
+        test "${actual%% *}" = "$expected"
+        if env -u APPFOUNDATION_GITHUB_TOKEN -u APPFOUNDATION_SONAR_TOKEN -u APPFOUNDATION_SONAR_VERIFY_TOKEN \
+          -u GITHUB_TOKEN -u GH_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+          -u NUGET_AUTH_TOKEN dotnet "${arguments[@]}"; then
+          printf '%s\tcli-success\n' "$file" >> "$PUBLISH_ROOT/attempts.tsv"
+        else
+          code=$?
+          printf '%s\tuncertain-exit-%s\n' "$file" "$code" >> "$PUBLISH_ROOT/attempts.tsv"
+          echo 'Publication stopped; reconcile remote outcomes before any retry.' >&2
+          exit "$code"
+        fi
+      done < "$PUBLISH_ROOT/files"
+
+  - name: Remove private publishing files
+    if: ${{ false && always() }}
+    shell: bash
+    env:
+      PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+    run: |
+      set -euo pipefail
+      test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+      [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+      test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+      test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+      rm -rf -- "$PUBLISH_ROOT"

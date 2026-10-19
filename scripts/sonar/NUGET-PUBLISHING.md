@@ -47,6 +47,13 @@ boundary; an earlier dry-run receipt alone never authorizes a later upload.
 
 ## Inactive step examples
 
+The [disabled step fragment](templates/nuget-publish.steps.yml) now connects these
+operations in order, with full verification before login and every explicit-file
+push. Its [setup, validation and activation blockers](templates/README.md) remain
+part of the review. It is outside `.github/workflows`, every step is disabled,
+and no existing Action calls it. Offline tests execute its actual shell blocks
+with command substitutes; they do not establish live OIDC or publishing acceptance.
+
 The following are separate step examples, not a complete runnable workflow. They
 deliberately use `if: ${{ false }}`. They contain no verification implementation:
 the ordered checks above must be wired and tested before enabling any step. Do not
@@ -188,6 +195,12 @@ overwrite a published version, repack the same version, refresh a stale receipt 
 reuse an earlier green result as authorization. Reruns and symbol-only retries need
 fresh verification and a newly approved selection. Durable outcome records and
 account-level bypass controls remain acceptance requirements for #244.
+
+The disabled fragment currently rejects workflow reruns and a second invocation
+in the same working directory. Its local `attempts.tsv` captures diagnostic
+started/CLI-result rows only. It is not a durable authenticated journal and cannot
+authorize retries or prevent replay across separate runs. Trusted records and
+manual/symbol recovery must be implemented before enabling the fragment.
 
 ## Validation boundary
 
