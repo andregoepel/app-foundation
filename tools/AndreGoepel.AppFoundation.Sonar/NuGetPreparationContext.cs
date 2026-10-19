@@ -49,7 +49,7 @@ internal sealed record NuGetPreparationContext(
     {
         var reference = "refs/tags/" + release.Tag;
         if (
-            release.Tag != "v" + release.Version
+            !NuGetRelease.IsPreparationTag(release.Tag, release.Version)
             || environment("GITHUB_ACTIONS") != "true"
             || environment("GITHUB_REPOSITORY") != MainPolicy.Repository
             || environment("GITHUB_EVENT_NAME") != "push"

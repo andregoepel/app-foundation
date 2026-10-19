@@ -11,7 +11,7 @@ internal sealed record NuGetRehearsalOptions(
 )
 {
     internal const string Usage =
-        "Use --root ROOT --nuget-rehearse --sha SHA --version X.Y.Z --readiness-run ID --tag vX.Y.Z --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER [--files FILE ...].";
+        "Use --root ROOT --nuget-rehearse --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; rehearsal never publishes.";
 
     internal static Result<NuGetRehearsalOptions> Parse(string[] args)
     {

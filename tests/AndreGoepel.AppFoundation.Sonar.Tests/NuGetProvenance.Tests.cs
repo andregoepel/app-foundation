@@ -256,7 +256,7 @@ public sealed class NuGetProvenanceTests
         private readonly HttpClient client;
         private readonly byte[] workflow;
         private byte[] archive = [];
-        internal NuGetHandoffTests.HandoffFixture Handoff { get; } = new();
+        internal NuGetHandoffTests.HandoffFixture Handoff { get; }
         internal NuGetPublicationRehearsalTests.RecordingSink Sink { get; }
         internal NuGetPreparationPolicy Policy { get; set; } =
             new(
@@ -278,13 +278,18 @@ public sealed class NuGetProvenanceTests
         internal string? RawOrigin { get; set; }
         internal bool FailApi { get; set; }
         private string RunsPath =>
-            $"actions/workflows/{Policy.WorkflowId}/runs?branch=v2.2.0&event=push&head_sha={MainFixture.Sha}&per_page=100";
+            $"actions/workflows/{Policy.WorkflowId}/runs?branch={Uri.EscapeDataString(Handoff.Input.Release.Tag!)}&event=push&head_sha={MainFixture.Sha}&per_page=100";
         private static string WorkflowPath =>
             $"contents/{NuGetPreparationPolicy.WorkflowPath}?ref={MainFixture.Sha}";
         private const string JobsPath = "actions/runs/500/attempts/1/jobs?per_page=100";
 
-        internal ProvenanceFixture(NuGetPreparationPolicy? policy = null, byte[]? workflow = null)
+        internal ProvenanceFixture(
+            NuGetPreparationPolicy? policy = null,
+            byte[]? workflow = null,
+            string tag = "v2.2.0"
+        )
         {
+            Handoff = new(tag);
             Policy = policy ?? Policy;
             this.workflow = workflow ?? "reviewed-workflow"u8.ToArray();
             client = new HttpClient(this, disposeHandler: false);
@@ -316,7 +321,7 @@ public sealed class NuGetProvenanceTests
                     run_attempt = 1,
                     path = NuGetPreparationPolicy.WorkflowPath,
                     head_sha = MainFixture.Sha,
-                    head_branch = "v2.2.0",
+                    head_branch = Handoff.Input.Release.Tag,
                     @event = "push",
                     status = "completed",
                     conclusion = "success",
@@ -374,7 +379,7 @@ public sealed class NuGetProvenanceTests
                             {
                                 id = 500,
                                 head_sha = MainFixture.Sha,
-                                head_branch = "v2.2.0",
+                                head_branch = Handoff.Input.Release.Tag,
                             },
                         },
                     },
@@ -385,7 +390,7 @@ public sealed class NuGetProvenanceTests
                     1,
                     MainPolicy.Repository,
                     MainFixture.Sha,
-                    "v2.2.0",
+                    Handoff.Input.Release.Tag!,
                     Handoff.Input.TagObjectSha,
                     500,
                     1,

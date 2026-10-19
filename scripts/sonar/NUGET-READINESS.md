@@ -187,9 +187,10 @@ The active Actions files are intentionally not edited or replaced here.
 
 ## Local transferred-batch verification
 
-`NuGetHandoff` prepares the verification component for a later publication job.
-It is currently reachable only from tests: there is no CLI entry point, workflow
-call, OIDC exchange or upload adapter. Its result retains `dryRun: true` and
+`NuGetHandoff` supplies the verification component used by preparation and the
+non-publishing consumer. Its CLI wiring and disabled workflow integration are
+described in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). There is no OIDC exchange
+or upload adapter. Its result retains `dryRun: true` and
 `releaseEligible: false` and must not authorize publication.
 
 The input requires a verified main candidate, its exact release tag, a manifest
@@ -231,11 +232,12 @@ receiving directory. No public package or actual tag is created.
 
 ## Non-publishing sequence rehearsal
 
-`NuGetPublicationRehearsal` connects the receiving verifier to an instrumented
-`INuGetRehearsalSink`. The only sink implementation is in the test project: its
-login and upload methods record events and supplied bytes. There is no NuGet
-client, OIDC exchange, credential, network upload, CLI entry point or workflow
-integration. A successful receipt remains `dryRun: true`, `releaseEligible: false`.
+`NuGetPublicationRehearsal` connects the receiving verifier to an
+`INuGetRehearsalSink`. Tests record simulated login/upload events and supplied
+bytes; the `--nuget-rehearse` command uses only `NuGetDiscardSink`. The disabled
+consumer workflow prepares that command's invocation. There is no NuGet client,
+OIDC exchange, publication credential or network upload. A successful receipt
+remains `dryRun: true`, `releaseEligible: false`.
 
 The sequence verifies the complete transferred batch, captures the selected
 package bytes in private memory and checks their hashes, then repeats the complete
@@ -268,6 +270,14 @@ orchestration, not enforcement by the unchanged publisher or authenticated
 provenance of the inputs.
 
 ## Acceptance evidence and remaining integration
+
+The non-publishing commands now also accept
+`sonar-poc/nuget/<32 lowercase hexadecimal characters>/vX.Y.Z` test tags, preserving
+the full identity through every check. This prepares real tag-event acceptance
+without triggering the unchanged `v*` publisher. No tag is created or workflow
+enabled by this support. See the
+[acceptance-tag constraints and runner steps](NUGET-INTEGRATION.md#non-release-acceptance-tags).
+Both disabled workflows still need an approved change before a real drill.
 
 The preparation-origin verifier and its production wiring requirements are
 documented in [NUGET-INTEGRATION.md](NUGET-INTEGRATION.md). It adds 66 cases around

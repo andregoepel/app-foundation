@@ -175,6 +175,63 @@ changes during consumption. CLI/bootstrap tests verify rejection before network
 or build work and prevent credential values from appearing in diagnostic output.
 Live producer/consumer acceptance remains pending while the producer job is disabled.
 
+## Non-release acceptance tags
+
+The non-publishing commands also accept a narrowly defined test-tag namespace:
+
+```text
+sonar-poc/nuget/<32 lowercase hexadecimal characters>/vX.Y.Z
+```
+
+For example, `sonar-poc/nuget/0123456789abcdef0123456789abcdef/v2.2.0`
+uses package version `2.2.0`. A new drill uses a new identifier; the exact full
+tag is preserved throughout event capture, GitHub run/artifact provenance, the
+origin and live tag checks. Matching only the version is insufficient. Encoded
+separators, other prefixes, extra segments, uppercase identifiers and mismatched
+versions are rejected. Existing `vX.Y.Z` input remains supported.
+
+This prepares acceptance without a release tag. The unchanged `ci.yml` triggers
+tag builds on `v*` and publishes only for `refs/tags/v...`; the fixed test prefix
+matches neither. No tag is created by these commands or this change. Before an
+actual drill, recheck the repository's then-current triggers and publishing paths.
+
+Use the full test tag as `--tag` with `--nuget-dry-run`, `--nuget-prepare` or
+`--nuget-rehearse`, and pass the version separately. There is no acceptance bypass
+flag. All existing evidence, reviewed workflow identity/hash, immutable tag-object,
+readiness, inventory and credential checks still apply. All preparation and
+rehearsal outputs retain `dryRun: true` and `releaseEligible: false`; the consumer
+still uses only the fixed discard sink. A future real publisher must accept only
+explicit release tags, never infer release authority from `IsPreparationTag`.
+
+The 34 additional cases exercise parsing, captured events, real preparation and
+the provenance/handoff/consumer composition with synthetic service responses.
+They cover lightweight/annotated object fixtures, cross-drill and release-tag
+substitution, failed gates, stale evidence, retargeting and modified packages.
+These tests do not establish GitHub's actual annotated-tag event payload.
+
+The next intended-runner step requires a separately approved workflow change:
+
+1. Restrict the producer to this test namespace for the acceptance phase, remove
+   its disabled guard, and validate/derive the version from the exact full tag.
+   Update the consumer's tag validation accordingly, enable its discard-only job,
+   and review/pin the changed producer hash in `nuget-policy.json`. The current
+   disabled revision must not be treated as approval of those changes.
+2. Create a protected test-tag-only `sonar-nuget-prepare` environment and a protected
+   main-only `sonar-nuget-rehearse` environment with scoped Sonar token copies.
+   Keep `sonar-main`, CI/E2E and the existing publisher unchanged. Neither job
+   receives OIDC permission or NuGet publishing credentials.
+3. After the reviewed change reaches main and fresh readiness succeeds, capture
+   real lightweight and annotated test-tag events on that exact SHA, transfer all
+   twelve files and exercise the discard consumer. Record negative and retry
+   results, then remove the test tags and temporary access. Stop on an annotated
+   payload/object mismatch; do not substitute a later ref lookup or weaken the check.
+
+This PR changes no workflow, policy, environment, token or remote tag. The two
+existing jobs remain disabled, and their current shell validation still accepts
+only release-tag syntax. Runner acceptance therefore remains pending; enabling it
+requires permission to change those existing workflows. NuGet barrier activation
+and a real release are separate later decisions.
+
 ## Registered producer identity
 
 GitHub assigned workflow ID `388401675` after PR #269 merged at

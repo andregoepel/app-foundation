@@ -46,10 +46,13 @@ internal sealed partial record NuGetRelease(
             || !long.TryParse(run, out var runId)
             || runId <= 0
             || !Directory.Exists(root)
-            || (tail.Length != 0 && (tail is not ["--tag", var tag] || tag != "v" + version))
+            || (
+                tail.Length != 0
+                && (tail is not ["--tag", var tag] || !IsPreparationTag(tag, version))
+            )
         )
             return Result.Fail<NuGetRelease>(
-                "Use --root ROOT --nuget-dry-run --sha SHA --version X.Y.Z --readiness-run ID [--tag vX.Y.Z], or --nuget-prepare with a required --tag vX.Y.Z."
+                "Use --root ROOT --nuget-dry-run --sha SHA --version X.Y.Z --readiness-run ID [--tag TAG], or --nuget-prepare with a required --tag TAG. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; both modes are non-publishing."
             );
 
         return Result.Ok(
@@ -62,6 +65,18 @@ internal sealed partial record NuGetRelease(
             )
         );
     }
+
+    internal static bool IsPreparationTag(string? tag, string version) =>
+        VersionPattern().IsMatch(version)
+        && (
+            tag == "v" + version
+            || (
+                tag?.Split('/') is ["sonar-poc", "nuget", var id, var suffix]
+                && id.Length == 32
+                && id.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f')
+                && suffix == "v" + version
+            )
+        );
 
     internal static Result CheckCredentialBoundary(Func<string, string?> environment)
     {

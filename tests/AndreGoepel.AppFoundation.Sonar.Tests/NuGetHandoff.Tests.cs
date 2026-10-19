@@ -299,7 +299,7 @@ public sealed class NuGetHandoffTests
         Assert.Equal(3, fixture.Checks);
     }
 
-    internal sealed class HandoffFixture : IReleaseReadiness, IDisposable
+    internal sealed class HandoffFixture(string tag = "v2.2.0") : IReleaseReadiness, IDisposable
     {
         internal const string TagObject = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         internal ReleaseFixture Evidence { get; } = new();
@@ -329,7 +329,7 @@ public sealed class NuGetHandoffTests
                 )
             )
                 File.Copy(file, Path.Combine(transfer, "packages", Path.GetFileName(file)));
-            Evidence.Main.Responses["git/ref/tags/v2.2.0"] = MainFixture.Node(
+            Evidence.Main.Responses["git/ref/tags/" + Uri.EscapeDataString(tag)] = MainFixture.Node(
                 new
                 {
                     @object = new
@@ -345,7 +345,7 @@ public sealed class NuGetHandoffTests
             Input = new(
                 Evidence.Release with
                 {
-                    Tag = "v2.2.0",
+                    Tag = tag,
                 },
                 transfer,
                 "",
@@ -364,7 +364,8 @@ public sealed class NuGetHandoffTests
         internal void Retarget()
         {
             var changed = new string('b', 40);
-            Evidence.Main.Responses["git/ref/tags/v2.2.0"]["object"]!["sha"] = changed;
+            Evidence.Main.Responses["git/ref/tags/" + Uri.EscapeDataString(tag)]["object"]!["sha"] =
+                changed;
             Evidence.Main.Responses["git/tags/" + changed] = MainFixture.Node(
                 new { @object = new { type = "commit", sha = MainFixture.Sha } }
             );

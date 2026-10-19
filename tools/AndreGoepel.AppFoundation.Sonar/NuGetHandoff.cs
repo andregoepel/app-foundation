@@ -80,7 +80,7 @@ internal sealed class NuGetHandoff(
     private Task<Result> CheckTagAsync(NuGetHandoffInput input, CancellationToken ct)
     {
         if (
-            input.Release.Tag != "v" + input.Release.Version
+            !NuGetRelease.IsPreparationTag(input.Release.Tag, input.Release.Version)
             || !IsHex(input.TagObjectSha, 40)
             || !IsHex(input.ManifestSha256, 64)
         )
