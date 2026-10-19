@@ -80,7 +80,7 @@ public sealed class NuGetRegisteredPolicyTests
     }
 
     [Fact]
-    public async Task Run_EnablingProducerWithoutPolicyReview_BlocksBeforeDownloadOrLogin()
+    public async Task Run_ChangingProducerTriggerWithoutPolicyReview_BlocksBeforeDownloadOrLogin()
     {
         // Arrange
         using var fixture = await CreateFixtureAsync(TestContext.Current.CancellationToken);
@@ -91,7 +91,7 @@ public sealed class NuGetRegisteredPolicyTests
             Convert.FromBase64String(response["content"]!.GetValue<string>())
         );
         response["content"] = Convert.ToBase64String(
-            Encoding.UTF8.GetBytes(workflow.Replace("if: ${{ false }}", "if: ${{ true }}"))
+            Encoding.UTF8.GetBytes(workflow.Replace("sonar-poc/nuget/*/v*", "v*"))
         );
 
         // Act
@@ -119,7 +119,11 @@ public sealed class NuGetRegisteredPolicyTests
             Path.Combine(root, NuGetPreparationPolicy.WorkflowPath),
             ct
         );
-        var fixture = new NuGetProvenanceTests.ProvenanceFixture(policy.Value!, workflow);
+        var fixture = new NuGetProvenanceTests.ProvenanceFixture(
+            policy.Value!,
+            workflow,
+            "sonar-poc/nuget/0123456789abcdef0123456789abcdef/v2.2.0"
+        );
         await fixture.InitializeAsync(ct);
         return fixture;
     }

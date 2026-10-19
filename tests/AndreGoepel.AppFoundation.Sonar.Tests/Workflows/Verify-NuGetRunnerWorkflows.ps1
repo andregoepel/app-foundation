@@ -13,20 +13,21 @@ if (-not $ResultsDirectory) {
 
 [IO.Directory]::CreateDirectory($ResultsDirectory) | Out-Null
 $workflow = [IO.File]::ReadAllLines((Join-Path $RepositoryRoot '.github/workflows/nuget-rehearse.yml'))
+$producerWorkflow = [IO.File]::ReadAllLines((Join-Path $RepositoryRoot '.github/workflows/nuget-prepare.yml'))
 $root = Join-Path ([IO.Path]::GetTempPath()) ('nuget-rehearsal-tests-' + [Guid]::NewGuid().ToString('N'))
 try {
     $utf8 = [Text.UTF8Encoding]::new($false)
     foreach ($directory in @($root, "$root/bin", "$root/scripts/sonar", "$root/temp")) {
         [IO.Directory]::CreateDirectory($directory) | Out-Null
     }
-    function Extract-Step([string]$name, [string]$path) {
-        $start = [Array]::IndexOf($workflow, "      - name: $name")
+    function Extract-Step([string]$name, [string]$path, [string[]]$lines = $workflow) {
+        $start = [Array]::IndexOf($lines, "      - name: $name")
         if ($start -lt 0) { throw "Missing step $name" }
-        while ($workflow[$start] -ne '        run: |') { $start++ }
+        while ($lines[$start] -ne '        run: |') { $start++ }
         $script = [Collections.Generic.List[string]]::new()
-        for ($index=$start+1; $index -lt $workflow.Length; $index++) {
-            if ($workflow[$index].StartsWith('          ')) { $script.Add($workflow[$index].Substring(10)) }
-            elseif ($workflow[$index].Length -eq 0) { $script.Add('') }
+        for ($index=$start+1; $index -lt $lines.Length; $index++) {
+            if ($lines[$index].StartsWith('          ')) { $script.Add($lines[$index].Substring(10)) }
+            elseif ($lines[$index].Length -eq 0) { $script.Add('') }
             else { break }
         }
         [IO.File]::WriteAllText($path, [string]::Join("`n", $script) + "`n", $utf8)
@@ -35,6 +36,8 @@ try {
     Extract-Step 'Download preparation artifacts' "$root/download.sh"
     Extract-Step 'Rehearse verified package batch' "$root/rehearse.sh"
     Extract-Step 'Remove downloaded artifacts' "$root/cleanup.sh"
+    Extract-Step 'Verify tag push' "$root/producer-event.sh" $producerWorkflow
+    Extract-Step 'Prepare NuGet batch' "$root/prepare.sh" $producerWorkflow
     $shim = @'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -42,6 +45,13 @@ printf '%s\n' "$*" >> "$FIXTURE_GH_CALLS"
 if [[ "$1" == api && "$2" == repos/andregoepel/app-foundation/git/ref/heads/main ]]; then
     if [[ "$FIXTURE_FAIL" == api ]]; then exit 21; fi
     printf '%s\n' "$FIXTURE_MAIN"
+elif [[ "$1" == api && "$2" == --method && "$3" == GET && "$4" == repos/andregoepel/app-foundation/actions/workflows/387320916/runs ]]; then
+    test "$5" = -f && test "$6" = branch=main
+    test "$7" = -f && test "$8" = event=workflow_run
+    test "$9" = -f && test "${10}" = "head_sha=$GITHUB_SHA"
+    test "${11}" = -f && test "${12}" = per_page=100 && test "${13}" = --jq
+    if [[ "$FIXTURE_FAIL" == readiness ]]; then exit 26; fi
+    printf '%s\n' "$FIXTURE_READINESS"
 elif [[ "$1" == run && "$2" == download ]]; then
     test "$3" = 500
     test "$4" = --repo && test "$5" = andregoepel/app-foundation
@@ -88,22 +98,119 @@ fi
         return $result
     }
     $sha = 'a' * 40
+    $tagPrefix = 'sonar-poc/nuget/0123456789abcdef0123456789abcdef/'
+    $tag = $tagPrefix + 'v2.2.0'
     $base = @{
         PATH="$root/bin:$env:PATH"; RUNNER_TEMP="$root/temp"; FIXTURE_FAIL='none'; FIXTURE_MAIN=$sha;
         GITHUB_REPOSITORY='andregoepel/app-foundation'; GITHUB_EVENT_NAME='workflow_run'; GITHUB_REF='refs/heads/main';
         GITHUB_WORKFLOW_REF='andregoepel/app-foundation/.github/workflows/nuget-rehearse.yml@refs/heads/main';
         GITHUB_WORKFLOW_SHA=$sha; GITHUB_SHA=$sha; CANDIDATE_SHA=$sha; PREPARATION_RUN='500';
-        PREPARATION_ATTEMPT='1'; RELEASE_TAG='v2.2.0'; FIXTURE_EXIT='0'
+        PREPARATION_ATTEMPT='1'; RELEASE_TAG=$tag; PACKAGE_VERSION='2.2.0'; FIXTURE_EXIT='0'
     }
     $passed = 0
-    $cases = @('valid','repository','event','ref','workflow-ref','workflow-sha','invalid-sha','action','payload-repository','producer-repository','fork','producer-id','producer-path','producer-event','producer-running','producer-failed','producer-skipped','producer-sha','tag-leading-zero','tag-prerelease','tag-injection','tag-too-long','run-zero','run-fraction','run-string','run-too-large','attempt-zero','attempt-fraction','attempt-too-large','stale-main','api-failure','malformed','missing')
+    $cases=@('lightweight','annotated','repository','event','ref-type','branch','workflow-sha','workflow-ref','invalid-sha','release-tag','other-prefix','uppercase-id','short-id','prerelease','tag-newline','payload-repository','payload-ref','created','deleted','forced','before','after','after-zero','after-newline','main','api-failure','readiness-failure','readiness-zero','readiness-invalid','malformed','missing')
+    foreach ($case in $cases) {
+        # Arrange
+        $values=$base.Clone()
+        $values.GITHUB_EVENT_NAME='push'
+        $values.GITHUB_REF_TYPE='tag'
+        $values.GITHUB_REF_NAME=$tag
+        $values.GITHUB_REF="refs/tags/$tag"
+        $values.GITHUB_WORKFLOW_REF="andregoepel/app-foundation/.github/workflows/nuget-prepare.yml@refs/tags/$tag"
+        $values.GITHUB_EVENT_PATH="$root/producer-event-$case.json"
+        $values.GITHUB_OUTPUT="$root/producer-output-$case"
+        $values.GITHUB_STEP_SUMMARY="$root/producer-summary-$case"
+        $values.FIXTURE_GH_CALLS="$root/producer-gh-$case"
+        $values.FIXTURE_READINESS='100'
+        $after=if ($case -eq 'annotated') {'b'*40} else {$sha}
+        $payload=@{repository=@{full_name='andregoepel/app-foundation'};ref="refs/tags/$tag";created=$true;deleted=$false;forced=$false;before=('0'*40);after=$after}
+        switch ($case) {
+            'repository' { $values.GITHUB_REPOSITORY='fork/app-foundation' }
+            'event' { $values.GITHUB_EVENT_NAME='workflow_dispatch' }
+            'ref-type' { $values.GITHUB_REF_TYPE='branch' }
+            'branch' { $values.GITHUB_REF="refs/heads/$tag" }
+            'workflow-sha' { $values.GITHUB_WORKFLOW_SHA='b'*40 }
+            'workflow-ref' { $values.GITHUB_WORKFLOW_REF='other/workflow@refs/heads/main' }
+            'invalid-sha' { $values.GITHUB_SHA='invalid';$values.GITHUB_WORKFLOW_SHA='invalid' }
+            'release-tag' { $values.GITHUB_REF_NAME='v2.2.0' }
+            'other-prefix' { $values.GITHUB_REF_NAME=$tag.Replace('sonar-poc','other') }
+            'uppercase-id' { $values.GITHUB_REF_NAME=$tag.Replace('abcdef','ABCDEF') }
+            'short-id' { $values.GITHUB_REF_NAME='sonar-poc/nuget/short/v2.2.0' }
+            'prerelease' { $values.GITHUB_REF_NAME=$tag+'-preview' }
+            'tag-newline' { $values.GITHUB_REF_NAME=$tag+"`n" }
+            'payload-repository' { $payload.repository.full_name='fork/app-foundation' }
+            'payload-ref' { $payload.ref='refs/tags/v2.2.0' }
+            'created' { $payload.created=$false }
+            'deleted' { $payload.deleted=$true }
+            'forced' { $payload.forced=$true }
+            'before' { $payload.before='b'*40 }
+            'after' { $payload.after='invalid' }
+            'after-zero' { $payload.after='0'*40 }
+            'after-newline' { $payload.after=$sha+"`n" }
+            'main' { $values.FIXTURE_MAIN='b'*40 }
+            'api-failure' { $values.FIXTURE_FAIL='api' }
+            'readiness-failure' { $values.FIXTURE_FAIL='readiness' }
+            'readiness-zero' { $values.FIXTURE_READINESS='0' }
+            'readiness-invalid' { $values.FIXTURE_READINESS='invalid' }
+        }
+        if ($case -in @('release-tag','other-prefix','uppercase-id','short-id','prerelease','tag-newline')) {
+            $values.GITHUB_REF='refs/tags/'+$values.GITHUB_REF_NAME
+            $values.GITHUB_WORKFLOW_REF='andregoepel/app-foundation/.github/workflows/nuget-prepare.yml@'+$values.GITHUB_REF
+            $payload.ref=$values.GITHUB_REF
+        }
+        [IO.File]::WriteAllText($values.GITHUB_OUTPUT, '', $utf8)
+        [IO.File]::WriteAllText($values.GITHUB_STEP_SUMMARY, '', $utf8)
+        if ($case -ne 'missing') { [IO.File]::WriteAllText($values.GITHUB_EVENT_PATH, $(if ($case -eq 'malformed') {'{'} else {$payload | ConvertTo-Json -Depth 5}), $utf8) }
+
+        # Act
+        $result=Invoke-Step "$root/producer-event.sh" $values
+
+        # Assert
+        $valid=$case -in @('lightweight','annotated')
+        if (($result.Code -eq 0) -ne $valid) { throw "$case producer event returned $($result.Code): $($result.Text)" }
+        $output=[IO.File]::ReadAllText($values.GITHUB_OUTPUT)
+        $summary=[IO.File]::ReadAllText($values.GITHUB_STEP_SUMMARY)
+        if ($valid) {
+            $digest=(Get-FileHash -LiteralPath $values.GITHUB_EVENT_PATH -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($output -ne "version=2.2.0`nreadiness-run=100`nevent-sha256=$digest`n") { throw "$case producer outputs differ" }
+            if (-not $summary.Contains($tag) -or -not $summary.Contains($after) -or -not $summary.Contains($sha)) { throw "$case event evidence missing" }
+            $validEvent=$values.GITHUB_EVENT_PATH
+            $validDigest=$digest
+        } elseif ($output.Length -ne 0 -or $summary.Length -ne 0) { throw "$case exported producer outputs" }
+        $passed++
+    }
+    foreach ($case in @('valid','changed-event','failed-verifier','cancelled-verifier')) {
+        # Arrange
+        $values=$base.Clone()
+        $values.GITHUB_REF_NAME=$tag
+        $values.GITHUB_EVENT_PATH=$validEvent
+        $values.READINESS_RUN='100'
+        $values.EVENT_SHA256=if ($case -eq 'changed-event') {'0'*64} else {$validDigest}
+        $values.FIXTURE_CAPTURE="$root/prepare-invocation-$case"
+        $values.FIXTURE_EXIT=if ($case -eq 'failed-verifier') {'1'} elseif ($case -eq 'cancelled-verifier') {'130'} else {'0'}
+
+        # Act
+        $result=Invoke-Step "$root/prepare.sh" $values
+
+        # Assert
+        if ($case -eq 'changed-event') {
+            if ($result.Code -eq 0 -or (Test-Path $values.FIXTURE_CAPTURE)) { throw 'Changed event reached preparation' }
+        } else {
+            if ($result.Code -ne [int]$values.FIXTURE_EXIT) { throw "$case preparation exit code was not propagated" }
+            $actual=[IO.File]::ReadAllLines($values.FIXTURE_CAPTURE)
+            $expected=@('--nuget-prepare','--sha',$sha,'--version','2.2.0','--readiness-run','100','--tag',$tag)
+            if ([string]::Join('|',$actual) -ne [string]::Join('|',$expected)) { throw "$case preparation arguments differ" }
+        }
+        $passed++
+    }
+    $cases = @('valid','repository','event','ref','workflow-ref','workflow-sha','invalid-sha','action','payload-repository','producer-repository','fork','producer-id','producer-path','producer-event','producer-running','producer-failed','producer-skipped','producer-sha','tag-leading-zero','tag-prerelease','tag-injection','tag-too-long','release-tag','other-prefix','uppercase-id','short-id','tag-newline','run-zero','run-fraction','run-string','run-too-large','attempt-zero','attempt-fraction','attempt-too-large','stale-main','api-failure','malformed','missing')
     foreach ($case in $cases) {
         # Arrange
         $values=$base.Clone()
         $values.GITHUB_OUTPUT="$root/preflight-output-$case"
         $values.GITHUB_EVENT_PATH="$root/event-$case.json"
         $values.FIXTURE_GH_CALLS="$root/preflight-gh-$case"
-        $producer=@{ repository=@{full_name='andregoepel/app-foundation'}; head_repository=@{full_name='andregoepel/app-foundation'}; workflow_id=388401675; path='.github/workflows/nuget-prepare.yml'; event='push'; status='completed'; conclusion='success'; head_sha=$sha; head_branch='v2.2.0'; id=500; run_attempt=1 }
+        $producer=@{ repository=@{full_name='andregoepel/app-foundation'}; head_repository=@{full_name='andregoepel/app-foundation'}; workflow_id=388401675; path='.github/workflows/nuget-prepare.yml'; event='push'; status='completed'; conclusion='success'; head_sha=$sha; head_branch=$tag; id=500; run_attempt=1 }
         $payload=@{action='completed';repository=@{full_name='andregoepel/app-foundation'};workflow_run=$producer}
         switch ($case) {
             'repository' { $values.GITHUB_REPOSITORY='fork/app-foundation' }
@@ -123,10 +230,15 @@ fi
             'producer-failed' { $producer.conclusion='failure' }
             'producer-skipped' { $producer.conclusion='skipped' }
             'producer-sha' { $producer.head_sha='b'*40 }
-            'tag-leading-zero' { $producer.head_branch='v02.2.0' }
-            'tag-prerelease' { $producer.head_branch='v2.2.0-preview' }
-            'tag-injection' { $producer.head_branch="v2.2.0`nsha=other" }
-            'tag-too-long' { $producer.head_branch='v123456.2.0' }
+            'tag-leading-zero' { $producer.head_branch=$tagPrefix+'v02.2.0' }
+            'tag-prerelease' { $producer.head_branch=$tag+'-preview' }
+            'tag-injection' { $producer.head_branch=$tag+"`nsha=other" }
+            'tag-too-long' { $producer.head_branch=$tagPrefix+'v123456.2.0' }
+            'release-tag' { $producer.head_branch='v2.2.0' }
+            'other-prefix' { $producer.head_branch=$tag.Replace('sonar-poc', 'other') }
+            'uppercase-id' { $producer.head_branch=$tag.Replace('abcdef', 'ABCDEF') }
+            'short-id' { $producer.head_branch='sonar-poc/nuget/short/v2.2.0' }
+            'tag-newline' { $producer.head_branch=$tag+"`n" }
             'run-zero' { $producer.id=0 }
             'run-fraction' { $producer.id=1.5 }
             'run-string' { $producer.id='500' }
@@ -147,7 +259,7 @@ fi
         if (($result.Code -eq 0) -ne ($case -eq 'valid')) { throw "$case preflight returned $($result.Code): $($result.Text)" }
         $output=[IO.File]::ReadAllText($values.GITHUB_OUTPUT)
         if ($case -eq 'valid') {
-            if ($output -ne "sha=$sha`nrun=500`nattempt=1`ntag=v2.2.0`n") { throw 'Preflight outputs differ' }
+            if ($output -ne "sha=$sha`nrun=500`nattempt=1`ntag=$tag`nversion=2.2.0`n") { throw 'Preflight outputs differ' }
         } elseif ($output.Length -ne 0) { throw "$case exported preflight outputs" }
         $passed++
     }
@@ -158,12 +270,12 @@ fi
         $values.GITHUB_OUTPUT="$root/download-output-$case"
         $values.FIXTURE_GH_CALLS="$root/download-gh-$case"
         $values.FIXTURE_ORIGIN="$root/origin-$case.json"
-        $origin=@{schemaVersion=1;repository='andregoepel/app-foundation';sha=$sha;tag='v2.2.0';runId=500;attempt=1;dryRun=$true;releaseEligible=$false;readinessRunId=100;tagObjectSha=('b'*40);manifestSha256=('c'*64)}
+        $origin=@{schemaVersion=1;repository='andregoepel/app-foundation';sha=$sha;tag=$tag;runId=500;attempt=1;dryRun=$true;releaseEligible=$false;readinessRunId=100;tagObjectSha=('b'*40);manifestSha256=('c'*64)}
         switch ($case) {
             'schema' { $origin.schemaVersion=2 }
             'repository' { $origin.repository='fork/app-foundation' }
             'sha' { $origin.sha='b'*40 }
-            'tag' { $origin.tag='v2.2.1' }
+            'tag' { $origin.tag='v2.2.0' }
             'run' { $origin.runId=501 }
             'attempt' { $origin.attempt=2 }
             'not-dry' { $origin.dryRun=$false }
@@ -213,7 +325,7 @@ fi
         # Assert
         if ($result.Code -ne [int]$values.FIXTURE_EXIT) { throw "$case exit code was not propagated" }
         $actual=[IO.File]::ReadAllLines($values.FIXTURE_CAPTURE)
-        $expected=@('--nuget-rehearse','--sha',$sha,'--version','2.2.0','--readiness-run','100','--tag','v2.2.0','--handoff',"$validHandoff/batch",'--manifest-sha256',('c'*64),'--tag-object',('b'*40),'--preparation-run','500','--preparation-attempt','1')
+        $expected=@('--nuget-rehearse','--sha',$sha,'--version','2.2.0','--readiness-run','100','--tag',$tag,'--handoff',"$validHandoff/batch",'--manifest-sha256',('c'*64),'--tag-object',('b'*40),'--preparation-run','500','--preparation-attempt','1')
         if ([string]::Join('|',$actual) -ne [string]::Join('|',$expected)) { throw "$case consumer arguments differ" }
         $passed++
     }
