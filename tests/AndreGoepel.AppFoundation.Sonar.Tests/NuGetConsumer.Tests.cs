@@ -17,7 +17,7 @@ public sealed class NuGetConsumerTests
         using var fixture = new NuGetProvenanceTests.ProvenanceFixture();
         await fixture.InitializeAsync(TestContext.Current.CancellationToken);
         var selected = symbolsOnly ? new[] { "AndreGoepel.AppFoundation.2.2.0.snupkg" } : null;
-        var options = new NuGetRehearsalOptions(fixture.Handoff.Input, 500, 1, selected);
+        var options = new NuGetHandoffOptions(fixture.Handoff.Input, 500, 1, selected);
 
         // Act
         var result = await fixture
@@ -53,7 +53,7 @@ public sealed class NuGetConsumerTests
         var result = await fixture
             .Consumer()
             .RunAsync(
-                new NuGetRehearsalOptions(fixture.Handoff.Input, 500, 1, null),
+                new NuGetHandoffOptions(fixture.Handoff.Input, 500, 1, null),
                 TestContext.Current.CancellationToken
             );
 
@@ -79,7 +79,7 @@ public sealed class NuGetConsumerTests
             ]!["status"] = "ERROR";
         if (fault == "package")
             fixture.Handoff.ChangeFiles("package");
-        var options = new NuGetRehearsalOptions(
+        var options = new NuGetHandoffOptions(
             fixture.Handoff.Input,
             fault == "run-pin" ? 999 : 500,
             fault == "attempt-pin" ? 2 : 1,
@@ -111,7 +111,7 @@ public sealed class NuGetConsumerTests
         var result = await fixture
             .Consumer()
             .RunAsync(
-                new NuGetRehearsalOptions(fixture.Handoff.Input, 500, 1, null),
+                new NuGetHandoffOptions(fixture.Handoff.Input, 500, 1, null),
                 TestContext.Current.CancellationToken
             );
 

@@ -374,6 +374,12 @@ semantics; those remain part of the actual runner acceptance.
 
 ## Official NuGet publishing tools
 
+The credential-free `--nuget-verify-handoff` command now exposes the authenticated
+provenance/readiness/tag and complete-batch checks independently of rehearsal.
+Its arguments match `--nuget-rehearse` without `--files`; it returns a diagnostic
+inventory and never a release authorization. The command and both bootstraps
+retain their publication-credential rejection. No existing Action invokes it yet.
+
 The future repository-local publishing job will use the official `NuGet/login`
 action and `dotnet nuget push`. The custom upload adapter, credential wrapper,
 HTTP transport, direct NuGet.Protocol dependency and their 47 tests have been
@@ -392,7 +398,8 @@ verification wiring, account controls or a durable publication journal.
 1. Wire the official `NuGet/login` action and `dotnet nuget push` into a reviewed
    credential-bearing boundary, preserving independent verification before login
    and each file. Implement trusted recording/reconciliation of partial or uncertain
-   outcomes. The inactive examples document this integration; no production
+   outcomes. The verification command is available; the inactive examples document
+   its future placement around login and push. No production
    publishing mode or replacement uploader is implemented by the console tool.
 2. Audit all six packages' trusted-publisher policies and alternative API keys,
    including manual and symbol-only routes. Repository secret inventory alone

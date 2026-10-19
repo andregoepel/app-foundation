@@ -143,7 +143,7 @@ public sealed class NuGetAcceptanceTagTests
         var input = fixture.Handoff.Input;
         var args = Arguments("--nuget-rehearse", Tag);
         args[1] = input.Release.Root;
-        var options = NuGetRehearsalOptions.Parse([
+        var options = NuGetHandoffOptions.Parse([
             .. args,
             "--handoff",
             input.Directory,

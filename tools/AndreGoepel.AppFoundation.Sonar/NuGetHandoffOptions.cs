@@ -3,24 +3,25 @@ using AndreGoepel.Core;
 
 namespace AndreGoepel.AppFoundation.Sonar;
 
-internal sealed record NuGetRehearsalOptions(
+internal sealed record NuGetHandoffOptions(
     NuGetHandoffInput Input,
     long PreparationRunId,
     int PreparationAttempt,
-    string[]? Files
+    string[]? Files,
+    bool VerifyOnly = false
 )
 {
     internal const string Usage =
-        "Use --root ROOT --nuget-rehearse --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; rehearsal never publishes.";
+        "Use --root ROOT MODE --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER. MODE is --nuget-verify-handoff or --nuget-rehearse; only rehearsal accepts [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; both modes are non-publishing.";
 
-    internal static Result<NuGetRehearsalOptions> Parse(string[] args)
+    internal static Result<NuGetHandoffOptions> Parse(string[] args)
     {
         if (
             args
                 is not [
                     "--root",
                     var root,
-                    "--nuget-rehearse",
+                    var mode,
                     "--sha",
                     var sha,
                     "--version",
@@ -41,6 +42,8 @@ internal sealed record NuGetRehearsalOptions(
                     var attempt,
                     .. var tail,
                 ]
+            || mode is not ("--nuget-rehearse" or "--nuget-verify-handoff")
+            || (mode == "--nuget-verify-handoff" && tail.Length != 0)
             || !Path.IsPathFullyQualified(directory)
             || !Directory.Exists(directory)
             || !IsHex(digest, 64)
@@ -56,7 +59,7 @@ internal sealed record NuGetRehearsalOptions(
             || attemptId <= 0
             || (tail.Length != 0 && tail is not ["--files", _, ..])
         )
-            return Result.Fail<NuGetRehearsalOptions>(Usage);
+            return Result.Fail<NuGetHandoffOptions>(Usage);
 
         var release = NuGetRelease.Parse([
             "--root",
@@ -72,7 +75,7 @@ internal sealed record NuGetRehearsalOptions(
             tag,
         ]);
         if (release.IsFailure)
-            return Result.Fail<NuGetRehearsalOptions>(Usage);
+            return Result.Fail<NuGetHandoffOptions>(Usage);
 
         var files = tail.Length == 0 ? null : tail[1..];
         var inventory = NuGetRelease.Packages.SelectMany(id =>
@@ -85,10 +88,10 @@ internal sealed record NuGetRehearsalOptions(
                 || files.Except(inventory, StringComparer.Ordinal).Any()
             )
         )
-            return Result.Fail<NuGetRehearsalOptions>(Usage);
+            return Result.Fail<NuGetHandoffOptions>(Usage);
 
         return Result.Ok(
-            new NuGetRehearsalOptions(
+            new NuGetHandoffOptions(
                 new NuGetHandoffInput(
                     release.Value!,
                     Path.GetFullPath(directory),
@@ -97,7 +100,8 @@ internal sealed record NuGetRehearsalOptions(
                 ),
                 runId,
                 attemptId,
-                files
+                files,
+                mode == "--nuget-verify-handoff"
             )
         );
     }

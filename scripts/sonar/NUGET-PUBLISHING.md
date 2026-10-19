@@ -1,6 +1,7 @@
 # Official NuGet publishing integration (#244)
 
-Status: reviewed design and inactive examples. This document does not register
+Status: verification-only command implemented; publishing examples remain inactive.
+This document does not register
 a workflow or provide a publishing entry point. Existing Actions and the
 non-publishing commands remain unchanged. Production activation needs a separate
 reviewed PR; #244 remains open.
@@ -116,6 +117,40 @@ export, persisted key configuration or credential-containing artifacts. Do not
 restore/build after login. The runner remains a trusted process boundary.
 
 ## Verification and credential separation still need wiring
+
+`--nuget-verify-handoff` now exposes the existing authenticated handoff checks
+without a rehearsal sink. It requires the same pinned inputs and reviewed producer
+policy as `--nuget-rehearse`, verifies all twelve files, and rejects `--files` or
+publishing overrides. Success writes a diagnostic JSON inventory with `packages`,
+`dryRun: true` and `releaseEligible: false`; failure returns nonzero without an
+inventory. It does not pack, log in, upload, change policy or refresh evidence.
+
+Each invocation repeats live provenance/readiness/tag and package checks. Its
+output is a point-in-time diagnostic, not a transferable authorization or a lock
+on the files. The future workflow must fail closed on the command's exit code,
+revalidate before login and every push, and preserve trusted ownership of the
+batch. A saved successful JSON document cannot authorize a later step.
+
+Both bootstraps accept the new mode in a credential-free environment. For the
+future job, bootstrap from reviewed source before login; then invoke that existing
+DLL without restore/build. An illustrative Linux verification step is:
+
+```sh
+env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+    -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+    dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+    --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+    --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+    --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+    --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+    --preparation-attempt "$PREPARATION_ATTEMPT"
+```
+
+This invocation still requires the existing read-only GitHub and Sonar credentials.
+The DLL must come from trusted bootstrap output, never the downloaded package
+artifact. Removing environment variables separates child-process credentials;
+it does not isolate a malicious process from other processes on the same runner.
+This example is not wired into any Action and supplies no publishing mode.
 
 The existing `--nuget-rehearse` command is deliberately credential-free and always
 uses `NuGetDiscardSink`; it is not a credential-bearing publishing command. Both
