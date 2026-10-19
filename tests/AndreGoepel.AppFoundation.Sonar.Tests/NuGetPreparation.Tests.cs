@@ -207,10 +207,13 @@ public sealed class NuGetPreparationTests
         Assert.Empty(fixture.Origins());
     }
 
-    internal sealed class PreparationFixture : IReleaseReadiness, INuGetPackageBuilder, IDisposable
+    internal sealed class PreparationFixture(string tag = "v2.2.0")
+        : IReleaseReadiness,
+            INuGetPackageBuilder,
+            IDisposable
     {
         internal ReleaseFixture Evidence { get; } = new();
-        internal NuGetRelease Release => Evidence.Release with { Tag = "v2.2.0" };
+        internal NuGetRelease Release => Evidence.Release with { Tag = tag };
         internal NuGetPreparationContext Context { get; set; } = null!;
         internal NuGetAcceptanceFixture.AcceptanceClock Clock { get; } = new(DateTimeOffset.UtcNow);
         internal int Builds { get; private set; }
@@ -227,12 +230,12 @@ public sealed class NuGetPreparationTests
                 Release,
                 environment.GetValueOrDefault,
                 NuGetPreparationContextTests.Element(
-                    NuGetPreparationContextTests.Payload(annotated)
+                    NuGetPreparationContextTests.Payload(annotated, tag)
                 )
             );
             Assert.True(captured.IsSuccess, captured.Error);
             Context = captured.Value!;
-            Evidence.Main.Responses["git/ref/tags/v2.2.0"] = MainFixture.Node(
+            Evidence.Main.Responses["git/ref/tags/" + Uri.EscapeDataString(tag)] = MainFixture.Node(
                 new
                 {
                     @object = new
@@ -250,7 +253,8 @@ public sealed class NuGetPreparationTests
         internal void Retarget()
         {
             var replacement = new string('b', 40);
-            Evidence.Main.Responses["git/ref/tags/v2.2.0"]["object"]!["sha"] = replacement;
+            Evidence.Main.Responses["git/ref/tags/" + Uri.EscapeDataString(tag)]["object"]!["sha"] =
+                replacement;
             Evidence.Main.Responses["git/tags/" + replacement] = MainFixture.Node(
                 new { @object = new { type = "commit", sha = Release.Sha } }
             );

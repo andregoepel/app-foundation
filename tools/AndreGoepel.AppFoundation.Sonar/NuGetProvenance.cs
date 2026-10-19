@@ -128,13 +128,13 @@ internal sealed class NuGetProvenance(
     )
     {
         var release = input.Release;
-        if (release.Tag != "v" + release.Version)
+        if (!NuGetRelease.IsPreparationTag(release.Tag, release.Version))
             return Result.Fail<JsonElement>(
                 "Preparation provenance requires the exact release tag."
             );
 
         var inventory = await github.GetAsync(
-            $"actions/workflows/{policy.WorkflowId}/runs?branch={Uri.EscapeDataString(release.Tag)}&event=push&head_sha={release.Sha}&per_page=100",
+            $"actions/workflows/{policy.WorkflowId}/runs?branch={Uri.EscapeDataString(release.Tag!)}&event=push&head_sha={release.Sha}&per_page=100",
             ct
         );
         var runs = inventory.GetProperty("workflow_runs").EnumerateArray().ToArray();

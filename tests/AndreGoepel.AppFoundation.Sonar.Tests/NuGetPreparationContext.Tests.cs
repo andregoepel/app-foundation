@@ -168,23 +168,23 @@ public sealed class NuGetPreparationContextTests
             ["GITHUB_ACTIONS"] = "true",
             ["GITHUB_REPOSITORY"] = MainPolicy.Repository,
             ["GITHUB_EVENT_NAME"] = "push",
-            ["GITHUB_REF"] = "refs/tags/v2.2.0",
+            ["GITHUB_REF"] = "refs/tags/" + release.Tag,
             ["GITHUB_REF_TYPE"] = "tag",
             ["GITHUB_SHA"] = release.Sha,
             ["GITHUB_WORKFLOW_SHA"] = release.Sha,
             ["GITHUB_WORKFLOW_REF"] =
-                $"{MainPolicy.Repository}/{NuGetPreparationPolicy.WorkflowPath}@refs/tags/v2.2.0",
+                $"{MainPolicy.Repository}/{NuGetPreparationPolicy.WorkflowPath}@refs/tags/{release.Tag}",
             ["GITHUB_WORKSPACE"] = release.Root,
             ["GITHUB_RUN_ID"] = "500",
             ["GITHUB_RUN_ATTEMPT"] = "1",
         };
 
-    internal static JsonNode Payload(bool annotated) =>
+    internal static JsonNode Payload(bool annotated, string tag = "v2.2.0") =>
         MainFixture.Node(
             new
             {
                 repository = new { full_name = MainPolicy.Repository },
-                @ref = "refs/tags/v2.2.0",
+                @ref = "refs/tags/" + tag,
                 created = true,
                 deleted = false,
                 forced = false,

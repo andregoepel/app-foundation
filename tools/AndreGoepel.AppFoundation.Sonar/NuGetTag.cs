@@ -11,11 +11,14 @@ internal static class NuGetTag
         CancellationToken ct
     )
     {
-        if (release.Tag != "v" + release.Version || !IsSha(originalObjectSha))
+        if (
+            !NuGetRelease.IsPreparationTag(release.Tag, release.Version)
+            || !IsSha(originalObjectSha)
+        )
             return Result.Fail("An immutable release tag object is required.");
 
         var reference = await github.GetAsync(
-            "git/ref/tags/" + Uri.EscapeDataString(release.Tag),
+            "git/ref/tags/" + Uri.EscapeDataString(release.Tag!),
             ct
         );
         var target = reference.GetProperty("object");
