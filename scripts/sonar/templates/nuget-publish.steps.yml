@@ -13,6 +13,10 @@ steps:
       umask 077
       test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
       test "$GITHUB_RUN_ATTEMPT" = 1
+      [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+      test "$GITHUB_SHA" = "$CANDIDATE_SHA"
+      test "$GITHUB_WORKFLOW_SHA" = "$CANDIDATE_SHA"
+      test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-publish.yml@refs/heads/main"
       [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
       test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
       test -f "$VERIFIER_DLL" && test ! -L "$VERIFIER_DLL"
@@ -29,6 +33,65 @@ steps:
         --preparation-attempt "$PREPARATION_ATTEMPT" > "$work/verified.json"
       jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$work/verified.json" > /dev/null
       jq -S -c '.packages | sort_by(.file)' "$work/verified.json" > "$work/inventory.json"
+      jq -n --slurpfile packages "$work/inventory.json" \
+        --arg repository "$GITHUB_REPOSITORY" --arg sha "$CANDIDATE_SHA" \
+        --arg tag "$RELEASE_TAG" --arg tagObject "$TAG_OBJECT" --arg version "$PACKAGE_VERSION" \
+        --arg manifest "$MANIFEST_SHA256" --arg readiness "$READINESS_RUN" \
+        --arg preparation "$PREPARATION_RUN" --arg preparationAttempt "$PREPARATION_ATTEMPT" \
+        --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+        --arg workflow "$GITHUB_WORKFLOW_REF" --arg revision "$GITHUB_WORKFLOW_SHA" \
+        --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+        {schemaVersion: 1, kind: "publication-intent", repository: $repository, sha: $sha,
+         tag: $tag, tagObjectSha: $tagObject, version: $version, manifestSha256: $manifest,
+         readinessRunId: $readiness, preparationRunId: $preparation, preparationAttempt: $preparationAttempt,
+         publishRunId: $run, publishAttempt: $attempt, workflowRef: $workflow, workflowRevision: $revision,
+         createdAt: $time, packages: $packages[0], authorizesRetry: false}' > "$work/intent.json"
+      digest=$(sha256sum -- "$work/intent.json")
+      printf 'intent-sha256=%s\n' "${digest%% *}" >> "$GITHUB_OUTPUT"
+
+  - name: Preserve publication intent before login
+    if: ${{ false && success() }}
+    id: publish-intent
+    uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+    with:
+      name: nuget-publish-intent-${{ github.run_id }}-${{ github.run_attempt }}
+      path: ${{ steps.verified-handoff.outputs.root }}/intent.json
+      if-no-files-found: error
+      retention-days: 90
+      overwrite: false
+      include-hidden-files: false
+
+  - name: Reverify after preserving intent
+    if: ${{ false && success() }}
+    id: recorded-handoff
+    shell: bash
+    env:
+      PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+      INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
+      INTENT_ARTIFACT_ID: ${{ steps.publish-intent.outputs.artifact-id }}
+      INTENT_ARTIFACT_DIGEST: ${{ steps.publish-intent.outputs.artifact-digest }}
+      APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+      APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+      APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+    run: |
+      set -euo pipefail
+      [[ "$INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+      [[ "$INTENT_ARTIFACT_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+      digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+      test "${digest%% *}" = "$INTENT_SHA256"
+      env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+        -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+        dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+        --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+        --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+        --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+        --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+        --preparation-attempt "$PREPARATION_ATTEMPT" > "$PUBLISH_ROOT/recorded.json"
+      jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$PUBLISH_ROOT/recorded.json" > /dev/null
+      jq -S -c '.packages | sort_by(.file)' "$PUBLISH_ROOT/recorded.json" > "$PUBLISH_ROOT/recorded-inventory.json"
+      jq -S -c '.packages' "$PUBLISH_ROOT/intent.json" > "$PUBLISH_ROOT/intent-inventory.json"
+      cmp -- "$PUBLISH_ROOT/intent-inventory.json" "$PUBLISH_ROOT/recorded-inventory.json"
+      cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/recorded-inventory.json"
 
   - name: Obtain temporary NuGet credentials
     if: ${{ false && success() }}
@@ -39,9 +102,11 @@ steps:
 
   - name: Push each reverified package and symbol file
     if: ${{ false && success() }}
+    id: publish
     shell: bash
     env:
       PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+      INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
       NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
       NUGET_SYMBOL_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
       APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
@@ -57,6 +122,10 @@ steps:
       test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
       test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
       test "$(cat -- "$PUBLISH_ROOT/NuGet.Config")" = '<configuration />'
+      digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+      test "${digest%% *}" = "$INTENT_SHA256"
+      jq -S -c '.packages' "$PUBLISH_ROOT/intent.json" > "$PUBLISH_ROOT/intent-inventory.json"
+      cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/intent-inventory.json"
       test ! -e "$PUBLISH_ROOT/attempts.tsv"
       : > "$PUBLISH_ROOT/attempts.tsv"
       jq -er '.[].file' "$PUBLISH_ROOT/inventory.json" > "$PUBLISH_ROOT/files"
@@ -96,8 +165,83 @@ steps:
         fi
       done < "$PUBLISH_ROOT/files"
 
+  - name: Record publication outcomes
+    if: ${{ false && always() && steps.publish-intent.outcome == 'success' }}
+    id: publish-outcomes
+    shell: bash
+    env:
+      PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+      INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
+      INTENT_ARTIFACT_ID: ${{ steps.publish-intent.outputs.artifact-id }}
+      INTENT_ARTIFACT_DIGEST: ${{ steps.publish-intent.outputs.artifact-digest }}
+      LOGIN_OUTCOME: ${{ steps.nuget-login.outcome }}
+      PUSH_OUTCOME: ${{ steps.publish.outcome }}
+    run: |
+      set -euo pipefail
+      umask 077
+      test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+      [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+      test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+      test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+      [[ "$INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+      [[ "$INTENT_ARTIFACT_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+      test -f "$PUBLISH_ROOT/intent.json" && test ! -L "$PUBLISH_ROOT/intent.json"
+      digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+      test "${digest%% *}" = "$INTENT_SHA256"
+      for outcome in "$LOGIN_OUTCOME" "$PUSH_OUTCOME"; do
+        case "$outcome" in success|failure|cancelled|skipped) ;; *) exit 1 ;; esac
+      done
+      printf '[]\n' > "$PUBLISH_ROOT/events.json"
+      if test -e "$PUBLISH_ROOT/attempts.tsv" || test -L "$PUBLISH_ROOT/attempts.tsv"; then
+        test -f "$PUBLISH_ROOT/attempts.tsv" && test ! -L "$PUBLISH_ROOT/attempts.tsv"
+        test "$(stat -c %s -- "$PUBLISH_ROOT/attempts.tsv")" -le 16384
+        jq -Rn '[inputs | split("\t") | if length == 2 then {file: .[0], status: .[1]} else error("Invalid attempt row") end]' \
+          "$PUBLISH_ROOT/attempts.tsv" > "$PUBLISH_ROOT/events.json"
+      fi
+      jq -e -n --slurpfile intent "$PUBLISH_ROOT/intent.json" --slurpfile events "$PUBLISH_ROOT/events.json" \
+        --arg hash "$INTENT_SHA256" --arg artifact "$INTENT_ARTIFACT_ID" --arg digest "$INTENT_ARTIFACT_DIGEST" \
+        --arg login "$LOGIN_OUTCOME" --arg push "$PUSH_OUTCOME" --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+        $intent[0] as $i | $events[0] as $e |
+        if ($e | length) > 24 then error("Too many attempt rows") else . end |
+        reduce range(0; $e | length) as $n (.;
+          if $e[$n].file != $i.packages[($n / 2 | floor)].file or
+             (if $n % 2 == 0 then $e[$n].status != "started"
+              else ($e[$n].status != "cli-success" and
+                (($e[$n].status | test("^uncertain-exit-([1-9][0-9]{0,2})$")) | not)) or
+                ($e[$n].status != "cli-success" and $n != ($e | length) - 1) end)
+          then error("Invalid attempt sequence") else . end) |
+        if ($push == "skipped" and ($e | length) != 0) or
+           ($push != "skipped" and $login != "success") or
+           ($push == "success" and (($e | length) != 24 or any($e[]; .status != "started" and .status != "cli-success")))
+        then error("Inconsistent step outcomes") else . end |
+        {schemaVersion: 1, kind: "publication-outcomes", intentSha256: $hash,
+         intentArtifactId: $artifact, intentArtifactDigest: $digest,
+         repository: $i.repository, sha: $i.sha, publishRunId: $i.publishRunId,
+         publishAttempt: $i.publishAttempt, workflowRef: $i.workflowRef, workflowRevision: $i.workflowRevision,
+         recordedAt: $time, loginOutcome: $login, pushOutcome: $push,
+         authorizesRetry: false, remoteAcceptanceVerified: false,
+         packages: [$i.packages[] | . as $package |
+           [$e[] | select(.file == $package.file)] as $rows |
+           . + {cliObservation: (if $push == "skipped" then "not-dispatched"
+             elif ($rows | length) == 0 then "unrecorded"
+             elif $rows[-1].status == "cli-success" then "cli-success" else "uncertain" end),
+             events: [$rows[].status]}]}' > "$PUBLISH_ROOT/outcomes.pending.json"
+      mv -- "$PUBLISH_ROOT/outcomes.pending.json" "$PUBLISH_ROOT/outcomes.json"
+
+  - name: Preserve publication outcomes
+    if: ${{ false && always() && steps.publish-outcomes.outcome == 'success' }}
+    id: stored-outcomes
+    uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+    with:
+      name: nuget-publish-outcomes-${{ github.run_id }}-${{ github.run_attempt }}
+      path: ${{ steps.verified-handoff.outputs.root }}/outcomes.json
+      if-no-files-found: error
+      retention-days: 90
+      overwrite: false
+      include-hidden-files: false
+
   - name: Remove private publishing files
-    if: ${{ false && always() }}
+    if: ${{ false && always() && steps.verified-handoff.outputs.root != '' && (steps.publish-intent.outcome != 'success' || steps.stored-outcomes.outcome == 'success') }}
     shell: bash
     env:
       PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
