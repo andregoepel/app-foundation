@@ -10,8 +10,10 @@ The tool never deploys, publishes packages, commits or pushes. The separate
 changing active Actions. Local receipts always
 have `releaseEligible: false`. The separate, initially disabled trusted-main entry
 point and its activation requirements are documented in [MAIN-READINESS.md](MAIN-READINESS.md).
-Existing Actions are unchanged; solution builds/tests automatically include the
-console tool and its xUnit project. Release enforcement remains in #244–#245.
+Solution builds/tests automatically include the console tool and its xUnit
+project. The [NuGet standby migration](NUGET-STANDBY.md) removes the legacy CI
+publisher and registers disabled replacement jobs. Account-policy cutover and
+publishing activation remain pending under #244.
 
 The combined [release eligibility contract](RELEASE-ELIGIBILITY.md) documents
 publication-record inspection/replay rejection and the non-deploying staging

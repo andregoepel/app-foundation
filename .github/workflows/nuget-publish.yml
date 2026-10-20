@@ -1,0 +1,441 @@
+# Inactive caller template. Render with Build-NuGetPublishWorkflow.ps1 for review.
+name: NuGet verified publication
+
+on:
+  workflow_run:
+    workflows: ["NuGet preparation"]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: app-foundation-nuget-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: ${{ false && github.repository == 'andregoepel/app-foundation' && github.event.workflow_run.workflow_id == 388401675 && github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v') }}
+    runs-on: ubuntu-24.04
+    environment: nuget-publish
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Validate publication trigger
+        if: ${{ false && success() }}
+        id: event
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
+          test "$GITHUB_EVENT_NAME" = workflow_run
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-publish.yml@refs/heads/main"
+          test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test -f "$GITHUB_EVENT_PATH" && test ! -L "$GITHUB_EVENT_PATH"
+          test "$(stat -c %s -- "$GITHUB_EVENT_PATH")" -le 1048576
+          event=$(cat -- "$GITHUB_EVENT_PATH")
+          jq -e --arg sha "$GITHUB_SHA" '
+            .action == "completed" and .repository.full_name == "andregoepel/app-foundation" and
+            (.workflow_run | .repository.full_name == "andregoepel/app-foundation" and
+              .head_repository.full_name == "andregoepel/app-foundation" and
+              .workflow_id == 388401675 and .path == ".github/workflows/nuget-prepare.yml" and
+              .name == "NuGet preparation" and .event == "push" and
+              .status == "completed" and .conclusion == "success" and .head_sha == $sha and
+              (.head_branch | test("^v(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\z")) and
+              (.id | type == "number" and . > 0 and . < 9007199254740992 and . == floor) and
+              .run_attempt == 1)
+          ' <<< "$event" > /dev/null
+          main_sha=$(gh api repos/andregoepel/app-foundation/git/ref/heads/main --jq '.object.sha')
+          test "$main_sha" = "$GITHUB_SHA"
+          run=$(jq -r '.workflow_run.id' <<< "$event")
+          tag=$(jq -r '.workflow_run.head_branch' <<< "$event")
+          printf 'sha=%s\nrun=%s\nattempt=1\ntag=%s\nversion=%s\n' "$GITHUB_SHA" "$run" "$tag" "${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out trusted candidate
+        if: ${{ false && success() }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.event.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pinned SDK
+        if: ${{ false && success() }}
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+
+      - name: Bootstrap trusted verifier
+        if: ${{ false && success() }}
+        id: bootstrap
+        env:
+          CANDIDATE_SHA: ${{ steps.event.outputs.sha }}
+        run: |
+          set -euo pipefail
+          umask 077
+          unset APPFOUNDATION_GITHUB_TOKEN APPFOUNDATION_SONAR_TOKEN APPFOUNDATION_SONAR_VERIFY_TOKEN
+          unset GITHUB_TOKEN GH_TOKEN ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
+          unset NUGET_API_KEY NUGET_SYMBOL_API_KEY NUGET_AUTH_TOKEN
+          test "$(pwd -P)" = "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          root=$(mktemp -d "$RUNNER_TEMP/nuget-verifier.XXXXXXXX")
+          printf 'root=%s\n' "$root" >> "$GITHUB_OUTPUT"
+          project=tools/AndreGoepel.AppFoundation.Sonar/AndreGoepel.AppFoundation.Sonar.csproj
+          dotnet restore "$project" --locked-mode
+          dotnet publish "$project" -c Release --no-restore --no-self-contained -p:SonarQubeTargetsImported=true -o "$root"
+          dll="$root/AndreGoepel.AppFoundation.Sonar.dll"
+          test -f "$dll" && test ! -L "$dll"
+          printf 'dll=%s\n' "$dll" >> "$GITHUB_OUTPUT"
+
+      - name: Download publication handoff
+        if: ${{ false && success() }}
+        id: download
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ steps.event.outputs.sha }}
+          PREPARATION_RUN: ${{ steps.event.outputs.run }}
+          PREPARATION_ATTEMPT: ${{ steps.event.outputs.attempt }}
+          RELEASE_TAG: ${{ steps.event.outputs.tag }}
+        run: |
+          set -euo pipefail
+          umask 077
+          handoff=$(mktemp -d "$RUNNER_TEMP/nuget-handoff.XXXXXXXX")
+          printf 'root=%s\n' "$handoff" >> "$GITHUB_OUTPUT"
+          gh run download "$PREPARATION_RUN" --repo andregoepel/app-foundation \
+            --name "nuget-origin-$CANDIDATE_SHA-$PREPARATION_RUN-$PREPARATION_ATTEMPT" --dir "$handoff/origin"
+          origin="$handoff/origin/origin.json"
+          test -f "$origin" && test ! -L "$origin"
+          test "$(stat -c %s -- "$origin")" -le 1048576
+          pins=$(jq -ce --arg sha "$CANDIDATE_SHA" --arg tag "$RELEASE_TAG" \
+            --argjson run "$PREPARATION_RUN" --argjson attempt "$PREPARATION_ATTEMPT" '
+            if .schemaVersion == 1 and .repository == "andregoepel/app-foundation" and
+              .sha == $sha and .tag == $tag and .runId == $run and .attempt == $attempt and
+              .dryRun == true and .releaseEligible == false and
+              (.readinessRunId | type == "number" and . > 0 and . < 9007199254740992 and . == floor) and
+              (.tagObjectSha | test("^[a-f0-9]{40}\\z")) and
+              (.manifestSha256 | test("^[a-f0-9]{64}\\z"))
+            then {readiness: .readinessRunId, tagObject: .tagObjectSha, manifest: .manifestSha256}
+            else error("Invalid preparation origin") end' "$origin")
+          gh run download "$PREPARATION_RUN" --repo andregoepel/app-foundation \
+            --name "nuget-batch-$CANDIDATE_SHA-$PREPARATION_RUN-$PREPARATION_ATTEMPT" --dir "$handoff/batch"
+          printf 'readiness=%s\ntag-object=%s\nmanifest=%s\n' \
+            "$(jq -r '.readiness' <<< "$pins")" "$(jq -r '.tagObject' <<< "$pins")" "$(jq -r '.manifest' <<< "$pins")" >> "$GITHUB_OUTPUT"
+
+      - name: Export publication context
+        if: ${{ false && success() }}
+        env:
+          CANDIDATE_SHA: ${{ steps.event.outputs.sha }}
+          PREPARATION_RUN: ${{ steps.event.outputs.run }}
+          PREPARATION_ATTEMPT: ${{ steps.event.outputs.attempt }}
+          RELEASE_TAG: ${{ steps.event.outputs.tag }}
+          PACKAGE_VERSION: ${{ steps.event.outputs.version }}
+          BOOTSTRAP_ROOT: ${{ steps.bootstrap.outputs.root }}
+          VERIFIER_DLL: ${{ steps.bootstrap.outputs.dll }}
+          HANDOFF_ROOT: ${{ steps.download.outputs.root }}
+          READINESS_RUN: ${{ steps.download.outputs.readiness }}
+          TAG_OBJECT: ${{ steps.download.outputs.tag-object }}
+          MANIFEST_SHA256: ${{ steps.download.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          test "$(pwd -P)" = "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          test "$CANDIDATE_SHA" = "$GITHUB_SHA"
+          test "$PREPARATION_ATTEMPT" = 1
+          [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
+          test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
+          [[ "$READINESS_RUN" =~ ^[1-9][0-9]{0,15}$ && "$PREPARATION_RUN" =~ ^[1-9][0-9]{0,15}$ ]]
+          [[ "$TAG_OBJECT" =~ ^[a-f0-9]{40}$ && "$MANIFEST_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          for root in "$BOOTSTRAP_ROOT" "$HANDOFF_ROOT"; do
+            test "$(dirname -- "$root")" = "$RUNNER_TEMP"
+            test -d "$root" && test ! -L "$root"
+            test "$(realpath -e -- "$root")" = "$root"
+          done
+          [[ "$(basename -- "$BOOTSTRAP_ROOT")" =~ ^nuget-verifier\.[A-Za-z0-9]{8}$ ]]
+          [[ "$(basename -- "$HANDOFF_ROOT")" =~ ^nuget-handoff\.[A-Za-z0-9]{8}$ ]]
+          test "$VERIFIER_DLL" = "$BOOTSTRAP_ROOT/AndreGoepel.AppFoundation.Sonar.dll"
+          test -f "$VERIFIER_DLL" && test ! -L "$VERIFIER_DLL"
+          export REPOSITORY_ROOT="$GITHUB_WORKSPACE"
+          names=(VERIFIER_DLL REPOSITORY_ROOT CANDIDATE_SHA PACKAGE_VERSION READINESS_RUN RELEASE_TAG HANDOFF_ROOT MANIFEST_SHA256 TAG_OBJECT PREPARATION_RUN PREPARATION_ATTEMPT)
+          for name in "${names[@]}"; do
+            value="${!name}"
+            [[ -n "$value" && "$value" != *$'\n'* && "$value" != *$'\r'* ]]
+          done
+          for name in "${names[@]}"; do printf '%s=%s\n' "$name" "${!name}" >> "$GITHUB_ENV"; done
+
+      - name: Verify full handoff before login
+        if: ${{ false && success() }}
+        id: verified-handoff
+        shell: bash
+        env:
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = andregoepel/app-foundation
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+          test "$GITHUB_SHA" = "$CANDIDATE_SHA"
+          test "$GITHUB_WORKFLOW_SHA" = "$CANDIDATE_SHA"
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-publish.yml@refs/heads/main"
+          [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
+          test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
+          test -f "$VERIFIER_DLL" && test ! -L "$VERIFIER_DLL"
+          work=$(mktemp -d "$RUNNER_TEMP/nuget-publish.XXXXXXXX")
+          printf 'root=%s\n' "$work" >> "$GITHUB_OUTPUT"
+          printf '<configuration />\n' > "$work/NuGet.Config"
+          env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+            -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+            dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+            --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+            --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+            --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+            --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+            --preparation-attempt "$PREPARATION_ATTEMPT" > "$work/verified.json"
+          jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$work/verified.json" > /dev/null
+          jq -S -c '.packages | sort_by(.file)' "$work/verified.json" > "$work/inventory.json"
+          jq -n --slurpfile packages "$work/inventory.json" \
+            --arg repository "$GITHUB_REPOSITORY" --arg sha "$CANDIDATE_SHA" \
+            --arg tag "$RELEASE_TAG" --arg tagObject "$TAG_OBJECT" --arg version "$PACKAGE_VERSION" \
+            --arg manifest "$MANIFEST_SHA256" --arg readiness "$READINESS_RUN" \
+            --arg preparation "$PREPARATION_RUN" --arg preparationAttempt "$PREPARATION_ATTEMPT" \
+            --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg workflow "$GITHUB_WORKFLOW_REF" --arg revision "$GITHUB_WORKFLOW_SHA" \
+            --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+            {schemaVersion: 1, kind: "publication-intent", repository: $repository, sha: $sha,
+             tag: $tag, tagObjectSha: $tagObject, version: $version, manifestSha256: $manifest,
+             readinessRunId: $readiness, preparationRunId: $preparation, preparationAttempt: $preparationAttempt,
+             publishRunId: $run, publishAttempt: $attempt, workflowRef: $workflow, workflowRevision: $revision,
+             createdAt: $time, packages: $packages[0], authorizesRetry: false}' > "$work/intent.json"
+          digest=$(sha256sum -- "$work/intent.json")
+          printf 'intent-sha256=%s\n' "${digest%% *}" >> "$GITHUB_OUTPUT"
+
+      - name: Preserve publication intent before login
+        if: ${{ false && success() }}
+        id: publish-intent
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-publish-intent-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.verified-handoff.outputs.root }}/intent.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: false
+          include-hidden-files: false
+
+      - name: Reverify after preserving intent
+        if: ${{ false && success() }}
+        id: recorded-handoff
+        shell: bash
+        env:
+          PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+          INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
+          INTENT_ARTIFACT_ID: ${{ steps.publish-intent.outputs.artifact-id }}
+          INTENT_ARTIFACT_DIGEST: ${{ steps.publish-intent.outputs.artifact-digest }}
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+          [[ "$INTENT_ARTIFACT_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+          test "${digest%% *}" = "$INTENT_SHA256"
+          env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+            -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+            dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-intent \
+            --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+            --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+            --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+            --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+            --preparation-attempt "$PREPARATION_ATTEMPT" > "$PUBLISH_ROOT/recorded.json"
+          jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$PUBLISH_ROOT/recorded.json" > /dev/null
+          jq -S -c '.packages | sort_by(.file)' "$PUBLISH_ROOT/recorded.json" > "$PUBLISH_ROOT/recorded-inventory.json"
+          jq -S -c '.packages' "$PUBLISH_ROOT/intent.json" > "$PUBLISH_ROOT/intent-inventory.json"
+          cmp -- "$PUBLISH_ROOT/intent-inventory.json" "$PUBLISH_ROOT/recorded-inventory.json"
+          cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/recorded-inventory.json"
+
+      - name: Obtain temporary NuGet credentials
+        if: ${{ false && success() }}
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push each reverified package and symbol file
+        if: ${{ false && success() }}
+        id: publish
+        shell: bash
+        env:
+          PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+          INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          NUGET_SYMBOL_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          APPFOUNDATION_GITHUB_TOKEN: ${{ github.token }}
+          APPFOUNDATION_SONAR_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_TOKEN }}
+          APPFOUNDATION_SONAR_VERIFY_TOKEN: ${{ secrets.APPFOUNDATION_SONAR_VERIFY_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${NUGET_API_KEY:?}" "${NUGET_SYMBOL_API_KEY:?}"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+          [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+          test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+          test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+          test "$(cat -- "$PUBLISH_ROOT/NuGet.Config")" = '<configuration />'
+          digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+          test "${digest%% *}" = "$INTENT_SHA256"
+          jq -S -c '.packages' "$PUBLISH_ROOT/intent.json" > "$PUBLISH_ROOT/intent-inventory.json"
+          cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/intent-inventory.json"
+          test ! -e "$PUBLISH_ROOT/attempts.tsv"
+          : > "$PUBLISH_ROOT/attempts.tsv"
+          jq -er '.[].file' "$PUBLISH_ROOT/inventory.json" > "$PUBLISH_ROOT/files"
+          while IFS= read -r file; do
+            env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+              -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
+              dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+              --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
+              --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
+              --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \
+              --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" \
+              --preparation-attempt "$PREPARATION_ATTEMPT" > "$PUBLISH_ROOT/current.json"
+            jq -e '.dryRun == true and .releaseEligible == false and (.packages | length == 12)' "$PUBLISH_ROOT/current.json" > /dev/null
+            jq -S -c '.packages | sort_by(.file)' "$PUBLISH_ROOT/current.json" > "$PUBLISH_ROOT/current-inventory.json"
+            cmp -- "$PUBLISH_ROOT/inventory.json" "$PUBLISH_ROOT/current-inventory.json"
+            expected=$(jq -er --arg file "$file" '.[] | select(.file == $file) | .sha256' "$PUBLISH_ROOT/inventory.json")
+            package="$HANDOFF_ROOT/batch/packages/$file"
+            test -f "$package" && test ! -L "$package"
+            arguments=(nuget push "$package" --source https://api.nuget.org/v3/index.json --configfile "$PUBLISH_ROOT/NuGet.Config" --timeout 300)
+            case "$file" in
+              *.snupkg) arguments+=(--symbol-source https://www.nuget.org/api/v2/symbolpackage --no-service-endpoint) ;;
+              *.nupkg) arguments+=(--no-symbols) ;;
+              *) exit 1 ;;
+            esac
+            printf '%s\tstarted\n' "$file" >> "$PUBLISH_ROOT/attempts.tsv"
+            actual=$(sha256sum -- "$package")
+            test "${actual%% *}" = "$expected"
+            if env -u APPFOUNDATION_GITHUB_TOKEN -u APPFOUNDATION_SONAR_TOKEN -u APPFOUNDATION_SONAR_VERIFY_TOKEN \
+              -u GITHUB_TOKEN -u GH_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
+              -u NUGET_AUTH_TOKEN dotnet "${arguments[@]}"; then
+              printf '%s\tcli-success\n' "$file" >> "$PUBLISH_ROOT/attempts.tsv"
+            else
+              code=$?
+              printf '%s\tuncertain-exit-%s\n' "$file" "$code" >> "$PUBLISH_ROOT/attempts.tsv"
+              echo 'Publication stopped; reconcile remote outcomes before any retry.' >&2
+              exit "$code"
+            fi
+          done < "$PUBLISH_ROOT/files"
+
+      - name: Record publication outcomes
+        if: ${{ false && always() && steps.publish-intent.outcome == 'success' }}
+        id: publish-outcomes
+        shell: bash
+        env:
+          PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+          INTENT_SHA256: ${{ steps.verified-handoff.outputs.intent-sha256 }}
+          INTENT_ARTIFACT_ID: ${{ steps.publish-intent.outputs.artifact-id }}
+          INTENT_ARTIFACT_DIGEST: ${{ steps.publish-intent.outputs.artifact-digest }}
+          LOGIN_OUTCOME: ${{ steps.nuget-login.outcome }}
+          PUSH_OUTCOME: ${{ steps.publish.outcome }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+          [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+          test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+          test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+          [[ "$INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]{0,15}$ ]]
+          [[ "$INTENT_ARTIFACT_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          test -f "$PUBLISH_ROOT/intent.json" && test ! -L "$PUBLISH_ROOT/intent.json"
+          digest=$(sha256sum -- "$PUBLISH_ROOT/intent.json")
+          test "${digest%% *}" = "$INTENT_SHA256"
+          for outcome in "$LOGIN_OUTCOME" "$PUSH_OUTCOME"; do
+            case "$outcome" in success|failure|cancelled|skipped) ;; *) exit 1 ;; esac
+          done
+          printf '[]\n' > "$PUBLISH_ROOT/events.json"
+          if test -e "$PUBLISH_ROOT/attempts.tsv" || test -L "$PUBLISH_ROOT/attempts.tsv"; then
+            test -f "$PUBLISH_ROOT/attempts.tsv" && test ! -L "$PUBLISH_ROOT/attempts.tsv"
+            test "$(stat -c %s -- "$PUBLISH_ROOT/attempts.tsv")" -le 16384
+            jq -Rn '[inputs | split("\t") | if length == 2 then {file: .[0], status: .[1]} else error("Invalid attempt row") end]' \
+              "$PUBLISH_ROOT/attempts.tsv" > "$PUBLISH_ROOT/events.json"
+          fi
+          jq -e -n --slurpfile intent "$PUBLISH_ROOT/intent.json" --slurpfile events "$PUBLISH_ROOT/events.json" \
+            --arg hash "$INTENT_SHA256" --arg artifact "$INTENT_ARTIFACT_ID" --arg digest "$INTENT_ARTIFACT_DIGEST" \
+            --arg login "$LOGIN_OUTCOME" --arg push "$PUSH_OUTCOME" --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+            $intent[0] as $i | $events[0] as $e |
+            if ($e | length) > 24 then error("Too many attempt rows") else . end |
+            reduce range(0; $e | length) as $n (.;
+              if $e[$n].file != $i.packages[($n / 2 | floor)].file or
+                 (if $n % 2 == 0 then $e[$n].status != "started"
+                  else ($e[$n].status != "cli-success" and
+                    (($e[$n].status | test("^uncertain-exit-([1-9][0-9]{0,2})$")) | not)) or
+                    ($e[$n].status != "cli-success" and $n != ($e | length) - 1) end)
+              then error("Invalid attempt sequence") else . end) |
+            if ($push == "skipped" and ($e | length) != 0) or
+               ($push != "skipped" and $login != "success") or
+               ($push == "success" and (($e | length) != 24 or any($e[]; .status != "started" and .status != "cli-success")))
+            then error("Inconsistent step outcomes") else . end |
+            {schemaVersion: 1, kind: "publication-outcomes", intentSha256: $hash,
+             intentArtifactId: $artifact, intentArtifactDigest: $digest,
+             repository: $i.repository, sha: $i.sha, publishRunId: $i.publishRunId,
+             publishAttempt: $i.publishAttempt, workflowRef: $i.workflowRef, workflowRevision: $i.workflowRevision,
+             recordedAt: $time, loginOutcome: $login, pushOutcome: $push,
+             authorizesRetry: false, remoteAcceptanceVerified: false,
+             packages: [$i.packages[] | . as $package |
+               [$e[] | select(.file == $package.file)] as $rows |
+               . + {cliObservation: (if $push == "skipped" then "not-dispatched"
+                 elif ($rows | length) == 0 then "unrecorded"
+                 elif $rows[-1].status == "cli-success" then "cli-success" else "uncertain" end),
+                 events: [$rows[].status]}]}' > "$PUBLISH_ROOT/outcomes.pending.json"
+          mv -- "$PUBLISH_ROOT/outcomes.pending.json" "$PUBLISH_ROOT/outcomes.json"
+
+      - name: Preserve publication outcomes
+        if: ${{ false && always() && steps.publish-outcomes.outcome == 'success' }}
+        id: stored-outcomes
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-publish-outcomes-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.verified-handoff.outputs.root }}/outcomes.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: false
+          include-hidden-files: false
+
+      - name: Remove private publishing files
+        if: ${{ false && always() && steps.verified-handoff.outputs.root != '' && (steps.publish-intent.outcome != 'success' || steps.stored-outcomes.outcome == 'success') }}
+        shell: bash
+        env:
+          PUBLISH_ROOT: ${{ steps.verified-handoff.outputs.root }}
+        run: |
+          set -euo pipefail
+          test "$(dirname -- "$PUBLISH_ROOT")" = "$RUNNER_TEMP"
+          [[ "$(basename -- "$PUBLISH_ROOT")" =~ ^nuget-publish\.[A-Za-z0-9]{8}$ ]]
+          test -d "$PUBLISH_ROOT" && test ! -L "$PUBLISH_ROOT"
+          test "$(realpath -e -- "$PUBLISH_ROOT")" = "$PUBLISH_ROOT"
+          rm -rf -- "$PUBLISH_ROOT"
+
+      - name: Remove verifier and downloaded handoff
+        if: ${{ false && always() && (steps.publish-intent.outcome != 'success' || steps.stored-outcomes.outcome == 'success') }}
+        env:
+          BOOTSTRAP_ROOT: ${{ steps.bootstrap.outputs.root }}
+          HANDOFF_ROOT: ${{ steps.download.outputs.root }}
+        run: |
+          set -euo pipefail
+          for root in "$BOOTSTRAP_ROOT" "$HANDOFF_ROOT"; do
+            if test -z "$root"; then continue; fi
+            test "$(dirname -- "$root")" = "$RUNNER_TEMP"
+            [[ "$(basename -- "$root")" =~ ^nuget-(verifier|handoff)\.[A-Za-z0-9]{8}$ ]]
+            test -d "$root" && test ! -L "$root"
+            test "$(realpath -e -- "$root")" = "$root"
+            rm -rf -- "$root"
+          done

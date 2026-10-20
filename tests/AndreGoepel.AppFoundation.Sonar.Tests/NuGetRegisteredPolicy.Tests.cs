@@ -90,9 +90,9 @@ public sealed class NuGetRegisteredPolicyTests
         var workflow = Encoding.UTF8.GetString(
             Convert.FromBase64String(response["content"]!.GetValue<string>())
         );
-        response["content"] = Convert.ToBase64String(
-            Encoding.UTF8.GetBytes(workflow.Replace("sonar-poc/nuget/*/v*", "v*"))
-        );
+        var changedWorkflow = workflow.Replace("tags: [\"v*\"]", "tags: [\"*\"]");
+        Assert.NotEqual(workflow, changedWorkflow);
+        response["content"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(changedWorkflow));
 
         // Act
         var result = await fixture.RunAsync(TestContext.Current.CancellationToken);
@@ -119,11 +119,7 @@ public sealed class NuGetRegisteredPolicyTests
             Path.Combine(root, NuGetPreparationPolicy.WorkflowPath),
             ct
         );
-        var fixture = new NuGetProvenanceTests.ProvenanceFixture(
-            policy.Value!,
-            workflow,
-            "sonar-poc/nuget/0123456789abcdef0123456789abcdef/v2.2.0"
-        );
+        var fixture = new NuGetProvenanceTests.ProvenanceFixture(policy.Value!, workflow, "v2.2.0");
         await fixture.InitializeAsync(ct);
         return fixture;
     }
