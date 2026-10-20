@@ -419,8 +419,11 @@ still require the separately approved activation work.
 ## Remaining production integration (#244)
 
 The [remaining acceptance sequence and release-control audit](NUGET-ACCEPTANCE.md)
-records the current operator gaps and a proposed immutable-release-tag ruleset.
-The ruleset is review material only; no settings or workflows apply it.
+records the current operator gaps and the applied immutable-release-tag ruleset.
+The explicitly approved four-case enforcement drill passed before ruleset
+`25464148` was applied to `v*` tags. Temporary rules and tags were removed; branch
+rules and Actions were unchanged. This control does not activate publishing or
+replace the remaining account, environment and publication-record checks.
 
 The separate `Sonar NuGet template checks` workflow now runs the 62 caller,
 45 publishing-step and 102 preparation/rehearsal shell cases on Ubuntu 24.04 for
