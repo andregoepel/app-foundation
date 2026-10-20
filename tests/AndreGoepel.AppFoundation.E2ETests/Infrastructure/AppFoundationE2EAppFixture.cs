@@ -80,6 +80,7 @@ public sealed class AppFoundationE2EAppFixture : E2EAppFixture
             await page.LoginAsync(TestData.AdminEmail, TestData.DefaultPassword);
 
             await page.GotoAsync("/Administration/EmailSettings");
+            await page.WaitForBlazorAsync();
             await page.FillFieldAsync("SenderName", "AppFoundation E2E");
             await page.FillFieldAsync("SenderEmail", "e2e@appfoundation.local");
             await page.FillFieldAsync("Server", smtpEndpoint.Host);
@@ -92,6 +93,17 @@ public sealed class AppFoundationE2EAppFixture : E2EAppFixture
                 "text=Saved",
                 new PageWaitForSelectorOptions { Timeout = 10_000 }
             );
+
+            // A toast only confirms submission. Read the persisted settings in a new circuit
+            // before allowing tests to rely on this fixture's SMTP configuration.
+            await page.ReloadAsync();
+            await page.WaitForBlazorAsync();
+            await Assertions
+                .Expect(page.Locator("[name='Server']"))
+                .ToHaveValueAsync(smtpEndpoint.Host);
+            await Assertions
+                .Expect(page.Locator("[name='Port']"))
+                .ToHaveValueAsync(smtpEndpoint.Port.ToString());
 
             _emailConfigured = true;
         }
