@@ -41,6 +41,16 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-verify-intent")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-intent")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-intent")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-inspect-publication")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-inspect-publication")]
+    [InlineData("NUGET_API_KEY", "--nuget-inspect-publication")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-inspect-publication")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-inspect-publication")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--staging-contract")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--staging-contract")]
+    [InlineData("NUGET_API_KEY", "--staging-contract")]
+    [InlineData("NUGET_AUTH_TOKEN", "--staging-contract")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--staging-contract")]
     public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(
         string name,
         string mode
@@ -90,6 +100,16 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-verify-intent")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-intent")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-intent")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-inspect-publication")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-inspect-publication")]
+    [InlineData("NUGET_API_KEY", "--nuget-inspect-publication")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-inspect-publication")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-inspect-publication")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--staging-contract")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--staging-contract")]
+    [InlineData("NUGET_API_KEY", "--staging-contract")]
+    [InlineData("NUGET_AUTH_TOKEN", "--staging-contract")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--staging-contract")]
     public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(
         string name,
         string mode

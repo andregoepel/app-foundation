@@ -10,6 +10,8 @@ namespace AndreGoepel.AppFoundation.Sonar.Tests;
 
 public sealed class NuGetStoredIntentTests
 {
+    private static readonly string[] PackageExtensions = ["nupkg", "snupkg"];
+
     [Theory]
     [InlineData("valid")]
     [InlineData("missing-context")]
@@ -430,7 +432,7 @@ public sealed class NuGetStoredIntentTests
         );
     }
 
-    private sealed class IntentFixture : HttpMessageHandler, IGitHubClient
+    internal sealed class IntentFixture : HttpMessageHandler, IGitHubClient
     {
         private readonly RunnerFixture files = new();
         private readonly HttpClient client;
@@ -479,7 +481,7 @@ public sealed class NuGetStoredIntentTests
                 ?? new(
                     NuGetRelease
                         .Packages.SelectMany(id =>
-                            new[] { "nupkg", "snupkg" }.Select(extension => new PackageEvidence(
+                            PackageExtensions.Select(extension => new PackageEvidence(
                                 $"{id}.2.2.0.{extension}",
                                 id,
                                 "2.2.0",
@@ -528,6 +530,11 @@ public sealed class NuGetStoredIntentTests
                     repository = new { full_name = MainPolicy.Repository },
                     head_repository = new { full_name = MainPolicy.Repository },
                 }
+            );
+            Responses[
+                $"actions/workflows/901/runs?branch=main&head_sha={MainFixture.Sha}&per_page=100"
+            ] = MainFixture.Node(
+                new { total_count = 1, workflow_runs = new[] { new { id = 600, run_attempt = 1 } } }
             );
             Responses["actions/runs/600/attempts/1/jobs?per_page=100"] = MainFixture.Node(
                 new
@@ -644,6 +651,8 @@ public sealed class NuGetStoredIntentTests
                 new GitHubArtifacts(client, "fixture-read"),
                 new IntentClock(Now)
             ).VerifyAsync(Options, Pins, Handoff, ct ?? TestContext.Current.CancellationToken);
+
+        internal IGitHubArtifacts ArtifactReader() => new GitHubArtifacts(client, "fixture-read");
 
         public Task<JsonElement> GetAsync(string path, CancellationToken cancellationToken)
         {

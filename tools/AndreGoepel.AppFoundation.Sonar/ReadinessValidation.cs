@@ -7,7 +7,7 @@ namespace AndreGoepel.AppFoundation.Sonar;
 internal static class ReadinessValidation
 {
     internal static async Task<Result<ReadinessReceipt>> ValidateAsync(
-        NuGetRelease release,
+        ReleaseCandidate release,
         MainPolicy policy,
         AnalysisContract contract,
         byte[] receiptBytes,

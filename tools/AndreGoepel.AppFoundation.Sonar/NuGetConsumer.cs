@@ -51,6 +51,30 @@ internal sealed class NuGetConsumer(
             : final;
     }
 
+    internal async Task<Result<NuGetPublicationInspection>> InspectAsync(
+        NuGetHandoffOptions options,
+        NuGetIntentContext pins,
+        NuGetHandoffReceipt verified,
+        CancellationToken ct
+    )
+    {
+        var result = await new NuGetPublicationRecords(github, artifacts, clock).InspectAsync(
+            options,
+            pins,
+            verified,
+            ct
+        );
+        if (result.IsFailure)
+            return result;
+
+        var final = await VerifyAsync(options, ct);
+        return final.IsSuccess && verified.Packages.SequenceEqual(final.Value!.Packages)
+            ? result
+            : Result.Fail<NuGetPublicationInspection>(
+                "The handoff changed or expired during inspection."
+            );
+    }
+
     private NuGetPreparedHandoff CreateHandoff(NuGetHandoffOptions options) =>
         new(
             new NuGetProvenance(github, artifacts, policy, clock),

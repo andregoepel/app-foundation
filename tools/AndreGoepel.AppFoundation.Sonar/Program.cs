@@ -10,12 +10,21 @@ Console.CancelKeyPress += (_, signal) =>
 
 try
 {
+    if (args.Contains("--staging-contract", StringComparer.Ordinal))
+    {
+        var staging = await StagingCommand.RunAsync(args, cancellation.Token);
+        if (staging.IsFailure)
+            await Console.Error.WriteLineAsync(staging.Error);
+        return staging.IsSuccess ? 0 : 1;
+    }
+
     if (
         args.Contains("--nuget-dry-run", StringComparer.Ordinal)
         || args.Contains("--nuget-prepare", StringComparer.Ordinal)
         || args.Contains("--nuget-rehearse", StringComparer.Ordinal)
         || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
         || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
+        || args.Contains("--nuget-inspect-publication", StringComparer.Ordinal)
     )
     {
         var dryRun = await NuGetCommand.RunAsync(args, cancellation.Token);

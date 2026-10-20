@@ -400,7 +400,7 @@ public sealed class NuGetHandoffTests
             new NuGetHandoff(this, Evidence.Main, Clock).VerifyAsync(Input, ct);
 
         public Task<Result<ReadinessReceipt>> VerifyAsync(
-            NuGetRelease release,
+            ReleaseCandidate release,
             CancellationToken ct
         )
         {

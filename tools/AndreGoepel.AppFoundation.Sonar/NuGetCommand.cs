@@ -17,59 +17,29 @@ internal static class NuGetCommand
         var input = parsed.Value!;
         var release = input.Release;
 
-        var policy = JsonSerializer.Deserialize<MainPolicy>(
-            await File.ReadAllTextAsync(
-                Path.Combine(release.Root, "scripts/sonar/main-policy.json"),
-                ct
-            ),
-            JsonFormat.Options
-        )!;
-        var configuration = await MainCommand.ValidateConfigurationAsync(release.Root, policy, ct);
-        if (configuration.IsFailure)
-            return configuration;
-        var contract = JsonSerializer.Deserialize<AnalysisContract>(
-            await File.ReadAllTextAsync(
-                Path.Combine(release.Root, "scripts/sonar/contract.json"),
-                ct
-            ),
-            JsonFormat.Options
-        )!;
-
-        var githubToken = TakeCredential("APPFOUNDATION_GITHUB_TOKEN");
-        var scanToken = TakeCredential("APPFOUNDATION_SONAR_TOKEN");
-        var verifyToken = TakeCredential("APPFOUNDATION_SONAR_VERIFY_TOKEN");
-        if (githubToken.Length == 0 || scanToken.Length == 0 || verifyToken.Length == 0)
-            return Result.Fail(
-                "Read-only GitHub and both existing Sonar verification credentials are required."
-            );
-
-        using var client = SonarClient.CreateHttpClient();
+        var opened = await ReleaseVerificationSession.OpenAsync(release.Root, ct);
+        if (opened.IsFailure)
+            return opened;
+        using var session = opened.Value!;
         var processes = new ProcessRunner();
-        var github = new GitHubClient(client, githubToken);
-        var readiness = new ReleaseReadiness(
-            github,
-            new GitHubArtifacts(client, githubToken),
-            new SonarClient(client, new Uri(MainPolicy.SonarUrl)),
-            processes,
-            TimeProvider.System,
-            policy,
-            contract,
-            scanToken,
-            verifyToken
-        );
+        var github = session.GitHub;
+        var readiness = session.Readiness;
         if (input.Handoff is not null)
         {
             var consumer = new NuGetConsumer(
                 readiness,
                 github,
-                new GitHubArtifacts(client, githubToken),
+                session.Artifacts,
                 input.Policy!,
                 TimeProvider.System
             );
             return await RunHandoffAsync(consumer, input.Handoff, Console.Out, ct);
         }
 
-        var dryRun = new NuGetDryRun(readiness, new NuGetPackageBuilder(processes, contract));
+        var dryRun = new NuGetDryRun(
+            readiness,
+            new NuGetPackageBuilder(processes, session.Contract)
+        );
         if (input.Preparation is not null)
         {
             var origin = await new NuGetPreparation(
@@ -106,6 +76,22 @@ internal static class NuGetCommand
         if (options.VerifyOnly)
         {
             var verified = await consumer.VerifyAsync(options, ct);
+            if (verified.IsSuccess && options.Inspection is { } inspection)
+            {
+                var inspected = await consumer.InspectAsync(
+                    options,
+                    inspection,
+                    verified.Value!,
+                    ct
+                );
+                if (inspected.IsSuccess)
+                    await output.WriteLineAsync(
+                        JsonSerializer.Serialize(inspected.Value, JsonFormat.Options).AsMemory(),
+                        ct
+                    );
+                return inspected;
+            }
+
             if (verified.IsSuccess && options.VerifyStoredIntent)
             {
                 var pins = NuGetIntentContext.Read(
@@ -132,13 +118,6 @@ internal static class NuGetCommand
             );
         return consumed;
     }
-
-    private static string TakeCredential(string name)
-    {
-        var value = Environment.GetEnvironmentVariable(name) ?? "";
-        Environment.SetEnvironmentVariable(name, null);
-        return value;
-    }
 }
 
 internal sealed record NuGetCommandInput(
@@ -157,6 +136,7 @@ internal sealed record NuGetCommandInput(
             args.Contains("--nuget-rehearse", StringComparer.Ordinal)
             || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
             || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
+            || args.Contains("--nuget-inspect-publication", StringComparer.Ordinal)
         )
         {
             var options = NuGetHandoffOptions.Parse(args);

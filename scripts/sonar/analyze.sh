@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 for argument in "$@"; do
-    if [[ "$argument" == --nuget-dry-run || "$argument" == --nuget-prepare || "$argument" == --nuget-rehearse || "$argument" == --nuget-verify-handoff || "$argument" == --nuget-verify-intent ]]; then
+    if [[ "$argument" == --nuget-dry-run || "$argument" == --nuget-prepare || "$argument" == --nuget-rehearse || "$argument" == --nuget-verify-handoff || "$argument" == --nuget-verify-intent || "$argument" == --nuget-inspect-publication || "$argument" == --staging-contract ]]; then
         for name in ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL NUGET_API_KEY NUGET_AUTH_TOKEN NUGET_SYMBOL_API_KEY; do
             if [[ -n "${!name:-}" ]]; then
                 echo 'Run preparation without OIDC access or NuGet publication credentials.' >&2

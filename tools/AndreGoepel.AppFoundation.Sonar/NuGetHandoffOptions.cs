@@ -9,7 +9,8 @@ internal sealed record NuGetHandoffOptions(
     int PreparationAttempt,
     string[]? Files,
     bool VerifyOnly = false,
-    bool VerifyStoredIntent = false
+    bool VerifyStoredIntent = false,
+    NuGetIntentContext? Inspection = null
 )
 {
     internal const string Usage =
@@ -17,6 +18,9 @@ internal sealed record NuGetHandoffOptions(
 
     internal static Result<NuGetHandoffOptions> Parse(string[] args)
     {
+        if (args.Length > 2 && args[2] == "--nuget-inspect-publication")
+            return ParseInspection(args);
+
         if (
             args
                 is not [
@@ -111,4 +115,53 @@ internal sealed record NuGetHandoffOptions(
 
     private static bool IsHex(string value, int length) =>
         value.Length == length && value.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
+
+    private static Result<NuGetHandoffOptions> ParseInspection(string[] args)
+    {
+        const string usage =
+            "Use the handoff arguments with --nuget-inspect-publication followed by --publish-run ID --intent-artifact ID --intent-archive-sha256 HASH --intent-sha256 HASH. This only inspects records; it never authorizes retry.";
+        if (
+            args.Length != 29
+            || args[21..]
+                is not [
+                    "--publish-run",
+                    var run,
+                    "--intent-artifact",
+                    var artifact,
+                    "--intent-archive-sha256",
+                    var archive,
+                    "--intent-sha256",
+                    var content,
+                ]
+            || !long.TryParse(run, NumberStyles.None, CultureInfo.InvariantCulture, out var runId)
+            || !long.TryParse(
+                artifact,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out var artifactId
+            )
+            || runId <= 0
+            || artifactId <= 0
+            || !IsHex(archive, 64)
+            || !IsHex(content, 64)
+        )
+            return Result.Fail<NuGetHandoffOptions>(usage);
+
+        var handoffArgs = args[..21];
+        handoffArgs[2] = "--nuget-verify-handoff";
+        var handoff = Parse(handoffArgs);
+        if (
+            handoff.IsFailure
+            || handoff.Value!.PreparationAttempt != 1
+            || handoff.Value.Input.Release.Tag != "v" + handoff.Value.Input.Release.Version
+        )
+            return Result.Fail<NuGetHandoffOptions>(usage);
+
+        return Result.Ok(
+            handoff.Value with
+            {
+                Inspection = new(runId, artifactId, "sha256:" + archive, content),
+            }
+        );
+    }
 }

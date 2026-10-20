@@ -269,7 +269,7 @@ public sealed class NuGetPreparationTests
             ).RunAsync(Context, ct);
 
         public Task<Result<ReadinessReceipt>> VerifyAsync(
-            NuGetRelease release,
+            ReleaseCandidate release,
             CancellationToken ct
         )
         {

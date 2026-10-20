@@ -62,7 +62,8 @@ internal sealed class NuGetStoredIntent(
         NuGetHandoffOptions options,
         NuGetIntentContext pins,
         NuGetHandoffReceipt handoff,
-        CancellationToken ct
+        CancellationToken ct,
+        bool completed = false
     )
     {
         var release = options.Input.Release;
@@ -82,7 +83,7 @@ internal sealed class NuGetStoredIntent(
                 "The publication workflow does not match the verified main checkout."
             );
 
-        var initial = await ReadSnapshotAsync(options, pins, ct);
+        var initial = await ReadSnapshotAsync(options, pins, completed, ct);
         if (initial.IsFailure)
             return initial;
 
@@ -96,7 +97,7 @@ internal sealed class NuGetStoredIntent(
                 "Stored intent does not describe the complete verified publication."
             );
 
-        var final = await ReadSnapshotAsync(options, pins, ct);
+        var final = await ReadSnapshotAsync(options, pins, completed, ct);
         return
             final.IsSuccess
             && initial.Value.Started == final.Value!.Started
@@ -109,21 +110,37 @@ internal sealed class NuGetStoredIntent(
     private async Task<Result<IntentSnapshot>> ReadSnapshotAsync(
         NuGetHandoffOptions options,
         NuGetIntentContext pins,
+        bool completed,
         CancellationToken ct
     )
     {
         var run = await github.GetAsync($"actions/runs/{pins.RunId}", ct);
         var registered = await github.GetAsync($"actions/workflows/nuget-publish.yml", ct);
-        if (!MatchesRun(run, registered, options, pins))
+        if (!MatchesRun(run, registered, options, pins, completed))
             return Result.Fail<IntentSnapshot>(
                 "The intent producer is not the current approved publishing attempt."
+            );
+
+        var replay = await github.GetAsync(
+            $"actions/workflows/{registered.GetProperty("id").GetInt64()}/runs?branch=main&head_sha={options.Input.Release.Sha}&per_page=100",
+            ct
+        );
+        var candidates = replay.GetProperty("workflow_runs").EnumerateArray().ToArray();
+        if (
+            replay.GetProperty("total_count").GetInt32() != 1
+            || candidates.Length != 1
+            || candidates[0].GetProperty("id").GetInt64() != pins.RunId
+            || candidates[0].GetProperty("run_attempt").GetInt32() != 1
+        )
+            return Result.Fail<IntentSnapshot>(
+                "Publication requires exactly one first-attempt run for this main SHA; reconcile any prior attempt."
             );
 
         var jobs = await github.GetAsync(
             $"actions/runs/{pins.RunId}/attempts/1/jobs?per_page=100",
             ct
         );
-        if (!IsBeforeLogin(jobs))
+        if (completed ? NuGetPublicationOutcome.ReadSteps(jobs).IsFailure : !IsBeforeLogin(jobs))
             return Result.Fail<IntentSnapshot>(
                 "Stored intent verification must run after successful intent storage and before login."
             );
@@ -170,7 +187,8 @@ internal sealed class NuGetStoredIntent(
         JsonElement run,
         JsonElement registered,
         NuGetHandoffOptions options,
-        NuGetIntentContext pins
+        NuGetIntentContext pins,
+        bool completed
     ) =>
         run.GetProperty("id").GetInt64() == pins.RunId
         && run.GetProperty("workflow_id").GetInt64() > 0
@@ -186,11 +204,23 @@ internal sealed class NuGetStoredIntent(
         && run.GetProperty("head_repository").GetProperty("full_name").GetString()
             == MainPolicy.Repository
         && run.GetProperty("run_attempt").GetInt32() == 1
-        && run.GetProperty("status").GetString() == "in_progress"
-        && run.GetProperty("conclusion").ValueKind == JsonValueKind.Null
+        && (
+            completed
+                ? run.GetProperty("status").GetString() == "completed"
+                    && run.GetProperty("conclusion").GetString()
+                        is "success"
+                            or "failure"
+                            or "cancelled"
+                            or "timed_out"
+                : run.GetProperty("status").GetString() == "in_progress"
+                    && run.GetProperty("conclusion").ValueKind == JsonValueKind.Null
+        )
         && run.GetProperty("run_started_at").GetDateTimeOffset() <= clock.GetUtcNow()
-        && clock.GetUtcNow() - run.GetProperty("run_started_at").GetDateTimeOffset()
-            < TimeSpan.FromHours(1)
+        && (
+            completed
+            || clock.GetUtcNow() - run.GetProperty("run_started_at").GetDateTimeOffset()
+                < TimeSpan.FromHours(1)
+        )
         && (
             !run.TryGetProperty("referenced_workflows", out var references)
             || references.GetArrayLength() == 0
