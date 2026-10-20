@@ -6,14 +6,15 @@ after the explicitly approved enforcement drill passed; rendering or testing
 never applies it. See the [drill evidence and remaining controls](../NUGET-ACCEPTANCE.md).
 
 `nuget-publish.steps.yml` is a reviewable step fragment outside `.github/workflows`.
-Every step is disabled. It neither registers a workflow nor replaces the existing
-publisher. Do not enable or copy it into a workflow before the remaining #244
-controls have been implemented and reviewed.
+Every step is disabled. The [standby migration](../NUGET-STANDBY.md) registers its
+complete disabled rendering and removes the legacy CI publisher. Do not enable
+publishing before the remaining #244 controls have been implemented and reviewed.
 
 `nuget-publish.caller.yml` now supplies the disabled caller around that fragment.
 `Build-NuGetPublishWorkflow.ps1` renders them into one complete YAML file under
 `artifacts/sonar/publish-workflow-template/nuget-publish.yml` for review and linting.
 It does not write to `.github/workflows`, execute the workflow or enable any guard.
+The checked-in `.github/workflows/nuget-publish.yml` must match this output exactly.
 The job and all fifteen rendered steps remain disabled; the fragment is inserted
 verbatim with indentation so its tested commands have one maintained source.
 
@@ -38,7 +39,7 @@ JSON-number precision loss. It contains no credentials, packages or runner paths
 
 The fragment requires the future caller to be
 `.github/workflows/nuget-publish.yml@refs/heads/main`, running the candidate SHA.
-That workflow is not registered by this change. After intent storage, the fragment
+That workflow is registered as disabled standby. After intent storage, the fragment
 checks the action's artifact ID/digest outputs and the local intent's byte hash,
 then invokes `--nuget-verify-intent` before login. Each file still receives its
 own fresh full-batch verification before the CLI command.
@@ -66,8 +67,8 @@ The current job must supply `GITHUB_REPOSITORY`, `GITHUB_EVENT_NAME`, `GITHUB_RE
 `GITHUB_WORKFLOW_SHA`, `INTENT_ARTIFACT_ID`, `INTENT_ARTIFACT_DIGEST` and
 `INTENT_SHA256`. These pins are checked against independent reads, not treated as
 proof by themselves. Both launchers reject OIDC/NuGet publication credentials
-before bootstrap for this mode too. The production workflow does not yet exist,
-so this command cannot pass against the current live repository configuration.
+before bootstrap for this mode too. Both production jobs remain disabled, so no
+qualifying production attempt is available under the standby configuration.
 
 After the push step, including failure or cancellation when the runner can still
 execute final steps, `outcomes.json` records observations and the intent's content
@@ -115,11 +116,11 @@ rendering it. One fixed concurrency group serializes this workflow's jobs with n
 in-progress cancellation; it is not a durable deduplication or replay control.
 
 Its future trigger is completion of `NuGet preparation`, not main CI or a manual
-dispatch. The current producer is still named `NuGet preparation (runner test)`
-and accepts only acceptance tags. Activating production therefore requires a
-separate reviewed producer change, its new policy hash, the caller and removal
-of the old ungated publisher together. Existing workflows and policy files remain
-unchanged in this preparation.
+dispatch. The producer is now named `NuGet preparation`, validates stable
+release tags and remains disabled with its updated policy hash. Its previous
+runner-test consumers remain unchanged and dormant. Activating production still
+requires the separately approved account cutover, protected environments,
+reviewed enabling of the guards and another preparation policy hash update.
 
 The caller validates the captured completion event's repository, producer ID/path,
 display name, successful push status, stable `vX.Y.Z` tag and first run attempt.
@@ -168,11 +169,12 @@ appear as command arguments or persisted configuration.
 
 ## Remaining activation blockers
 
-- The disabled caller and production trigger are prepared for review, but the
-  production producer/policy, protected environment and official login action
-  acceptance on the intended runner are not configured.
-- Intent/outcome artifact steps and independent pre-login intent verification are
-  prepared, but have only offline acceptance.
+- The caller and producer are registered as disabled standby. The production
+  NuGet policy, protected environments and official login action acceptance on
+  the intended runner remain pending.
+- Intent/outcome artifact steps and independent pre-login intent verification
+  passed the separate non-publishing runner drill recorded in
+  [standby evidence](../NUGET-STANDBY.md). Login and uploads were simulated.
   The local `attempts.tsv` remains diagnostic input, not trusted recovery authority.
   Implement independent outcome/recovery record authentication, retention,
   cross-run replay protection and remote reconciliation before introducing a retry
@@ -185,22 +187,25 @@ appear as command arguments or persisted configuration.
 - NuGet may retry internally. The steps stop on the first nonzero exit but cannot
   prove that the server rejected an upload. Cancellation/runner loss can prevent
   final diagnostics and cleanup.
-- Account-level trusted-publisher/API-key controls for all six packages and removal
-  of the existing ungated publisher remain required in the separate activation PR.
+- The legacy job is removed from current source. Account-level overlapping
+  trusted-publisher grants, including trust in old `ci.yml` revisions, remain
+  open controls in the separately approved cutover.
 
 ## Offline validation
 
 The separate `Sonar NuGet template checks` workflow runs these suites on every
 pull request to `main` and push to `main`. It uses Ubuntu 24.04, read-only repository
 permission and no environment or secrets. It does not invoke the publishing
-workflow, request OIDC credentials or create a tag. Existing Actions are unchanged.
+workflow, request OIDC credentials or create a tag. Its Action file is unchanged;
+the invoked test suite also validates the registered standby configuration.
 
 The workflow downloads actionlint 1.7.12 and checks its pinned archive SHA-256,
 then runs `Run-NuGetWorkflowChecks.ps1` in a fresh Linux network namespace as the
 runner user with an empty inherited environment. The entry point rejects service
 credentials, any network interface other than loopback, and reused result directories.
-It lints the rendered disabled workflow, this test workflow and both acceptance
-workflows with actionlint/ShellCheck, then runs all 209 existing shell cases.
+It lints CI, the rendered and registered disabled publisher, preparation, this
+test workflow and both acceptance consumers with actionlint/ShellCheck, then
+runs the shell and standby configuration cases.
 It stops on a linter or suite failure; successful aggregate evidence is written
 only after every suite passes.
 

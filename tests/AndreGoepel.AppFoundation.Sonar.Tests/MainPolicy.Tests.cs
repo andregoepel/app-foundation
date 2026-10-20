@@ -7,7 +7,7 @@ namespace AndreGoepel.AppFoundation.Sonar.Tests;
 public sealed class MainPolicyTests
 {
     [Fact]
-    public async Task Fingerprint_ReviewedPolicy_MatchesExistingLinuxReceiptOnEveryPlatform()
+    public async Task Fingerprint_ReviewedStandbyPolicy_MatchesExpectedDigestOnEveryPlatform()
     {
         // Arrange
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -30,7 +30,7 @@ public sealed class MainPolicyTests
 
         // Assert
         Assert.Equal(
-            "b28c6b8b6c18553f3013cbeb209427d037474b27bad989a92fc36365ce181639",
+            "af25a521b55eb2c186cda3ff688bd96d672ac997cf424c824bb73a97065ab256",
             fingerprint
         );
     }

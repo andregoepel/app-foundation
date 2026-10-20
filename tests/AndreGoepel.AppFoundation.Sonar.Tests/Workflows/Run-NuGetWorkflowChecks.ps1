@@ -36,6 +36,8 @@ if (Test-Path -LiteralPath $ResultsDirectory) {
 $rendered = & (Join-Path $RepositoryRoot 'scripts/sonar/templates/Build-NuGetPublishWorkflow.ps1') -RepositoryRoot $RepositoryRoot
 $workflows = @(
     $rendered,
+    (Join-Path $RepositoryRoot '.github/workflows/ci.yml'),
+    (Join-Path $RepositoryRoot '.github/workflows/nuget-publish.yml'),
     (Join-Path $RepositoryRoot '.github/workflows/sonar-nuget-template-checks.yml'),
     (Join-Path $RepositoryRoot '.github/workflows/nuget-prepare.yml'),
     (Join-Path $RepositoryRoot '.github/workflows/nuget-rehearse.yml'),
@@ -45,6 +47,7 @@ $workflows = @(
 if ($LASTEXITCODE -ne 0) { throw 'Workflow lint failed.' }
 
 $suites = @(
+    @{Script='Verify-NuGetStandbyWorkflows.ps1'; Report='standby-workflow-checks.json'},
     @{Script='Verify-NuGetPublishCaller.ps1'; Report='publish-caller-checks.json'},
     @{Script='Verify-NuGetPublishSteps.ps1'; Report='publish-step-checks.json'},
     @{Script='Verify-NuGetRunnerWorkflows.ps1'; Report='workflow-checks.json'},

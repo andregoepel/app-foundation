@@ -1,8 +1,9 @@
-name: NuGet preparation (runner test)
+# Standby only. Activation and NuGet policy cutover require separate approval.
+name: NuGet preparation
 
 on:
   push:
-    tags: ["sonar-poc/nuget/*/v*"]
+    tags: ["v*"]
 
 permissions:
   contents: read
@@ -14,10 +15,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: >-
-      github.repository == 'andregoepel/app-foundation' &&
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/sonar-poc/nuget/')
+    if: ${{ false && github.repository == 'andregoepel/app-foundation' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-24.04
     environment: sonar-nuget-prepare
     timeout-minutes: 75
@@ -38,8 +36,8 @@ jobs:
           test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
           test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/nuget-prepare.yml@$GITHUB_REF"
           [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
-          [[ "$GITHUB_REF_NAME" =~ ^sonar-poc/nuget/[a-f0-9]{32}/v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
-          version="${GITHUB_REF_NAME##*/v}"
+          [[ "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$ ]]
+          version="${GITHUB_REF_NAME#v}"
           jq -e --arg ref "$GITHUB_REF" '
             .repository.full_name == "andregoepel/app-foundation" and
             .ref == $ref and .created == true and .deleted == false and .forced == false and
@@ -55,7 +53,7 @@ jobs:
           event_digest=$(sha256sum -- "$GITHUB_EVENT_PATH")
           printf 'version=%s\nreadiness-run=%s\nevent-sha256=%s\n' "$version" "$readiness_run" "${event_digest%% *}" >> "$GITHUB_OUTPUT"
           after=$(jq -r '.after' "$GITHUB_EVENT_PATH")
-          printf '### Non-publishing tag-event evidence\n\nTag: %s\n\nCandidate commit: %s\n\nOriginal push after: %s\n\nReadiness run: %s\n' \
+          printf '### Preparation tag-event evidence\n\nTag: %s\n\nCandidate commit: %s\n\nOriginal push after: %s\n\nReadiness run: %s\n' \
             "$GITHUB_REF_NAME" "$GITHUB_SHA" "$after" "$readiness_run" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

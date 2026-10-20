@@ -1,11 +1,15 @@
 # NuGet release controls and remaining acceptance (#244)
 
-Status: release-tag protection applied after the explicitly approved enforcement
-drill on 2026-10-20. The production publishing path remains disabled. A separate
-`nuget-acceptance.yml` workflow prepares real GitHub job/artifact checks with
-simulated login and a local discard sink. Existing workflow files, branch rules,
-NuGet policies and credentials are unchanged. Merging this change does not
-authorize a real release.
+Status: [standby migration](NUGET-STANDBY.md) removes the legacy CI publisher and
+leaves both replacement jobs disabled. Release-tag protection is applied; the
+post-#285 non-publishing runner drill and NuGet account audit are complete.
+Overlapping account policies, protected production environments and activation
+remain pending. #244 stays open. No real release is authorized.
+
+The dated sections below preserve earlier acceptance evidence and plans.
+Use [NUGET-STANDBY.md](NUGET-STANDBY.md) for the current workflow/account state;
+the old runner-test producer has been converted to disabled production
+preparation, so the historical drill instructions are not a current run command.
 
 ## Evidence already available
 
