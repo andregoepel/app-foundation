@@ -1,8 +1,9 @@
 # NuGet release controls and remaining acceptance (#244)
 
-Status: preparation only. The new publishing path remains disabled. This document
-and the proposed ruleset do not change GitHub settings, NuGet policies, Actions,
-credentials or tags. Merging them does not authorize activation or a real release.
+Status: release-tag protection applied after the explicitly approved enforcement
+drill on 2026-10-20. The new publishing path remains disabled. Actions, branch rules,
+NuGet policies and credentials are unchanged. Merging this document does not
+authorize activation or a real release.
 
 ## Evidence already available
 
@@ -12,6 +13,7 @@ credentials or tags. Merging them does not authorize activation or a real releas
 | Six packages and six symbol files | [Lightweight preparation](https://github.com/andregoepel/app-foundation/actions/runs/39192189177/attempts/1), [consumer](https://github.com/andregoepel/app-foundation/actions/runs/39192627767/attempts/1), [annotated preparation](https://github.com/andregoepel/app-foundation/actions/runs/39193143150/attempts/1), [consumer](https://github.com/andregoepel/app-foundation/actions/runs/39193529177/attempts/1) | Actual hosted-runner handoff into a discard sink; historical receipts have expired. |
 | Failed/stale readiness, wrong source/provenance, changed tag/package bytes, partial outcomes | C# integration tests and the 209 shell cases | Most negative cases use synthetic services; they do not prove the future publisher's GitHub scheduling or account restrictions. |
 | Disabled official-tool publication flow | `nuget-publish.caller.yml` and `nuget-publish.steps.yml`; [main template checks after #280](https://github.com/andregoepel/app-foundation/actions/runs/39392091850) | Real runner execution of synthetic shell tests; no official login or package upload. |
+| Immutable release tags | [Active ruleset 25464148](https://github.com/andregoepel/app-foundation/rules/25464148); four server-side rejection cases below | Protects tag objects while enforced; it is not proof of publication history. |
 
 For main `efe080ec53a7230cf9b328df143b72b943cae7d2`,
 [CI](https://github.com/andregoepel/app-foundation/actions/runs/39392092711) passed
@@ -19,6 +21,23 @@ For main `efe080ec53a7230cf9b328df143b72b943cae7d2`,
 passed 14, and [Sonar](https://github.com/andregoepel/app-foundation/actions/runs/39392275091)
 passed all 958 with gate OK and zero findings/hotspots. The baseline was unchanged.
 This historical evidence does not authorize a later candidate or release.
+
+After #281 merged at `3ec44019b94bc8f2c76d6160aa74ceae201f634e`,
+[CI](https://github.com/andregoepel/app-foundation/actions/runs/39397059536) passed
+944 tests with no build warnings/errors and no known vulnerable packages across
+15 projects; its publishing job was skipped.
+[E2E](https://github.com/andregoepel/app-foundation/actions/runs/39397059274)
+passed 14 tests, and
+[template checks](https://github.com/andregoepel/app-foundation/actions/runs/39397058722)
+passed all 209 synthetic cases with only the loopback interface available.
+[Sonar readiness](https://github.com/andregoepel/app-foundation/actions/runs/39397255130)
+passed all 958 tests, with gate OK, zero findings/hotspots, 88.8% overall coverage
+and 96.4% new-code coverage. Analysis `eeac6a6a-2ea0-4e76-9f82-95abfff6778e`
+used the unchanged baseline `899f364a-65bb-4f5e-9840-103b3ecc7825`.
+The readiness receipt matched the exact main SHA, workflow revision, CI/E2E
+attempts and analysis bytes (SHA-256
+`75b74e30caca05aac5fba8e46e4d43318a88ed8254f0db5138fc3ea4b8fc1297`).
+These are historical validation results; the receipt expires after one hour.
 
 The new path uses `NuGet/login` and `dotnet nuget push`. No additional upload
 client is needed. Passing shell tests does not close the operator and live-flow
@@ -44,10 +63,11 @@ Observed on 2026-10-20 after #280 merged at
 These are point-in-time observations, not an attestation of future configuration.
 Repeat the audit before activation and after any control change.
 
-## Proposed immutable release tags
+## Applied immutable release tags
 
 [`templates/nuget-release-tags.ruleset.json`](templates/nuget-release-tags.ruleset.json)
-is a reviewable GitHub repository-ruleset payload:
+is the reviewed GitHub repository-ruleset payload applied as
+[ruleset 25464148](https://github.com/andregoepel/app-foundation/rules/25464148):
 
 - Target only tags matching `refs/tags/v*`, consistent with the current release
   namespace; no exclusions.
@@ -56,10 +76,13 @@ is a reviewable GitHub repository-ruleset payload:
   authorize a release or validate its SHA, version, readiness or package bytes.
 - Leave branch rules and the `sonar-poc/...` acceptance namespaces unchanged.
 
-The payload contains `"enforcement": "active"` for eventual application. It is a
-file outside `.github/workflows`; nothing reads or applies it automatically.
-An operator must review and separately apply it to **app-foundation only**, record
-the returned ruleset ID, and verify the effective configuration afterward.
+The payload contains `"enforcement": "active"`. It is a file outside
+`.github/workflows`; nothing reads or applies it automatically. The operator
+applied it to **app-foundation only** after the explicitly approved drill passed.
+A fresh API read verified active enforcement, the exact `v*` scope, no exclusions,
+an explicitly empty `bypass_actors` list, and both update/deletion restrictions.
+GitHub normalizes the tag update rule by omitting its
+`update_allows_fetch_and_merge: false` parameter from the response.
 
 This closes the ordinary delete/recreate or retarget route while the ruleset is
 enforced. The existing first-attempt checks and original tag-object verification
@@ -67,13 +90,43 @@ remain necessary. It is not a durable publication ledger, an atomic upload lock,
 or protection against someone who can change the ruleset itself. Do not treat
 tag immutability as proof that a package version has never reached NuGet.
 
-For the later, separately authorized enforcement drill, use a temporary ruleset
-with the same controls and a unique `sonar-poc/tag-protection/...` prefix. First
-recheck all current workflow triggers to ensure that prefix cannot publish.
-Demonstrate initial creation, then rejection of update and deletion for both
-lightweight and annotated tags. Remove the temporary ruleset before removing its
-test tags. Never create a `v*` tag for this test. A Git push dry run alone is not
-proof that server-side enforcement rejects the mutation.
+### Completed enforcement drill
+
+On 2026-10-20, temporary ruleset `25463925` applied the same controls only to
+`refs/tags/sonar-poc/tag-protection/808e552a3f86480ba83d5c611e3e4d7a/*`.
+The operator checked all seven workflow triggers before creating the test tags:
+this prefix matched neither the `v*` publisher nor the
+`sonar-poc/nuget/*/v*` preparation trigger. Initial creation of `lightweight` and
+`annotated` under that prefix succeeded, both pointing to main `3ec44019...`.
+
+| Tag | Mutation attempted | Server response | Verification after rejection |
+| --- | --- | --- | --- |
+| Lightweight | Force update to previous main `efe080ec53a7230cf9b328df143b72b943cae7d2` | `GH013`: Cannot update this protected ref. | Original commit object retained. |
+| Lightweight | Delete ref | `GH013`: Cannot delete this tag | Original commit object retained. |
+| Annotated | Replace the annotation object while retaining the same commit | `GH013`: Cannot update this protected ref. | Original annotation object retained. |
+| Annotated | Delete ref | `GH013`: Cannot delete this tag | Original annotation object retained. |
+
+The original annotated object was `c1b12d454b0673a830284e286aba4072f1e549bc`;
+the rejected replacement was `3f4f0750c114f51049d212fae655b3aeed54a428`.
+Each update used an exact lease on the original object, each command returned
+exit code 1 with a server rules violation, and each follow-up remote read confirmed
+the original object. These were actual push attempts, not Git dry runs.
+
+Only after all four cases passed was release ruleset `25464148` created from the
+payload merged in #281. Cleanup completed at 09:06:26 UTC: the temporary ruleset
+was removed before deleting both temporary remote and local refs. Final reads
+confirmed their absence and the permanent rule's presence. The complete before/
+after API responses for branch rulesets `17153070` and `18198948` were unchanged.
+The workflow-run inventory checked at 09:07:59 UTC showed no runs created since
+09:02:00 UTC, covering the tag drill. No release tag, package, login or upload was
+created by the drill.
+
+Raw local evidence is retained under the ignored
+`artifacts/sonar/acceptance-244/tag-protection/` directory: payloads and API
+responses, exact object IDs, all four rejection logs, cleanup results and main
+validation receipts. This document records the outcome; future activation still
+requires a fresh operator audit. Repeat any enforcement drill only under an
+explicitly approved isolated namespace after rechecking workflow triggers.
 
 The final operator audit must inspect `bypass_actors`, including inherited
 rulesets. GitHub returns that property only to callers with write access to the
@@ -85,7 +138,7 @@ administration token to the runner to make the field visible.
 
 | Step | Required completion evidence | Current state |
 | --- | --- | --- |
-| 1. Release control review | Applied tag rules and safe enforcement drill; approved environment/reviewer policy; complete six-package account audit | Ruleset prepared; settings not applied; account audit pending. |
+| 1. Release control review | Applied tag rules and safe enforcement drill; approved environment/reviewer policy; complete six-package account audit | Tag rules applied and four-case drill passed; environment/reviewer policy and account audit pending. |
 | 2. Publication record and recovery boundary | Independently authenticated intent/outcomes, retention/retrieval and cross-run replay decisions; missing or uncertain records block any retry | Intent/outcome creation is prepared; independent recovery verification remains open. |
 | 3. Final non-publishing runner drill | Actual job/event ordering and artifact storage, full twelve-file success, all required rejection cases before login/upload, cancellation and lost-record cases | Earlier preparation/discard drills passed; final caller acceptance remains open. |
 | 4. Separately approved activation | Replace the old tag publisher, register production producer identity/hash, configure the protected environment and NuGet policy, update the reviewed CI hash | Prohibited by the current task scope. |
