@@ -418,6 +418,10 @@ still require the separately approved activation work.
 
 ## Remaining production integration (#244)
 
+The [remaining acceptance sequence and release-control audit](NUGET-ACCEPTANCE.md)
+records the current operator gaps and a proposed immutable-release-tag ruleset.
+The ruleset is review material only; no settings or workflows apply it.
+
 The separate `Sonar NuGet template checks` workflow now runs the 62 caller,
 45 publishing-step and 102 preparation/rehearsal shell cases on Ubuntu 24.04 for
 PRs and main pushes. It preserves synthetic reports and the rendered disabled

@@ -1,5 +1,9 @@
 # Inactive official NuGet publishing steps
 
+`nuget-release-tags.ruleset.json` is a proposed repository-ruleset payload, separate
+from the workflow templates. It is never applied by rendering or testing. See the
+[release-control audit and approval boundary](../NUGET-ACCEPTANCE.md) before use.
+
 `nuget-publish.steps.yml` is a reviewable step fragment outside `.github/workflows`.
 Every step is disabled. It neither registers a workflow nor replaces the existing
 publisher. Do not enable or copy it into a workflow before the remaining #244
