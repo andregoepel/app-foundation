@@ -36,6 +36,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-verify-handoff")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-handoff")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-handoff")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-verify-intent")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-verify-intent")]
+    [InlineData("NUGET_API_KEY", "--nuget-verify-intent")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-intent")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-intent")]
     public async Task Run_PublicationCredential_ExitsBeforeReadingConfiguration(
         string name,
         string mode
@@ -80,6 +85,11 @@ public sealed class NuGetCommandTests
     [InlineData("NUGET_API_KEY", "--nuget-verify-handoff")]
     [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-handoff")]
     [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-handoff")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "--nuget-verify-intent")]
+    [InlineData("ACTIONS_ID_TOKEN_REQUEST_URL", "--nuget-verify-intent")]
+    [InlineData("NUGET_API_KEY", "--nuget-verify-intent")]
+    [InlineData("NUGET_AUTH_TOKEN", "--nuget-verify-intent")]
+    [InlineData("NUGET_SYMBOL_API_KEY", "--nuget-verify-intent")]
     public async Task Bootstrap_PublicationCredential_ExitsBeforeRestoreOrBuild(
         string name,
         string mode
@@ -141,6 +151,7 @@ public sealed class NuGetCommandTests
     [InlineData("--nuget-dry-run")]
     [InlineData("--nuget-rehearse")]
     [InlineData("--nuget-verify-handoff")]
+    [InlineData("--nuget-verify-intent")]
     public async Task Run_MissingReadCredentials_ExitsWithoutPreparingPackages(string mode)
     {
         // Arrange
@@ -281,7 +292,7 @@ public sealed class NuGetCommandTests
 
     private static ProcessStartInfo Start(string root, string mode = "--nuget-dry-run")
     {
-        if (mode is "--nuget-rehearse" or "--nuget-verify-handoff")
+        if (mode is "--nuget-rehearse" or "--nuget-verify-handoff" or "--nuget-verify-intent")
             return ProcessRunner.CreateStartInfo(
                 root,
                 [

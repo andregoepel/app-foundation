@@ -67,13 +67,22 @@ try {
 #!/usr/bin/env bash
 set -euo pipefail
 if [[ "$1" == "$VERIFIER_DLL" ]]; then
-  expected=("$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" --preparation-attempt "$PREPARATION_ATTEMPT")
+  count=$(cat "$FIXTURE_VERIFY_COUNT")
+  mode=--nuget-verify-handoff
+  if [[ "$count" == 1 ]]; then
+    mode=--nuget-verify-intent
+    test "$GITHUB_EVENT_NAME" = workflow_run
+    test "$GITHUB_REF" = refs/heads/main
+    test "$INTENT_ARTIFACT_ID" = 700
+    test "$INTENT_ARTIFACT_DIGEST" = dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+    test -n "$INTENT_SHA256"
+  fi
+  expected=("$VERIFIER_DLL" --root "$REPOSITORY_ROOT" "$mode" --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" --tag-object "$TAG_OBJECT" --preparation-run "$PREPARATION_RUN" --preparation-attempt "$PREPARATION_ATTEMPT")
   test "$#" -eq "${#expected[@]}"
   index=0
   for argument in "$@"; do test "$argument" = "${expected[$index]}"; index=$((index + 1)); done
   for name in ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL NUGET_API_KEY NUGET_AUTH_TOKEN NUGET_SYMBOL_API_KEY; do test -z "${!name:-}"; done
   for name in APPFOUNDATION_GITHUB_TOKEN APPFOUNDATION_SONAR_TOKEN APPFOUNDATION_SONAR_VERIFY_TOKEN; do test "${!name:-}" = synthetic-read-key; done
-  count=$(cat "$FIXTURE_VERIFY_COUNT")
   count=$((count + 1))
   printf '%s' "$count" > "$FIXTURE_VERIFY_COUNT"
   printf 'verify:%s\n' "$count" >> "$FIXTURE_EVENTS"
@@ -161,6 +170,7 @@ fi
         $values = @{
             PATH = "$root/bin:$env:PATH"; RUNNER_TEMP = "$caseRoot/temp"; GITHUB_OUTPUT = "$caseRoot/output";
             GITHUB_REPOSITORY = 'andregoepel/app-foundation'; GITHUB_RUN_ATTEMPT = '1';
+            GITHUB_EVENT_NAME = 'workflow_run'; GITHUB_REF = 'refs/heads/main';
             GITHUB_RUN_ID = '600'; GITHUB_SHA = 'a' * 40; GITHUB_WORKFLOW_SHA = 'a' * 40;
             GITHUB_WORKFLOW_REF = 'andregoepel/app-foundation/.github/workflows/nuget-publish.yml@refs/heads/main';
             INTENT_ARTIFACT_ID = '700'; INTENT_ARTIFACT_DIGEST = 'd' * 64;

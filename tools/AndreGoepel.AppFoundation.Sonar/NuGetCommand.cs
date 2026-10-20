@@ -99,12 +99,23 @@ internal static class NuGetCommand
         NuGetConsumer consumer,
         NuGetHandoffOptions options,
         TextWriter output,
-        CancellationToken ct
+        CancellationToken ct,
+        Func<string, string?>? environment = null
     )
     {
         if (options.VerifyOnly)
         {
             var verified = await consumer.VerifyAsync(options, ct);
+            if (verified.IsSuccess && options.VerifyStoredIntent)
+            {
+                var pins = NuGetIntentContext.Read(
+                    options,
+                    environment ?? Environment.GetEnvironmentVariable
+                );
+                verified = pins.IsSuccess
+                    ? await consumer.VerifyIntentAsync(options, pins.Value!, verified.Value!, ct)
+                    : Result.Fail<NuGetHandoffReceipt>(pins.Error);
+            }
             if (verified.IsSuccess)
                 await output.WriteLineAsync(
                     JsonSerializer.Serialize(verified.Value, JsonFormat.Options).AsMemory(),
@@ -145,6 +156,7 @@ internal sealed record NuGetCommandInput(
         if (
             args.Contains("--nuget-rehearse", StringComparer.Ordinal)
             || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
+            || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
         )
         {
             var options = NuGetHandoffOptions.Parse(args);

@@ -305,6 +305,8 @@ public sealed class NuGetProvenanceTests
                 Handoff.Clock
             );
 
+        internal IGitHubArtifacts ArtifactReader() => new GitHubArtifacts(client, "fixture-read");
+
         internal async Task InitializeAsync(CancellationToken ct)
         {
             await Handoff.InitializeAsync(annotated: true, ct);

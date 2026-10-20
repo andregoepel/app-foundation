@@ -380,6 +380,13 @@ Its arguments match `--nuget-rehearse` without `--files`; it returns a diagnosti
 inventory and never a release authorization. The command and both bootstraps
 retain their publication-credential rejection. No existing Action invokes it yet.
 
+The additional `--nuget-verify-intent` mode uses the same handoff arguments plus
+the current publishing job's environment pins. It authenticates the stored intent
+through the existing GitHub readers before login and rechecks the complete handoff
+afterward. The disabled fragment invokes it after intent storage; neither the
+production workflow nor publishing is activated. See the
+[stored-intent boundary and required context](templates/README.md#intent-and-outcome-records).
+
 The future repository-local publishing job will use the official `NuGet/login`
 action and `dotnet nuget push`. The custom upload adapter, credential wrapper,
 HTTP transport, direct NuGet.Protocol dependency and their 47 tests have been
@@ -402,9 +409,11 @@ Actions do not reference the fragment. The fragment now prepares official artifa
 steps for a complete intent before login and bound CLI observations after the push
 step, including failure/cancellation. The expanded cases cover persistence failures,
 reverification after intent storage, damaged logs and uncertainty. Uploads and login
-remain simulated. The local log is not recovery authority; independent artifact
-authentication, retention, cross-run replay prevention and remote reconciliation
-still need implementation and live acceptance.
+remain simulated. Independent current-attempt intent retrieval is now implemented
+and tested with synthetic GitHub responses and real ZIP/digest validation.
+The local log is not recovery authority; outcome/recovery record authentication,
+retention, cross-run replay prevention and remote reconciliation still need
+implementation and live acceptance.
 
 The [disabled caller template](templates/README.md#required-caller-setup) now
 connects production-event screening, exact trusted checkout, verifier bootstrap,

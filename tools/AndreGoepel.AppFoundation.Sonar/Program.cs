@@ -15,6 +15,7 @@ try
         || args.Contains("--nuget-prepare", StringComparer.Ordinal)
         || args.Contains("--nuget-rehearse", StringComparer.Ordinal)
         || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
+        || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
     )
     {
         var dryRun = await NuGetCommand.RunAsync(args, cancellation.Token);

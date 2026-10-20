@@ -29,6 +29,28 @@ internal sealed class NuGetConsumer(
         CancellationToken ct
     ) => CreateHandoff(options).VerifyAsync(options.Input, ct);
 
+    internal async Task<Result<NuGetHandoffReceipt>> VerifyIntentAsync(
+        NuGetHandoffOptions options,
+        NuGetIntentContext pins,
+        NuGetHandoffReceipt verified,
+        CancellationToken ct
+    )
+    {
+        var intent = await new NuGetStoredIntent(github, artifacts, clock).VerifyAsync(
+            options,
+            pins,
+            verified,
+            ct
+        );
+        if (intent.IsFailure)
+            return Result.Fail<NuGetHandoffReceipt>(intent.Error);
+
+        var final = await VerifyAsync(options, ct);
+        return final.IsSuccess && !verified.Packages.SequenceEqual(final.Value!.Packages)
+            ? Result.Fail<NuGetHandoffReceipt>("The handoff changed during intent verification.")
+            : final;
+    }
+
     private NuGetPreparedHandoff CreateHandoff(NuGetHandoffOptions options) =>
         new(
             new NuGetProvenance(github, artifacts, policy, clock),
