@@ -8,11 +8,12 @@ internal sealed record NuGetHandoffOptions(
     long PreparationRunId,
     int PreparationAttempt,
     string[]? Files,
-    bool VerifyOnly = false
+    bool VerifyOnly = false,
+    bool VerifyStoredIntent = false
 )
 {
     internal const string Usage =
-        "Use --root ROOT MODE --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER. MODE is --nuget-verify-handoff or --nuget-rehearse; only rehearsal accepts [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; both modes are non-publishing.";
+        "Use --root ROOT MODE --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER. MODE is --nuget-verify-handoff, --nuget-verify-intent or --nuget-rehearse; only rehearsal accepts [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; intent verification requires a production tag and the current publishing job context. All modes are non-publishing.";
 
     internal static Result<NuGetHandoffOptions> Parse(string[] args)
     {
@@ -42,8 +43,9 @@ internal sealed record NuGetHandoffOptions(
                     var attempt,
                     .. var tail,
                 ]
-            || mode is not ("--nuget-rehearse" or "--nuget-verify-handoff")
-            || (mode == "--nuget-verify-handoff" && tail.Length != 0)
+            || mode
+                is not ("--nuget-rehearse" or "--nuget-verify-handoff" or "--nuget-verify-intent")
+            || (mode != "--nuget-rehearse" && tail.Length != 0)
             || !Path.IsPathFullyQualified(directory)
             || !Directory.Exists(directory)
             || !IsHex(digest, 64)
@@ -101,7 +103,8 @@ internal sealed record NuGetHandoffOptions(
                 runId,
                 attemptId,
                 files,
-                mode == "--nuget-verify-handoff"
+                mode != "--nuget-rehearse",
+                mode == "--nuget-verify-intent"
             )
         );
     }

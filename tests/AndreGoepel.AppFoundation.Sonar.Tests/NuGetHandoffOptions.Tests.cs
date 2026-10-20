@@ -30,12 +30,17 @@ public sealed class NuGetHandoffOptionsTests
         Assert.False(parsed.Value.VerifyOnly);
     }
 
-    [Fact]
-    public void Parse_VerificationMode_RequiresCompleteBatchWithoutSelection()
+    [Theory]
+    [InlineData("--nuget-verify-handoff", false)]
+    [InlineData("--nuget-verify-intent", true)]
+    public void Parse_VerificationMode_RequiresCompleteBatchWithoutSelection(
+        string mode,
+        bool stored
+    )
     {
         // Arrange
         using var fixture = new RunnerFixture();
-        var args = Arguments(fixture.Root, "--nuget-verify-handoff");
+        var args = Arguments(fixture.Root, mode);
 
         // Act
         var parsed = NuGetHandoffOptions.Parse(args);
@@ -43,6 +48,7 @@ public sealed class NuGetHandoffOptionsTests
         // Assert
         Assert.True(parsed.IsSuccess, parsed.Error);
         Assert.True(parsed.Value!.VerifyOnly);
+        Assert.Equal(stored, parsed.Value.VerifyStoredIntent);
         Assert.Null(parsed.Value.Files);
         Assert.Equal(500, parsed.Value.PreparationRunId);
         Assert.Equal(1, parsed.Value.PreparationAttempt);

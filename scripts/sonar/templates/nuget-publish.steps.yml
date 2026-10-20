@@ -81,7 +81,7 @@ steps:
       test "${digest%% *}" = "$INTENT_SHA256"
       env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL \
         -u NUGET_API_KEY -u NUGET_AUTH_TOKEN -u NUGET_SYMBOL_API_KEY \
-        dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-handoff \
+        dotnet "$VERIFIER_DLL" --root "$REPOSITORY_ROOT" --nuget-verify-intent \
         --sha "$CANDIDATE_SHA" --version "$PACKAGE_VERSION" \
         --readiness-run "$READINESS_RUN" --tag "$RELEASE_TAG" \
         --handoff "$HANDOFF_ROOT/batch" --manifest-sha256 "$MANIFEST_SHA256" \

@@ -39,9 +39,35 @@ JSON-number precision loss. It contains no credentials, packages or runner paths
 The fragment requires the future caller to be
 `.github/workflows/nuget-publish.yml@refs/heads/main`, running the candidate SHA.
 That workflow is not registered by this change. After intent storage, the fragment
-checks the action's artifact ID/digest outputs, checks the local intent's byte hash
-and repeats full handoff verification before login. Each file still receives its
+checks the action's artifact ID/digest outputs and the local intent's byte hash,
+then invokes `--nuget-verify-intent` before login. Each file still receives its
 own fresh full-batch verification before the CLI command.
+
+The intent command uses the existing C# GitHub metadata and artifact readers.
+After full handoff verification, it independently reads the publishing workflow,
+current run/attempt, job steps and complete artifact inventory. It requires the
+registered repository-local workflow at the verified main checkout, a first
+`workflow_run` attempt on main, successful intent storage, the verification step
+in progress, and login/push still pending. Missing or delayed API metadata fails
+closed; actual runner timing remains part of live acceptance.
+
+The stored artifact must have the expected name, ID, archive digest and producer
+SHA, fit the size limit, be unexpired and have been created during this attempt.
+The existing downloader checks the ZIP digest and permits exactly `intent.json`.
+The command then checks its content hash, candidate/tag object, workflow revision,
+readiness/preparation identities and all twelve package identities, feeds and
+hashes. It rereads run/artifact metadata and revalidates the complete handoff before
+returning the usual diagnostic inventory (`dryRun: true`, `releaseEligible: false`).
+No new HTTP client or upload transport is introduced.
+
+Use the same arguments as `--nuget-verify-handoff`, replacing only the mode.
+The current job must supply `GITHUB_REPOSITORY`, `GITHUB_EVENT_NAME`, `GITHUB_REF`,
+`GITHUB_RUN_ID`, `GITHUB_RUN_ATTEMPT`, `GITHUB_SHA`, `GITHUB_WORKFLOW_REF`,
+`GITHUB_WORKFLOW_SHA`, `INTENT_ARTIFACT_ID`, `INTENT_ARTIFACT_DIGEST` and
+`INTENT_SHA256`. These pins are checked against independent reads, not treated as
+proof by themselves. Both launchers reject OIDC/NuGet publication credentials
+before bootstrap for this mode too. The production workflow does not yet exist,
+so this command cannot pass against the current live repository configuration.
 
 After the push step, including failure or cancellation when the runner can still
 execute final steps, `outcomes.json` records observations and the intent's content
@@ -73,8 +99,9 @@ still blocks login, because the action did not report success.
 
 These are retained run records, not a complete publication ledger. GitHub artifacts
 can expire or be deleted with their run. The future caller/recovery path must
-authenticate workflow/run/attempt, artifact metadata and archive/content digests
-independently; arbitrary JSON or copied artifact IDs confer no authority. Missing
+authenticate outcomes and historical records independently; the current-attempt
+intent check above does not provide recovery authority. Arbitrary JSON or copied
+artifact IDs confer no authority. Missing
 or expired records must block automatic retries. Cross-run replay prevention,
 longer-term retention and remote reconciliation remain activation blockers.
 
@@ -144,10 +171,13 @@ appear as command arguments or persisted configuration.
 - The disabled caller and production trigger are prepared for review, but the
   production producer/policy, protected environment and official login action
   acceptance on the intended runner are not configured.
-- Intent/outcome artifact steps are prepared, but have only offline acceptance.
+- Intent/outcome artifact steps and independent pre-login intent verification are
+  prepared, but have only offline acceptance.
   The local `attempts.tsv` remains diagnostic input, not trusted recovery authority.
-  Implement independent record authentication, retention, cross-run replay
-  protection and remote reconciliation before introducing a retry path.
+  Implement independent outcome/recovery record authentication, retention,
+  cross-run replay protection and remote reconciliation before introducing a retry
+  path. Successful intent retrieval proves neither remote package acceptance nor
+  the absence of an earlier publication.
 - The fragment deliberately supports only the first complete-batch attempt.
   Workflow reruns and a second invocation in the same directory are rejected.
   Manual and symbol-only recovery still require separately reviewed selection,
