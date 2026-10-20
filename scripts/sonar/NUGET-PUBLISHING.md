@@ -53,6 +53,11 @@ push. Its [setup, validation and activation blockers](templates/README.md) remai
 part of the review. It is outside `.github/workflows`, every step is disabled,
 and no existing Action calls it. Offline tests execute its actual shell blocks
 with command substitutes; they do not establish live OIDC or publishing acceptance.
+The [caller template](templates/nuget-publish.caller.yml) now supplies event
+screening, trusted verifier bootstrap, exact artifact downloads and context export.
+The renderer joins caller and fragment into a complete disabled workflow under
+`artifacts/sonar`; it never registers an Action. Production producer/policy changes,
+record reconciliation, account controls and live acceptance still precede activation.
 
 The following are separate step examples, not a complete runnable workflow. They
 deliberately use `if: ${{ false }}`. They contain no verification implementation:
@@ -123,7 +128,7 @@ Use step-scoped credentials, no command-line key, shell tracing, job-wide key
 export, persisted key configuration or credential-containing artifacts. Do not
 restore/build after login. The runner remains a trusted process boundary.
 
-## Verification and credential separation still need wiring
+## Prepared verification and credential separation
 
 `--nuget-verify-handoff` now exposes the existing authenticated handoff checks
 without a rehearsal sink. It requires the same pinned inputs and reviewed producer

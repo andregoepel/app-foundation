@@ -406,14 +406,25 @@ remain simulated. The local log is not recovery authority; independent artifact
 authentication, retention, cross-run replay prevention and remote reconciliation
 still need implementation and live acceptance.
 
+The [disabled caller template](templates/README.md#required-caller-setup) now
+connects production-event screening, exact trusted checkout, verifier bootstrap,
+origin/batch downloads and checked context export to those steps. Its renderer
+produces one complete disabled workflow outside `.github/workflows`, without
+duplicating the fragment source. The 62 caller cases execute the actual rendered
+shell with command substitutes, including context propagation into the fragment's
+verification shell. They establish no live OIDC, artifact-service or publishing
+acceptance. The production producer name/hash, environment and existing publisher
+still require the separately approved activation work.
+
 ## Remaining production integration (#244)
 
 1. Wire the official `NuGet/login` action and `dotnet nuget push` into a reviewed
    credential-bearing boundary, preserving independent verification before login
    and each file. Implement trusted recording/reconciliation of partial or uncertain
    outcomes. The verification command and tested disabled step fragment are
-   available; the fragment still needs a reviewed caller, trusted records and live
-   non-publishing runner acceptance. No production
+   available, and the disabled caller is prepared; independent record
+   authentication/reconciliation and live non-publishing runner acceptance remain.
+   No production
    publishing mode or replacement uploader is implemented by the console tool.
 2. Audit all six packages' trusted-publisher policies and alternative API keys,
    including manual and symbol-only routes. Repository secret inventory alone
