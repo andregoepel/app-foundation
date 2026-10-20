@@ -518,7 +518,7 @@ public sealed class NuGetPublicationRecordsTests
                 new
                 {
                     schemaVersion = 1,
-                    kind = "publication-outcomes",
+                    kind = Intent.Pins.OutcomeKind,
                     intentSha256 = Intent.Pins.ContentHash,
                     intentArtifactId = "700",
                     intentArtifactDigest = Intent.Pins.ArchiveDigest["sha256:".Length..],
@@ -526,7 +526,7 @@ public sealed class NuGetPublicationRecordsTests
                     sha = MainFixture.Sha,
                     publishRunId = "600",
                     publishAttempt = "1",
-                    workflowRef = NuGetIntentContext.WorkflowRef,
+                    workflowRef = Intent.Pins.Reference,
                     workflowRevision = MainFixture.Sha,
                     recordedAt = Intent.Now,
                     loginOutcome = "success",

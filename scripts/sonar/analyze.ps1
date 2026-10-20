@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-if ($args -contains '--nuget-dry-run' -or $args -contains '--nuget-prepare' -or $args -contains '--nuget-rehearse' -or $args -contains '--nuget-verify-handoff' -or $args -contains '--nuget-verify-intent' -or $args -contains '--nuget-inspect-publication' -or $args -contains '--staging-contract') {
+if ($args -contains '--nuget-dry-run' -or $args -contains '--nuget-prepare' -or $args -contains '--nuget-rehearse' -or $args -contains '--nuget-verify-handoff' -or $args -contains '--nuget-verify-intent' -or $args -contains '--nuget-verify-acceptance-intent' -or $args -contains '--nuget-inspect-acceptance' -or $args -contains '--nuget-inspect-publication' -or $args -contains '--staging-contract') {
     foreach ($name in @('ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_URL', 'NUGET_API_KEY', 'NUGET_AUTH_TOKEN', 'NUGET_SYMBOL_API_KEY')) {
         if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($name))) {
             throw 'Run preparation without OIDC access or NuGet publication credentials.'

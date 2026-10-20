@@ -13,25 +13,41 @@ public sealed class NuGetStoredIntentTests
     private static readonly string[] PackageExtensions = ["nupkg", "snupkg"];
 
     [Theory]
-    [InlineData("valid")]
-    [InlineData("missing-context")]
-    [InlineData("missing-artifact")]
-    [InlineData("package-changed")]
-    [InlineData("gate-changed")]
+    [InlineData("valid", false)]
+    [InlineData("missing-context", false)]
+    [InlineData("missing-artifact", false)]
+    [InlineData("package-changed", false)]
+    [InlineData("gate-changed", false)]
+    [InlineData("valid", true)]
+    [InlineData("missing-context", true)]
+    [InlineData("missing-artifact", true)]
+    [InlineData("package-changed", true)]
+    [InlineData("gate-changed", true)]
     public async Task Command_StoredIntentVerification_ReturnsReceiptOnlyForStillValidHandoff(
-        string scenario
+        string scenario,
+        bool acceptanceOnly
     )
     {
         // Arrange
-        using var preparation = new NuGetProvenanceTests.ProvenanceFixture();
+        using var preparation = new NuGetProvenanceTests.ProvenanceFixture(
+            tag: acceptanceOnly ? NuGetAcceptanceIntentTests.Tag : "v2.2.0"
+        );
         var root = preparation.Handoff.Evidence.Root;
         Directory.CreateDirectory(Path.Combine(root, ".github/workflows"));
         File.WriteAllText(
-            Path.Combine(root, NuGetIntentContext.WorkflowPath),
+            Path.Combine(
+                root,
+                acceptanceOnly
+                    ? NuGetIntentContext.AcceptanceWorkflowPath
+                    : NuGetIntentContext.WorkflowPath
+            ),
             "reviewed-publishing-workflow"
         );
         await preparation.InitializeAsync(TestContext.Current.CancellationToken);
-        var options = new NuGetHandoffOptions(preparation.Handoff.Input, 500, 1, null, true, true);
+        var options = new NuGetHandoffOptions(preparation.Handoff.Input, 500, 1, null, true, true)
+        {
+            AcceptanceOnly = acceptanceOnly,
+        };
         var verified = await preparation
             .Consumer()
             .VerifyAsync(options, TestContext.Current.CancellationToken);
@@ -55,6 +71,7 @@ public sealed class NuGetStoredIntentTests
             preparation.Handoff.Clock
         );
         var environment = NuGetIntentContextTests.EnvironmentValues();
+        environment["GITHUB_WORKFLOW_REF"] = intent.Pins.Reference;
         environment["INTENT_ARTIFACT_DIGEST"] = intent.Pins.ArchiveDigest["sha256:".Length..];
         environment["INTENT_SHA256"] = intent.Pins.ContentHash;
         if (scenario == "missing-context")
@@ -89,6 +106,8 @@ public sealed class NuGetStoredIntentTests
             Assert.False(receipt.RootElement.GetProperty("releaseEligible").GetBoolean());
             Assert.True(receipt.RootElement.GetProperty("dryRun").GetBoolean());
             Assert.Equal(12, receipt.RootElement.GetProperty("packages").GetArrayLength());
+            if (acceptanceOnly)
+                Assert.True(receipt.RootElement.GetProperty("acceptanceOnly").GetBoolean());
         }
         else
             Assert.Empty(output.ToString());
@@ -445,9 +464,13 @@ public sealed class NuGetStoredIntentTests
         internal Dictionary<string, JsonNode> Responses { get; } = [];
         internal JsonNode Intent { get; }
         internal JsonNode Run => Responses["actions/runs/600"];
-        internal JsonNode Registered => Responses["actions/workflows/nuget-publish.yml"];
-        internal JsonNode Workflow =>
-            Responses[$"contents/{NuGetIntentContext.WorkflowPath}?ref={MainFixture.Sha}"];
+        internal string WorkflowPath =>
+            Options.AcceptanceOnly
+                ? NuGetIntentContext.AcceptanceWorkflowPath
+                : NuGetIntentContext.WorkflowPath;
+        internal JsonNode Registered =>
+            Responses["actions/workflows/" + Path.GetFileName(WorkflowPath)];
+        internal JsonNode Workflow => Responses[$"contents/{WorkflowPath}?ref={MainFixture.Sha}"];
         internal JsonNode Jobs => Responses["actions/runs/600/attempts/1/jobs?per_page=100"];
         internal JsonNode Inventory => Responses["actions/runs/600/artifacts?per_page=100"];
         internal JsonNode Artifact => Inventory["artifacts"]![0]!;
@@ -495,22 +518,21 @@ public sealed class NuGetStoredIntentTests
                 Path.Combine(Options.Input.Release.Root, ".github/workflows")
             );
             File.WriteAllText(
-                Path.Combine(Options.Input.Release.Root, NuGetIntentContext.WorkflowPath),
+                Path.Combine(Options.Input.Release.Root, WorkflowPath),
                 "reviewed-publishing-workflow"
             );
-            Responses[$"contents/{NuGetIntentContext.WorkflowPath}?ref={MainFixture.Sha}"] =
-                MainFixture.Node(
-                    new
-                    {
-                        encoding = "base64",
-                        content = Convert.ToBase64String("reviewed-publishing-workflow"u8),
-                    }
-                );
-            Responses["actions/workflows/nuget-publish.yml"] = MainFixture.Node(
+            Responses[$"contents/{WorkflowPath}?ref={MainFixture.Sha}"] = MainFixture.Node(
+                new
+                {
+                    encoding = "base64",
+                    content = Convert.ToBase64String("reviewed-publishing-workflow"u8),
+                }
+            );
+            Responses["actions/workflows/" + Path.GetFileName(WorkflowPath)] = MainFixture.Node(
                 new
                 {
                     id = 901,
-                    path = NuGetIntentContext.WorkflowPath,
+                    path = WorkflowPath,
                     state = "active",
                 }
             );
@@ -519,7 +541,7 @@ public sealed class NuGetStoredIntentTests
                 {
                     id = 600,
                     workflow_id = 901,
-                    path = NuGetIntentContext.WorkflowPath,
+                    path = WorkflowPath,
                     @event = "workflow_run",
                     head_branch = "main",
                     head_sha = MainFixture.Sha,
@@ -610,10 +632,10 @@ public sealed class NuGetStoredIntentTests
                 new
                 {
                     schemaVersion = 1,
-                    kind = "publication-intent",
+                    kind = Options.AcceptanceOnly ? "acceptance-intent" : "publication-intent",
                     repository = MainPolicy.Repository,
                     sha = MainFixture.Sha,
-                    tag = "v2.2.0",
+                    tag = Options.Input.Release.Tag,
                     tagObjectSha = Options.Input.TagObjectSha,
                     version = "2.2.0",
                     manifestSha256 = Options.Input.ManifestSha256,
@@ -622,7 +644,9 @@ public sealed class NuGetStoredIntentTests
                     preparationAttempt = "1",
                     publishRunId = "600",
                     publishAttempt = "1",
-                    workflowRef = NuGetIntentContext.WorkflowRef,
+                    workflowRef = Options.AcceptanceOnly
+                        ? NuGetIntentContext.AcceptanceWorkflowRef
+                        : NuGetIntentContext.WorkflowRef,
                     workflowRevision = MainFixture.Sha,
                     createdAt = Now.AddMinutes(-2),
                     packages = Handoff.Packages,
@@ -642,7 +666,10 @@ public sealed class NuGetStoredIntentTests
             archive = output.ToArray();
             Artifact["digest"] = "sha256:" + SourceFiles.Hash(archive);
             Artifact["size_in_bytes"] = archive.Length;
-            Pins = new(600, 700, "sha256:" + SourceFiles.Hash(archive), SourceFiles.Hash(bytes));
+            Pins = new(600, 700, "sha256:" + SourceFiles.Hash(archive), SourceFiles.Hash(bytes))
+            {
+                AcceptanceOnly = Options.AcceptanceOnly,
+            };
         }
 
         internal Task<AndreGoepel.Core.Result> VerifyAsync(CancellationToken? ct = null) =>

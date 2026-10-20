@@ -1,9 +1,11 @@
 # NuGet release controls and remaining acceptance (#244)
 
 Status: release-tag protection applied after the explicitly approved enforcement
-drill on 2026-10-20. The new publishing path remains disabled. Actions, branch rules,
-NuGet policies and credentials are unchanged. Merging this document does not
-authorize activation or a real release.
+drill on 2026-10-20. The production publishing path remains disabled. A separate
+`nuget-acceptance.yml` workflow prepares real GitHub job/artifact checks with
+simulated login and a local discard sink. Existing workflow files, branch rules,
+NuGet policies and credentials are unchanged. Merging this change does not
+authorize a real release.
 
 ## Evidence already available
 
@@ -138,9 +140,9 @@ administration token to the runner to make the field visible.
 
 | Step | Required completion evidence | Current state |
 | --- | --- | --- |
-| 1. Release control review | Applied tag rules and safe enforcement drill; approved environment/reviewer policy; complete six-package account audit | Tag rules applied and four-case drill passed; environment/reviewer policy and account audit pending. |
-| 2. Publication record and recovery boundary | Independently authenticated intent/outcomes, retention/retrieval and cross-run replay decisions; missing or uncertain records block any retry | Intent/outcome retrieval and strict single-run replay rejection are prepared and tested offline. Durable retention/retrieval, remote reconciliation and live service acceptance remain open; see [release eligibility](RELEASE-ELIGIBILITY.md). |
-| 3. Final non-publishing runner drill | Actual job/event ordering and artifact storage, full twelve-file success, all required rejection cases before login/upload, cancellation and lost-record cases | Earlier preparation/discard drills passed; final caller acceptance remains open. |
+| 1. Release control review | Applied tag rules and safe enforcement drill; approved environment/reviewer policy; complete six-package account audit | Tag rules applied and four-case drill passed. Operator selected `andregoepel` as required reviewer with self-approval allowed; configuration and account audit remain pending. |
+| 2. Publication record and recovery boundary | Independently authenticated intent/outcomes and cross-run replay decisions; missing or uncertain records block any retry | Intent/outcome retrieval and strict single-run replay rejection are tested offline. Actual service acceptance remains open. Independent external archive work is explicitly deferred until after #247 acceptance. |
+| 3. Final non-publishing runner drill | Actual job/event ordering and artifact storage, full twelve-file success, all required rejection cases before login/upload, cancellation and lost-record cases | Separate acceptance workflow prepared below; live results must be recorded after merge. Earlier preparation/discard drills passed. |
 | 4. Separately approved activation | Replace the old tag publisher, register production producer identity/hash, configure the protected environment and NuGet policy, update the reviewed CI hash | Prohibited by the current task scope. |
 | 5. Acceptance review | Fresh exact-main CI/E2E/Sonar evidence, complete barrier matrix, no alternate publication route, operator sign-off | #244 stays open. No real release is needed or authorized. |
 
@@ -156,6 +158,74 @@ attempt, changed tag/package bytes, missing/failed intent storage, and changed
 evidence after storage. Verify that main success alone cannot start a release.
 Separate synthetic rejection evidence from actual GitHub event, environment and
 artifact-service evidence. No public dummy package or real release tag is needed.
+
+## Prepared runner acceptance
+
+`.github/workflows/nuget-acceptance.yml` is generated from the disabled production
+caller and steps by `templates/Build-NuGetAcceptanceWorkflow.ps1`. The generator
+requires every expected substitution and rejects publication commands, NuGet
+credential bindings and OIDC permission. Existing production templates remain
+disabled and unchanged. The existing template-check job also tests generation
+parity and the negative probe; its workflow file is unchanged.
+
+The acceptance workflow receives only completion events from **NuGet preparation
+(runner test)**, checks its registered ID/path and successful first attempt, and
+accepts only `sonar-poc/nuget/<32 lowercase hex characters>/vX.Y.Z`. It must run at
+the current main tip using that revision's workflow. Main/PR success alone does
+not satisfy the trigger. There is no manual dispatch or caller-supplied command.
+
+It reuses the production sequence: authenticate the full handoff, store the
+twelve-file intent, retrieve and authenticate the stored artifact, reverify
+readiness and packages, then store linked outcomes. The two side effects differ:
+
+- The login step only checks that NuGet/OIDC credentials are absent and reports a
+  simulation. It never invokes `NuGet/login`.
+- Each verified file is read into `/dev/null` by a process with an empty
+  environment except `PATH`. No upload executable, endpoint or NuGet key is used.
+
+Step names intentionally match the production job-state verifier. In this
+workflow, `cli-success` describes the discard command only. Intent/outcome kinds
+are `acceptance-intent` / `acceptance-outcomes` and include `acceptanceOnly: true`.
+`--nuget-verify-acceptance-intent` and `--nuget-inspect-acceptance` pin the separate
+workflow and test-tag namespace. Production modes reject this context. The
+inspection reports `acceptanceOnly: true`, `releaseEligible: false`,
+`authorizesRetry: false` and `remoteAcceptanceVerified: false`.
+
+Before the positive stored-intent check, the runner must reject five probes:
+production workflow context, attempt 2, changed intent content hash, changed
+artifact archive hash, and the production verifier applied to the test context.
+Each must fail without returning a receipt. A subsequent positive check and the
+complete discard sequence must succeed; rejected probes alone are not sufficient.
+Failures of gate/SHA/E2E/freshness, storage, cancellation and missing-record
+handling also retain their existing synthetic tests. Do not relabel those tests
+as live service evidence.
+
+After review and merge:
+
+1. Configure temporary `sonar-nuget-prepare`, `sonar-nuget-rehearse` and
+   `sonar-nuget-acceptance` environments with required reviewer `andregoepel`,
+   self-review allowed, administrator bypass disabled and only the intended refs.
+   Preparation uses the acceptance tag pattern; both consumers use branch `main`.
+   The unchanged rehearsal workflow also receives this event, so protect its
+   environment as part of the drill. Copy only the required Sonar token secrets,
+   never NuGet keys. Verify the settings readback.
+2. Obtain fresh exact-main CI, E2E and successful Sonar readiness. Create one
+   explicitly approved non-release test tag at that SHA. No `v*` tag is needed.
+3. Approve the test jobs. Retain run/attempt IDs, original tag object, origin,
+   batch, intent/outcome artifact IDs and both archive/content hashes. Confirm
+   the five rejections, twelve discarded files and successful artifact storage.
+4. Before readiness expires, inspect the completed attempt with
+   `--nuget-inspect-acceptance`, the same handoff arguments and the inspection
+   pins shown in [release eligibility](RELEASE-ELIGIBILITY.md). Confirm all twelve
+   observations and the acceptance-only flags.
+5. Record actual versus synthetic coverage separately, then remove the temporary
+   environments and test tag. Preserve the evidence; do not delete workflow runs
+   to bypass replay protection.
+
+The strict single-run-per-main-SHA rule also applies to acceptance. A prior,
+skipped, failed or repeated acceptance run blocks another attempt for that SHA;
+plan the test prerequisites before creating its tag. This change prepares the
+drill, but does not claim it passed or close #244.
 
 ## NuGet account and environment review
 
@@ -179,17 +249,34 @@ operations. Review every applicable policy, including broader wildcard policies,
 and all long-lived keys that could bypass readiness. Repository secret names or
 the absence of a checked-in key cannot establish this.
 
-The protected environment must accept only branch `main`: the future caller runs
-on `workflow_run`, not on the producer's tag ref. Before creating it, name the
-reviewer(s) and explicitly decide self-review behavior; the policy must be usable
-by the actual operator. Disable administrator bypass and record the reviewed
-configuration. Scope the existing Sonar verification credentials to the necessary
-steps, and keep NuGet credentials in the official login/push boundary.
+The protected production environment must accept only branch `main`: the future
+caller runs on `workflow_run`, not on the producer's tag ref. André selected
+`andregoepel` as required reviewer and explicitly allowed self-review because he
+is the sole maintainer. Manual approval remains required. Disable administrator
+bypass and record the configuration readback. This decision is prepared, not an
+assertion that `nuget-publish` exists or is configured. Scope the existing Sonar
+verification credentials to the necessary steps, and keep NuGet credentials in
+the official login/push boundary.
 
 Do not broaden a NuGet policy or revoke a shared key without checking which other
 repositories/packages depend on it. If a shared credential permits a bypass,
 record the blocker and arrange a scoped migration with the owner. Other repositories
 remain outside this PoC.
+
+## Deferred until after PoC acceptance
+
+On 2026-10-20 the operator moved external backup/archive provider evaluation,
+provisioning and integration to the end of epic #238, **after completion and
+explicit acceptance under #247**, followed by his detailed review. Preserve the
+proposal to evaluate an EU Backblaze B2 bucket for encrypted off-host backups and
+release evidence; provider, cost, retention, access and restore details remain
+undecided. Do not provision a bucket, credentials or exporter in this block.
+
+This work is not a prerequisite for non-publishing PoC acceptance. Available
+local/GitHub evidence is still retained, missing records still block retry, and
+independent durable retention must not be reported as verified. Publication
+activation remains a separate decision. #246 still covers database-aware backup,
+isolated restore and monitoring within the revised scope.
 
 References:
 [GitHub tag update/deletion rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets),

@@ -16,6 +16,7 @@ internal sealed record NuGetPublicationInspection(
     NuGetFileObservation[] Packages
 )
 {
+    public bool AcceptanceOnly { get; init; }
     public int SchemaVersion { get; } = 1;
     public bool AuthorizesRetry { get; } = false;
     public bool ReleaseEligible { get; } = false;
@@ -85,7 +86,7 @@ internal static class NuGetPublicationOutcome
     {
         var expected = new Dictionary<string, string>
         {
-            ["kind"] = "publication-outcomes",
+            ["kind"] = pins.OutcomeKind,
             ["intentSha256"] = pins.ContentHash,
             ["intentArtifactId"] = pins.ArtifactId.ToString(
                 System.Globalization.CultureInfo.InvariantCulture
@@ -97,7 +98,7 @@ internal static class NuGetPublicationOutcome
                 System.Globalization.CultureInfo.InvariantCulture
             ),
             ["publishAttempt"] = "1",
-            ["workflowRef"] = NuGetIntentContext.WorkflowRef,
+            ["workflowRef"] = pins.Reference,
             ["workflowRevision"] = release.Sha,
             ["loginOutcome"] = steps.Login,
             ["pushOutcome"] = steps.Push,
