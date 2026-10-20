@@ -5,6 +5,13 @@ Every step is disabled. It neither registers a workflow nor replaces the existin
 publisher. Do not enable or copy it into a workflow before the remaining #244
 controls have been implemented and reviewed.
 
+`nuget-publish.caller.yml` now supplies the disabled caller around that fragment.
+`Build-NuGetPublishWorkflow.ps1` renders them into one complete YAML file under
+`artifacts/sonar/publish-workflow-template/nuget-publish.yml` for review and linting.
+It does not write to `.github/workflows`, execute the workflow or enable any guard.
+The job and all fifteen rendered steps remain disabled; the fragment is inserted
+verbatim with indentation so its tested commands have one maintained source.
+
 The fragment connects the existing `--nuget-verify-handoff` command to the official
 `NuGet/login` action and explicit-file `dotnet nuget push` commands. It verifies the
 whole batch before login and again before every package/symbol command, compares
@@ -68,12 +75,51 @@ longer-term retention and remote reconciliation remain activation blockers.
 
 ## Required caller setup
 
-The future repository-local job must authenticate its trigger and preparation
-origin, download the batch, use the pinned SDK and bootstrap the verifier from
-reviewed source **before** obtaining NuGet credentials. Set these trusted context
-variables for all steps: `VERIFIER_DLL`, `REPOSITORY_ROOT`, `CANDIDATE_SHA`,
+The caller template reserves `.github/workflows/nuget-publish.yml` as a
+repository-local job, with protected environment `nuget-publish`, Ubuntu 24.04,
+read-only contents/actions permissions and job-scoped `id-token: write` for the
+official login step. No environment, permission or NuGet policy is created by
+rendering it. One fixed concurrency group serializes this workflow's jobs with no
+in-progress cancellation; it is not a durable deduplication or replay control.
+
+Its future trigger is completion of `NuGet preparation`, not main CI or a manual
+dispatch. The current producer is still named `NuGet preparation (runner test)`
+and accepts only acceptance tags. Activating production therefore requires a
+separate reviewed producer change, its new policy hash, the caller and removal
+of the old ungated publisher together. Existing workflows and policy files remain
+unchanged in this preparation.
+
+The caller validates the captured completion event's repository, producer ID/path,
+display name, successful push status, stable `vX.Y.Z` tag and first run attempt.
+It requires candidate, caller workflow revision and current main to agree before
+checkout. It rejects acceptance tags, prereleases, producer reruns and caller
+reruns. Event metadata is only initial screening; the existing C# verifier still
+independently authenticates live producer provenance, artifacts and readiness
+before intent storage/login.
+
+The ordered caller steps then:
+
+1. Check out exactly the validated candidate with credential persistence disabled,
+   and select the SDK from `global.json`.
+2. Restore and publish only the existing verifier project from that checkout into
+   a private temporary directory. GitHub/Sonar/NuGet/OIDC environment credentials
+   are removed from these build processes. This happens before artifact downloads.
+3. Download the exact origin and complete batch artifact names from the captured
+   producer run/attempt using `gh run download`. Read bounded origin pins once,
+   rejecting mismatches and line breaks. Local origin JSON supplies candidate
+   inputs only; it does not replace independent authenticated provenance.
+4. Export the eleven context values below after checking all values and private
+   paths. The verifier must come from the bootstrap directory, never the downloaded
+   artifact. Rejected context exports no partial environment.
+5. Enter the unchanged verification/intent/login/per-file-push/outcome sequence.
+   No package rebuild/repack takes place in the caller.
+6. Remove the bootstrap and handoff directories after completion. As with the
+   publishing diagnostics, stored intent requires successful outcome storage
+   before cleanup; failures preserve local evidence while the runner survives.
+
+The exported context contains `VERIFIER_DLL`, `REPOSITORY_ROOT`, `CANDIDATE_SHA`,
 `PACKAGE_VERSION`, `READINESS_RUN`, `RELEASE_TAG`, `HANDOFF_ROOT`, `MANIFEST_SHA256`,
-`TAG_OBJECT`, `PREPARATION_RUN`, and `PREPARATION_ATTEMPT`.
+`TAG_OBJECT`, `PREPARATION_RUN`, and `PREPARATION_ATTEMPT`. It contains no credentials.
 
 The verifier DLL and repository paths must be absolute, and the complete transferred
 batch must be in `HANDOFF_ROOT/batch`. Use a private runner with no concurrent writer
@@ -90,8 +136,9 @@ appear as command arguments or persisted configuration.
 
 ## Remaining activation blockers
 
-- Production trigger/preparation policy, protected environment and official login
-  action acceptance on the intended runner are not supplied by this fragment.
+- The disabled caller and production trigger are prepared for review, but the
+  production producer/policy, protected environment and official login action
+  acceptance on the intended runner are not configured.
 - Intent/outcome artifact steps are prepared, but have only offline acceptance.
   The local `attempts.tsv` remains diagnostic input, not trusted recovery authority.
   Implement independent record authentication, retention, cross-run replay
@@ -111,8 +158,19 @@ appear as command arguments or persisted configuration.
 On Linux with PowerShell, Bash and jq, run:
 
 ```sh
+pwsh -NoProfile -File scripts/sonar/templates/Build-NuGetPublishWorkflow.ps1
+actionlint artifacts/sonar/publish-workflow-template/nuget-publish.yml
+pwsh -NoProfile -File tests/AndreGoepel.AppFoundation.Sonar.Tests/Workflows/Verify-NuGetPublishCaller.ps1
 pwsh -NoProfile -File tests/AndreGoepel.AppFoundation.Sonar.Tests/Workflows/Verify-NuGetPublishSteps.ps1
 ```
+
+The caller suite renders the actual complete template and checks 62 offline cases:
+trigger/source/provenance screening, credential-free verifier bootstrap, exact
+artifact names, context propagation into the real fragment's verification shell,
+artifact-verifier substitution, failure ordering and cleanup bounds. GitHub, git
+and dotnet are substitutes. It also verifies that composition preserves the
+fragment bytes and that the pinned actions, step ordering and disabled guards
+remain present. The renderer runs on Windows and Linux.
 
 The harness executes the actual shell blocks with a local `dotnet` substitute.
 Login is a synthetic marker between steps; it never executes the official action,
@@ -130,3 +188,6 @@ Official references: [NuGet/login](https://github.com/NuGet/login/tree/8d196754b
 [dotnet nuget push](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-push),
 [NuGet environment variables](https://learn.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-environment-variables).
 Artifact behavior: [pinned upload-artifact inputs and outputs](https://github.com/actions/upload-artifact/blob/cf430e030ddbb5b0abf93d22962f4752f3646cd9/action.yml).
+Caller behavior: [workflow-run events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run),
+[GitHub CLI artifact downloads](https://cli.github.com/manual/gh_run_download),
+[NuGet trusted-publisher workflow/environment configuration](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
