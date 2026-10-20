@@ -155,6 +155,37 @@ appear as command arguments or persisted configuration.
 
 ## Offline validation
 
+The separate `Sonar NuGet template checks` workflow runs these suites on every
+pull request to `main` and push to `main`. It uses Ubuntu 24.04, read-only repository
+permission and no environment or secrets. It does not invoke the publishing
+workflow, request OIDC credentials or create a tag. Existing Actions are unchanged.
+
+The workflow downloads actionlint 1.7.12 and checks its pinned archive SHA-256,
+then runs `Run-NuGetWorkflowChecks.ps1` in a fresh Linux network namespace as the
+runner user with an empty inherited environment. The entry point rejects service
+credentials, any network interface other than loopback, and reused result directories.
+It lints the rendered disabled workflow, this test workflow and both acceptance
+workflows with actionlint/ShellCheck, then runs all 209 existing shell cases.
+It stops on a linter or suite failure; successful aggregate evidence is written
+only after every suite passes.
+
+The upload step preserves the rendered disabled YAML and synthetic JSON reports
+for seven days, including partial reports on failure. These are test diagnostics,
+not readiness or publication records. The artifact name binds them to the tested
+checkout SHA, run and attempt. A PR run tests GitHub's merge checkout.
+
+This provides repeatable hosted-runner regression coverage. The actual publishing
+workflow's scheduling, protected environment, intent/outcome artifact storage and
+OIDC exchange still need separate non-publishing acceptance. The harness substitutes
+GitHub, verification, login and upload; its `liveRunnerProof: false` flag remains
+correct even when the harness itself runs on GitHub.
+
+For a local Linux container with `--network none` and the required tools installed:
+
+```sh
+pwsh -NoProfile -File tests/AndreGoepel.AppFoundation.Sonar.Tests/Workflows/Run-NuGetWorkflowChecks.ps1
+```
+
 On Linux with PowerShell, Bash and jq, run:
 
 ```sh

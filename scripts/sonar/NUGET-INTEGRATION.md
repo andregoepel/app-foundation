@@ -418,6 +418,14 @@ still require the separately approved activation work.
 
 ## Remaining production integration (#244)
 
+The separate `Sonar NuGet template checks` workflow now runs the 62 caller,
+45 publishing-step and 102 preparation/rehearsal shell cases on Ubuntu 24.04 for
+PRs and main pushes. It preserves synthetic reports and the rendered disabled
+workflow, with no secrets, OIDC permission or external network in the test process.
+This makes the existing local checks repeatable on the intended runner OS; it does
+not establish the future publisher's event, environment, artifact-service or login
+semantics. See the [validation boundary](templates/README.md#offline-validation).
+
 1. Wire the official `NuGet/login` action and `dotnet nuget push` into a reviewed
    credential-bearing boundary, preserving independent verification before login
    and each file. Implement trusted recording/reconciliation of partial or uncertain

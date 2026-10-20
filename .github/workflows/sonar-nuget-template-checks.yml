@@ -1,0 +1,62 @@
+name: Sonar NuGet template checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-nuget-template-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  template-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out test source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare pinned workflow linter
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$RUNNER_TEMP/nuget-template-tools"
+          mkdir -p "$tools"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$tools/actionlint.tar.gz"
+          echo '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  '"$tools/actionlint.tar.gz" | sha256sum --check
+          tar -xzf "$tools/actionlint.tar.gz" -C "$tools" actionlint
+          command -v pwsh bash jq shellcheck unshare
+
+      - name: Check templates without network or credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nuget-template-home"
+          sudo unshare --net --setuid "$(id -u)" --setgid "$(id -g)" -- \
+            env -i \
+              HOME="$RUNNER_TEMP/nuget-template-home" \
+              PATH="$RUNNER_TEMP/nuget-template-tools:$PATH" \
+              POWERSHELL_TELEMETRY_OPTOUT=1 \
+              pwsh -NoProfile -File tests/AndreGoepel.AppFoundation.Sonar.Tests/Workflows/Run-NuGetWorkflowChecks.ps1
+
+      - name: Preserve synthetic test evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-template-checks-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/sonar/nuget-workflow-checks/*.json
+            artifacts/sonar/publish-workflow-template/nuget-publish.yml
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: false
+          include-hidden-files: false
