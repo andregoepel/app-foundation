@@ -59,7 +59,7 @@ public sealed class NuGetDryRunTests
         private int checks;
 
         public Task<Result<ReadinessReceipt>> VerifyAsync(
-            NuGetRelease release,
+            ReleaseCandidate release,
             CancellationToken ct
         )
         {

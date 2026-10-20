@@ -5,7 +5,7 @@ namespace AndreGoepel.AppFoundation.Sonar;
 
 internal interface IReleaseReadiness
 {
-    Task<Result<ReadinessReceipt>> VerifyAsync(NuGetRelease release, CancellationToken ct);
+    Task<Result<ReadinessReceipt>> VerifyAsync(ReleaseCandidate release, CancellationToken ct);
 }
 
 internal sealed class ReleaseReadiness(
@@ -21,7 +21,7 @@ internal sealed class ReleaseReadiness(
 ) : IReleaseReadiness
 {
     public async Task<Result<ReadinessReceipt>> VerifyAsync(
-        NuGetRelease release,
+        ReleaseCandidate release,
         CancellationToken ct
     )
     {
@@ -94,7 +94,7 @@ internal sealed class ReleaseReadiness(
         return Result.Ok(receipt);
     }
 
-    private async Task<Result> CheckSourceAsync(NuGetRelease release, CancellationToken ct)
+    private async Task<Result> CheckSourceAsync(ReleaseCandidate release, CancellationToken ct)
     {
         var checkout = await MainCommand.CheckCheckoutAsync(
             processes,
@@ -141,12 +141,12 @@ internal sealed class ReleaseReadiness(
     }
 
     private async Task<Result<JsonElement>> CheckProducerAsync(
-        NuGetRelease release,
+        ReleaseCandidate release,
         CancellationToken ct
     )
     {
         var runs = await github.GetAsync(
-            $"actions/workflows/{NuGetRelease.ReadinessWorkflowId}/runs?branch=main&event=workflow_run&head_sha={release.Sha}&per_page=100",
+            $"actions/workflows/{ReleaseCandidate.ReadinessWorkflowId}/runs?branch=main&event=workflow_run&head_sha={release.Sha}&per_page=100",
             ct
         );
         var candidates = runs.GetProperty("workflow_runs").EnumerateArray().ToArray();
@@ -162,7 +162,7 @@ internal sealed class ReleaseReadiness(
         var run = await github.GetAsync($"actions/runs/{release.ReadinessRunId}", ct);
         if (
             run.GetProperty("id").GetInt64() != release.ReadinessRunId
-            || run.GetProperty("workflow_id").GetInt64() != NuGetRelease.ReadinessWorkflowId
+            || run.GetProperty("workflow_id").GetInt64() != ReleaseCandidate.ReadinessWorkflowId
             || run.GetProperty("path").GetString() != MainPolicy.WorkflowPath
             || run.GetProperty("head_sha").GetString() != release.Sha
             || run.GetProperty("head_branch").GetString() != "main"
@@ -183,7 +183,7 @@ internal sealed class ReleaseReadiness(
 
     private Result<JsonElement> FindArtifact(
         JsonElement inventory,
-        NuGetRelease release,
+        ReleaseCandidate release,
         int attempt,
         string kind
     )

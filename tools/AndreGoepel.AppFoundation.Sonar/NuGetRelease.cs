@@ -9,9 +9,8 @@ internal sealed partial record NuGetRelease(
     string Version,
     long ReadinessRunId,
     string? Tag
-)
+) : ReleaseCandidate(Root, Sha, ReadinessRunId, Tag)
 {
-    internal const long ReadinessWorkflowId = 387320916;
     internal const string Feed = "https://api.nuget.org/v3/index.json";
     internal static readonly string[] Packages =
     [

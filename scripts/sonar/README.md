@@ -13,6 +13,10 @@ point and its activation requirements are documented in [MAIN-READINESS.md](MAIN
 Existing Actions are unchanged; solution builds/tests automatically include the
 console tool and its xUnit project. Release enforcement remains in #244–#245.
 
+The combined [release eligibility contract](RELEASE-ELIGIBILITY.md) documents
+publication-record inspection/replay rejection and the non-deploying staging
+harness, including their acceptance evidence and remaining operational boundaries.
+
 ## Prerequisites
 
 - .NET SDK **10.0.402**, pinned without roll-forward; PowerShell **7+**; Docker.
