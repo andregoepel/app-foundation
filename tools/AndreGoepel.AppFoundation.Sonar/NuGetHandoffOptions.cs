@@ -13,12 +13,17 @@ internal sealed record NuGetHandoffOptions(
     NuGetIntentContext? Inspection = null
 )
 {
+    internal bool AcceptanceOnly { get; init; }
+
     internal const string Usage =
-        "Use --root ROOT MODE --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER. MODE is --nuget-verify-handoff, --nuget-verify-intent or --nuget-rehearse; only rehearsal accepts [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; intent verification requires a production tag and the current publishing job context. All modes are non-publishing.";
+        "Use --root ROOT MODE --sha SHA --version X.Y.Z --readiness-run ID --tag TAG --handoff DIRECTORY --manifest-sha256 HASH --tag-object SHA --preparation-run ID --preparation-attempt NUMBER. MODE is --nuget-verify-handoff, --nuget-verify-intent, --nuget-verify-acceptance-intent or --nuget-rehearse; only rehearsal accepts [--files FILE ...]. TAG must be vX.Y.Z or sonar-poc/nuget/LOWERCASE_HEX_32/vX.Y.Z; production and acceptance intent contexts are separate. All modes are non-publishing.";
 
     internal static Result<NuGetHandoffOptions> Parse(string[] args)
     {
-        if (args.Length > 2 && args[2] == "--nuget-inspect-publication")
+        if (
+            args.Length > 2
+            && args[2] is "--nuget-inspect-publication" or "--nuget-inspect-acceptance"
+        )
             return ParseInspection(args);
 
         if (
@@ -48,7 +53,12 @@ internal sealed record NuGetHandoffOptions(
                     .. var tail,
                 ]
             || mode
-                is not ("--nuget-rehearse" or "--nuget-verify-handoff" or "--nuget-verify-intent")
+                is not (
+                    "--nuget-rehearse"
+                    or "--nuget-verify-handoff"
+                    or "--nuget-verify-intent"
+                    or "--nuget-verify-acceptance-intent"
+                )
             || (mode != "--nuget-rehearse" && tail.Length != 0)
             || !Path.IsPathFullyQualified(directory)
             || !Directory.Exists(directory)
@@ -83,6 +93,10 @@ internal sealed record NuGetHandoffOptions(
         if (release.IsFailure)
             return Result.Fail<NuGetHandoffOptions>(Usage);
 
+        var acceptance = mode == "--nuget-verify-acceptance-intent";
+        if (acceptance && !NuGetIntentContext.MatchesTag(release.Value!, true))
+            return Result.Fail<NuGetHandoffOptions>(Usage);
+
         var files = tail.Length == 0 ? null : tail[1..];
         var inventory = NuGetRelease.Packages.SelectMany(id =>
             new[] { $"{id}.{version}.nupkg", $"{id}.{version}.snupkg" }
@@ -108,8 +122,11 @@ internal sealed record NuGetHandoffOptions(
                 attemptId,
                 files,
                 mode != "--nuget-rehearse",
-                mode == "--nuget-verify-intent"
+                mode == "--nuget-verify-intent" || acceptance
             )
+            {
+                AcceptanceOnly = acceptance,
+            }
         );
     }
 
@@ -119,7 +136,7 @@ internal sealed record NuGetHandoffOptions(
     private static Result<NuGetHandoffOptions> ParseInspection(string[] args)
     {
         const string usage =
-            "Use the handoff arguments with --nuget-inspect-publication followed by --publish-run ID --intent-artifact ID --intent-archive-sha256 HASH --intent-sha256 HASH. This only inspects records; it never authorizes retry.";
+            "Use the handoff arguments with --nuget-inspect-publication or --nuget-inspect-acceptance followed by --publish-run ID --intent-artifact ID --intent-archive-sha256 HASH --intent-sha256 HASH. This only inspects records; it never authorizes retry.";
         if (
             args.Length != 29
             || args[21..]
@@ -150,17 +167,22 @@ internal sealed record NuGetHandoffOptions(
         var handoffArgs = args[..21];
         handoffArgs[2] = "--nuget-verify-handoff";
         var handoff = Parse(handoffArgs);
+        var acceptance = args[2] == "--nuget-inspect-acceptance";
         if (
             handoff.IsFailure
             || handoff.Value!.PreparationAttempt != 1
-            || handoff.Value.Input.Release.Tag != "v" + handoff.Value.Input.Release.Version
+            || !NuGetIntentContext.MatchesTag(handoff.Value.Input.Release, acceptance)
         )
             return Result.Fail<NuGetHandoffOptions>(usage);
 
         return Result.Ok(
             handoff.Value with
             {
-                Inspection = new(runId, artifactId, "sha256:" + archive, content),
+                AcceptanceOnly = acceptance,
+                Inspection = new(runId, artifactId, "sha256:" + archive, content)
+                {
+                    AcceptanceOnly = acceptance,
+                },
             }
         );
     }

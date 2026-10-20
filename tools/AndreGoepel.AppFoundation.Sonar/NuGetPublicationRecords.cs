@@ -88,6 +88,9 @@ internal sealed class NuGetPublicationRecords(
 
         return Result.Ok(
             new NuGetPublicationInspection(pins.RunId, initial.Value.HasValue, observations)
+            {
+                AcceptanceOnly = pins.AcceptanceOnly,
+            }
         );
     }
 

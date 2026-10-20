@@ -38,7 +38,8 @@ $workflows = @(
     $rendered,
     (Join-Path $RepositoryRoot '.github/workflows/sonar-nuget-template-checks.yml'),
     (Join-Path $RepositoryRoot '.github/workflows/nuget-prepare.yml'),
-    (Join-Path $RepositoryRoot '.github/workflows/nuget-rehearse.yml')
+    (Join-Path $RepositoryRoot '.github/workflows/nuget-rehearse.yml'),
+    (Join-Path $RepositoryRoot '.github/workflows/nuget-acceptance.yml')
 )
 & actionlint @workflows
 if ($LASTEXITCODE -ne 0) { throw 'Workflow lint failed.' }
@@ -46,7 +47,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Workflow lint failed.' }
 $suites = @(
     @{Script='Verify-NuGetPublishCaller.ps1'; Report='publish-caller-checks.json'},
     @{Script='Verify-NuGetPublishSteps.ps1'; Report='publish-step-checks.json'},
-    @{Script='Verify-NuGetRunnerWorkflows.ps1'; Report='workflow-checks.json'}
+    @{Script='Verify-NuGetRunnerWorkflows.ps1'; Report='workflow-checks.json'},
+    @{Script='Verify-NuGetAcceptanceWorkflow.ps1'; Report='acceptance-workflow-checks.json'}
 )
 $checks = [Collections.Generic.List[object]]::new()
 

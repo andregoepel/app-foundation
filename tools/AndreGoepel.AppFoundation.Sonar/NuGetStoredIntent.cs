@@ -14,6 +14,23 @@ internal sealed record NuGetIntentContext(
     internal const string WorkflowPath = ".github/workflows/nuget-publish.yml";
     internal const string WorkflowRef =
         MainPolicy.Repository + "/" + WorkflowPath + "@refs/heads/main";
+    internal const string AcceptanceWorkflowPath = ".github/workflows/nuget-acceptance.yml";
+    internal const string AcceptanceWorkflowRef =
+        MainPolicy.Repository + "/" + AcceptanceWorkflowPath + "@refs/heads/main";
+
+    internal bool AcceptanceOnly { get; init; }
+    internal string Path => AcceptanceOnly ? AcceptanceWorkflowPath : WorkflowPath;
+    internal string Reference => AcceptanceOnly ? AcceptanceWorkflowRef : WorkflowRef;
+    internal string IntentKind => AcceptanceOnly ? "acceptance-intent" : "publication-intent";
+    internal string OutcomeKind => AcceptanceOnly ? "acceptance-outcomes" : "publication-outcomes";
+
+    internal static bool MatchesTag(NuGetRelease release, bool acceptance) =>
+        acceptance
+            ? release.Tag is { } tag
+                && tag.StartsWith("sonar-poc/nuget/", StringComparison.Ordinal)
+                && tag.EndsWith("/v" + release.Version, StringComparison.Ordinal)
+                && NuGetRelease.IsPreparationTag(tag, release.Version)
+            : release.Tag == "v" + release.Version;
 
     internal static Result<NuGetIntentContext> Read(
         NuGetHandoffOptions options,
@@ -30,8 +47,9 @@ internal sealed record NuGetIntentContext(
             || environment("GITHUB_RUN_ATTEMPT") != "1"
             || environment("GITHUB_SHA") != release.Sha
             || environment("GITHUB_WORKFLOW_SHA") != release.Sha
-            || environment("GITHUB_WORKFLOW_REF") != WorkflowRef
-            || release.Tag != "v" + release.Version
+            || environment("GITHUB_WORKFLOW_REF")
+                != (options.AcceptanceOnly ? AcceptanceWorkflowRef : WorkflowRef)
+            || !MatchesTag(release, options.AcceptanceOnly)
             || options.PreparationAttempt != 1
             || !TryId(environment("GITHUB_RUN_ID"), out var run)
             || !TryId(environment("INTENT_ARTIFACT_ID"), out var artifact)
@@ -39,10 +57,15 @@ internal sealed record NuGetIntentContext(
             || !IsHash(contentHash)
         )
             return Result.Fail<NuGetIntentContext>(
-                "Stored intent requires the current first-attempt production publishing context."
+                "Stored intent requires the current first-attempt context for the selected workflow and tag namespace."
             );
 
-        return Result.Ok(new NuGetIntentContext(run, artifact, "sha256:" + digest, contentHash));
+        return Result.Ok(
+            new NuGetIntentContext(run, artifact, "sha256:" + digest, contentHash)
+            {
+                AcceptanceOnly = options.AcceptanceOnly,
+            }
+        );
     }
 
     private static bool TryId(string? value, out long id) =>
@@ -67,11 +90,14 @@ internal sealed class NuGetStoredIntent(
     )
     {
         var release = options.Input.Release;
-        var workflow = await github.GetAsync(
-            $"contents/{NuGetIntentContext.WorkflowPath}?ref={release.Sha}",
-            ct
-        );
-        var localWorkflow = Path.Combine(release.Root, NuGetIntentContext.WorkflowPath);
+        if (
+            pins.AcceptanceOnly != options.AcceptanceOnly
+            || !NuGetIntentContext.MatchesTag(release, pins.AcceptanceOnly)
+        )
+            return Result.Fail("Publication and acceptance intent contexts must not be mixed.");
+
+        var workflow = await github.GetAsync($"contents/{pins.Path}?ref={release.Sha}", ct);
+        var localWorkflow = Path.Combine(release.Root, pins.Path);
         if (
             !File.Exists(localWorkflow)
             || workflow.GetProperty("encoding").GetString() != "base64"
@@ -115,7 +141,10 @@ internal sealed class NuGetStoredIntent(
     )
     {
         var run = await github.GetAsync($"actions/runs/{pins.RunId}", ct);
-        var registered = await github.GetAsync($"actions/workflows/nuget-publish.yml", ct);
+        var registered = await github.GetAsync(
+            $"actions/workflows/{System.IO.Path.GetFileName(pins.Path)}",
+            ct
+        );
         if (!MatchesRun(run, registered, options, pins, completed))
             return Result.Fail<IntentSnapshot>(
                 "The intent producer is not the current approved publishing attempt."
@@ -193,9 +222,9 @@ internal sealed class NuGetStoredIntent(
         run.GetProperty("id").GetInt64() == pins.RunId
         && run.GetProperty("workflow_id").GetInt64() > 0
         && run.GetProperty("workflow_id").GetInt64() == registered.GetProperty("id").GetInt64()
-        && registered.GetProperty("path").GetString() == NuGetIntentContext.WorkflowPath
+        && registered.GetProperty("path").GetString() == pins.Path
         && registered.GetProperty("state").GetString() == "active"
-        && run.GetProperty("path").GetString() == NuGetIntentContext.WorkflowPath
+        && run.GetProperty("path").GetString() == pins.Path
         && run.GetProperty("event").GetString() == "workflow_run"
         && run.GetProperty("head_branch").GetString() == "main"
         && run.GetProperty("head_sha").GetString() == options.Input.Release.Sha
@@ -276,7 +305,7 @@ internal sealed class NuGetStoredIntent(
         var release = input.Release;
         var expected = new Dictionary<string, string>
         {
-            ["kind"] = "publication-intent",
+            ["kind"] = pins.IntentKind,
             ["repository"] = MainPolicy.Repository,
             ["sha"] = release.Sha,
             ["tag"] = release.Tag!,
@@ -288,7 +317,7 @@ internal sealed class NuGetStoredIntent(
             ["preparationAttempt"] = "1",
             ["publishRunId"] = pins.RunId.ToString(CultureInfo.InvariantCulture),
             ["publishAttempt"] = "1",
-            ["workflowRef"] = NuGetIntentContext.WorkflowRef,
+            ["workflowRef"] = pins.Reference,
             ["workflowRevision"] = release.Sha,
         };
         var packages = intent

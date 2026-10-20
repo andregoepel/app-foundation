@@ -104,7 +104,20 @@ internal static class NuGetCommand
             }
             if (verified.IsSuccess)
                 await output.WriteLineAsync(
-                    JsonSerializer.Serialize(verified.Value, JsonFormat.Options).AsMemory(),
+                    (
+                        options.AcceptanceOnly
+                            ? JsonSerializer.Serialize(
+                                new
+                                {
+                                    verified.Value!.Packages,
+                                    DryRun = true,
+                                    ReleaseEligible = false,
+                                    AcceptanceOnly = true,
+                                },
+                                JsonFormat.Options
+                            )
+                            : JsonSerializer.Serialize(verified.Value, JsonFormat.Options)
+                    ).AsMemory(),
                     ct
                 );
             return verified;
@@ -136,6 +149,8 @@ internal sealed record NuGetCommandInput(
             args.Contains("--nuget-rehearse", StringComparer.Ordinal)
             || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
             || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
+            || args.Contains("--nuget-verify-acceptance-intent", StringComparer.Ordinal)
+            || args.Contains("--nuget-inspect-acceptance", StringComparer.Ordinal)
             || args.Contains("--nuget-inspect-publication", StringComparer.Ordinal)
         )
         {

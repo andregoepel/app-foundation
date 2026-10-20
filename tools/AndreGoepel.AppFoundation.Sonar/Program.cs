@@ -24,6 +24,8 @@ try
         || args.Contains("--nuget-rehearse", StringComparer.Ordinal)
         || args.Contains("--nuget-verify-handoff", StringComparer.Ordinal)
         || args.Contains("--nuget-verify-intent", StringComparer.Ordinal)
+        || args.Contains("--nuget-verify-acceptance-intent", StringComparer.Ordinal)
+        || args.Contains("--nuget-inspect-acceptance", StringComparer.Ordinal)
         || args.Contains("--nuget-inspect-publication", StringComparer.Ordinal)
     )
     {

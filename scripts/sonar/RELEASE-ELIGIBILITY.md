@@ -1,31 +1,28 @@
 # Release eligibility: NuGet records and staging contract
 
-Related to #244 and #245, under PoC epic #238. This change groups publication-record
-checks and the non-deploying staging contract into one review. It adds no workflow,
-publishing route, deployment command or external client. Both consumers reuse the
-existing GitHub/artifact clients and `ReleaseReadiness`.
+Related to #244 and #245, under PoC epic #238. Publication-record checks and the
+non-deploying staging contract reuse the existing GitHub/artifact clients and
+`ReleaseReadiness`. The separate [NuGet acceptance workflow](NUGET-ACCEPTANCE.md#prepared-runner-acceptance)
+uses the same record verifier with explicit test context; it adds no uploader.
 
-## Verified main before this change
+## Verified main after #284
 
-Main `b92f8d61a79de5f8fa94a851d0648acc1ad02f52`, merged through #283:
+Main `b1bb47bbb6a1c18dbc28dceb91e92325ed74e674`, merged through #284:
 
 | Evidence | Result |
 | --- | --- |
-| [CI 39406598029](https://github.com/andregoepel/app-foundation/actions/runs/39406598029) | Passed |
-| [E2E 39406598197](https://github.com/andregoepel/app-foundation/actions/runs/39406598197) | Passed |
-| [Template checks 39406597410](https://github.com/andregoepel/app-foundation/actions/runs/39406597410) | Passed |
-| [Sonar readiness 39406775705](https://github.com/andregoepel/app-foundation/actions/runs/39406775705) | Full analysis completed; quality gate failed |
+| [CI 39414470674](https://github.com/andregoepel/app-foundation/actions/runs/39414470674) | Passed, 1,198 tests |
+| [E2E 39414470759](https://github.com/andregoepel/app-foundation/actions/runs/39414470759) | Passed, 14 tests |
+| [Template checks 39414470225](https://github.com/andregoepel/app-foundation/actions/runs/39414470225) | Passed |
+| [Sonar readiness 39414668032](https://github.com/andregoepel/app-foundation/actions/runs/39414668032) | Passed, 1,212 tests; quality gate OK |
 
-Sonar analysis `fac9622d-134c-4d01-8be0-69804dd4602e` ran all 1,073 tests
-successfully, with 89.2% overall and 96.7% new-code coverage. The single finding
-was Roslyn CA1861 in `NuGetStoredIntent.Tests.cs`: a constant extension array
-allocated inside the package projection. This change moves it to a static
-readonly field. It does not change the baseline, thresholds or profiles.
-
-This main revision has **no successful readiness receipt**. Successful live
-staging-harness acceptance must follow this PR's merge, using the new main SHA
-and its fresh successful readiness run. Offline fixture success cannot substitute
-for that evidence. Neither issue is closed by this PR.
+Sonar analysis `2ca77368-7421-4bfb-9581-8ceae7ddc8e2` reported zero findings and
+hotspots, 89.4% overall and 95.2% new-code coverage, against unchanged baseline
+`899f364a-65bb-4f5e-9840-103b3ecc7825`. The actual-readiness staging harness passed
+23 cases and two invalid-input probes; [#245 is complete](https://github.com/andregoepel/app-foundation/issues/245#issuecomment-6290016070).
+The six-package dry run passed on the same SHA, producing twelve package/symbol
+files without publishing. These receipts are historical and expire; they do not
+authorize a later candidate.
 
 ## NuGet publication records
 
@@ -87,12 +84,20 @@ For an older release, retain evidence and stop for operator reconciliation.
 
 ### Retention and recovery
 
-The disabled templates retain intent/outcomes for 90 days without overwriting.
-Before activation, select and validate independent durable retention for original
-package/symbol bytes, tag object, manifest/record hashes, run IDs/attempts,
-authenticated metadata and incident decisions. Record expiry and export/retrieval
-ownership; test retrieval before expiry and recovery from artifact/run deletion.
-Do not archive credentials.
+The disabled production templates and the acceptance workflow retain intent/
+outcomes for 90 days without overwriting. The operator explicitly deferred
+independent external backup/archive evaluation and integration until **after
+PoC completion and #247 acceptance**, followed by detailed review. The proposal
+to evaluate encrypted EU Backblaze B2 storage is recorded at the end of #238 and
+in [NuGet acceptance](NUGET-ACCEPTANCE.md#deferred-until-after-poc-acceptance).
+
+That later block will cover original package/symbol bytes, tag objects, manifest/
+record hashes, run IDs/attempts, authenticated metadata and incident decisions;
+expiry, export/retrieval ownership and recovery after GitHub deletion must then
+be tested. No credentials belong in the archive. External storage is currently
+unimplemented, not a prerequisite for non-publishing PoC acceptance, and must not
+be described as verified durable retention. Missing-record/retry rejection stays
+in force; this deferral does not authorize production activation.
 
 After interruption, preserve the exact files. Independently reconcile remote
 packages and symbols before considering a separately reviewed recovery. A CLI
