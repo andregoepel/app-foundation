@@ -110,8 +110,25 @@ HTTP interactions are mocked; tests never contact Sonar.
 
 `artifacts/sonar/<run>/publish/summary.json` is the **only publishable output**:
 test counts, source/contract hashes, scope, task/analysis IDs, measures and gate.
+When a test process fails or its results fail validation, the optional `testFailure`
+field records the suite, process exit code (null if the process could not complete),
+report availability, result counts and up to 50 failed test methods. Method names
+must match discovery; theory arguments are omitted and unrecognized names withheld.
+Failure categories are a fixed vocabulary (`timeout`, `cancelled`, `browser`,
+`test-framework`, `other`), not exception messages or stack traces. Assembly-level
+errors are counted separately. Missing, stale or unreadable reports are marked
+`unavailable`; malformed, oversized or unexpected XML is marked `invalid`.
+These diagnostics never make failed evidence eligible or permit scanner upload.
+Successful summaries retain their existing schema and omit `testFailure`.
 Raw logs, coverage, XML/TRX and browser traces stay private; never upload a whole
-workspace. Git and CSharpier ignore generated files. No artifact publishing is wired.
+workspace. Git and CSharpier ignore generated files. The trusted-main workflow
+already retains the sanitized summary on failure; it does not retain private logs.
+
+For an intermittent E2E failure, inspect the exact run attempt's summary first.
+Reproduce locally with coverage enabled and retain the private report and trace.
+A successful unchanged retry demonstrates recovery, not the original failure's
+cause. If no report was retained, record that limitation rather than inferring a
+particular failing test from timing alone.
 
 Scanner calls require the analysis token as an argument; local process inspection
 can expose it, so use a private account. Logs redact both tokens, timeout errors

@@ -40,6 +40,10 @@ internal sealed class AnalysisSummary
 
     public string[] AnalyzedProjects { get; set; } = [];
     public Dictionary<string, TestEvidence> Tests { get; } = new(StringComparer.Ordinal);
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TestFailureEvidence? TestFailure { get; set; }
+
     public CoverageEvidence? Coverage { get; set; }
 
     public string? TaskId { get; set; }

@@ -436,10 +436,26 @@ internal sealed partial class AnalysisRunner(
                         "--results-directory",
                         directory,
                     ],
-                    ct
+                    ct,
+                    allowFailure: true
                 );
-                if (run.IsFailure)
-                    return run;
+                if (run.IsFailure || run.Value!.ExitCode != 0)
+                {
+                    summary.TestFailure = await TestFailureDiagnostics.ReadAsync(
+                        project,
+                        run.IsSuccess ? run.Value!.ExitCode : null,
+                        Path.Combine(directory, "tests.xml"),
+                        summary.StartedAt,
+                        names.Value!,
+                        CancellationToken.None
+                    );
+
+                    return run.IsFailure
+                        ? run
+                        : Result.Fail(
+                            project + " failed; see summary diagnostics and its private log."
+                        );
+                }
 
                 var tests = ReportValidation.Tests(
                     await ReportValidation.ReadFreshAsync(
@@ -450,7 +466,18 @@ internal sealed partial class AnalysisRunner(
                     names.Value
                 );
                 if (tests.IsFailure)
+                {
+                    summary.TestFailure = await TestFailureDiagnostics.ReadAsync(
+                        project,
+                        run.Value!.ExitCode,
+                        Path.Combine(directory, "tests.xml"),
+                        summary.StartedAt,
+                        names.Value!,
+                        ct
+                    );
+
                     return tests;
+                }
 
                 var anchors = project.EndsWith("E2ETests", StringComparison.Ordinal)
                     ? contract.CoverageAnchors

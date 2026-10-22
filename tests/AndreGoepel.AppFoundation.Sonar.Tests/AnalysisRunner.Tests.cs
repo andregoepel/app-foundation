@@ -28,6 +28,7 @@ public sealed class AnalysisRunnerTests
         Assert.False(document.RootElement.GetProperty("releaseEligible").GetBoolean());
         Assert.Equal("analysis-id", document.RootElement.GetProperty("analysisId").GetString());
         Assert.DoesNotContain("secret", document.RootElement.GetRawText());
+        Assert.False(document.RootElement.TryGetProperty("testFailure", out _));
 
         var beginLog = await File.ReadAllTextAsync(
             Path.Combine(fixture.Output, "private/scanner-begin.log"),
@@ -46,6 +47,57 @@ public sealed class AnalysisRunnerTests
                     c.Contains("sonarscanner begin", StringComparison.Ordinal)
                 )
         );
+    }
+
+    [Theory]
+    [InlineData("test-process-failure", "available", 1)]
+    [InlineData("test-process-missing", "unavailable", 1)]
+    [InlineData("test-process-invalid", "invalid", 1)]
+    [InlineData("test-process-start", "unavailable", null)]
+    [InlineData("tests", "available", 0)]
+    public async Task Run_FailedTestProcess_RetainsSafeDiagnosticsWithoutSubmitting(
+        string fault,
+        string reportStatus,
+        int? exitCode
+    )
+    {
+        // Arrange
+        using var fixture = new RunnerFixture { Fault = fault };
+
+        // Act
+        var result = await fixture.RunAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        var json = await File.ReadAllTextAsync(
+            Path.Combine(fixture.Output, "publish/summary.json"),
+            TestContext.Current.CancellationToken
+        );
+        using var document = JsonDocument.Parse(json);
+        var diagnostic = document.RootElement.GetProperty("testFailure");
+        Assert.Equal("failed", document.RootElement.GetProperty("state").GetString());
+        Assert.False(document.RootElement.GetProperty("releaseEligible").GetBoolean());
+        Assert.Equal(RunnerFixture.TestProject, diagnostic.GetProperty("project").GetString());
+        Assert.Equal(reportStatus, diagnostic.GetProperty("reportStatus").GetString());
+        Assert.Equal(exitCode, diagnostic.GetProperty("exitCode").Deserialize<int?>());
+        Assert.DoesNotContain("private", json);
+        Assert.DoesNotContain("secret", json);
+        Assert.DoesNotContain(
+            fixture.Commands,
+            c => c.Contains("sonarscanner end", StringComparison.Ordinal)
+        );
+        Assert.Empty(document.RootElement.GetProperty("tests").EnumerateObject());
+        Assert.False(Directory.Exists(fixture.Scanner));
+        Assert.False(File.Exists(Path.Combine(fixture.Root, ".sonar-analysis.lock")));
+
+        if (fault == "test-process-failure")
+        {
+            var failure = Assert.Single(diagnostic.GetProperty("failedTests").EnumerateArray());
+            Assert.Equal("AndreGoepel.Fixture.Test", failure.GetProperty("method").GetString());
+            Assert.Equal("timeout", failure.GetProperty("category").GetString());
+        }
+        if (fault == "tests")
+            Assert.Equal(1, diagnostic.GetProperty("skipped").GetInt32());
     }
 
     [Theory]
