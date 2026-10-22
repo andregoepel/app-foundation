@@ -193,6 +193,36 @@ internal sealed class RunnerFixture : IProcessRunner, ISonarClient, IDisposable
             var directory = arguments[Array.IndexOf(arguments, "--results-directory") + 1];
             Tests(outcome: Fault == "tests" ? "Skip" : "Pass")
                 .Save(Path.Combine(directory, "tests.xml"));
+            if (Fault.StartsWith("test-process-", StringComparison.Ordinal))
+            {
+                exit = 1;
+                text = "private test output scan-secret verify-secret";
+                var report = Tests(outcome: "Fail");
+                report
+                    .Descendants("test")
+                    .Single()
+                    .Add(
+                        new XElement(
+                            "failure",
+                            new XAttribute("exception-type", "System.TimeoutException"),
+                            new XElement("message", "private test data")
+                        )
+                    );
+                report.Save(Path.Combine(directory, "tests.xml"));
+
+                if (Fault == "test-process-missing")
+                    File.Delete(Path.Combine(directory, "tests.xml"));
+                if (Fault == "test-process-invalid")
+                    File.WriteAllText(Path.Combine(directory, "tests.xml"), "<private-broken");
+                if (Fault == "test-process-start")
+                {
+                    File.Delete(Path.Combine(directory, "tests.xml"));
+                    return Task.FromResult(
+                        Result.Fail<CommandOutput>("Could not start a required command.")
+                    );
+                }
+            }
+
             Coverage(covered: Fault != "coverage").Save(Path.Combine(directory, "coverage.xml"));
             if (Fault == "source-change")
                 Write(Source, "class Changed {}\n");

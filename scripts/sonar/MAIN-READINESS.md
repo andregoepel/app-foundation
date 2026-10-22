@@ -87,6 +87,11 @@ Browse-only access to that API is denied by the installed server and is not broa
 on success/failure when the analysis output directory was created and cleanup could
 write it. Only this sanitized file is uploaded for diagnostics; raw logs, source,
 coverage XML, traces and scanner state are excluded.
+Failed test execution includes optional sanitized `testFailure` diagnostics in
+that same summary: suite/exit code, report status, counts, discovered method names
+without theory arguments, and fixed failure categories. Missing or invalid reports
+are explicit; raw test messages and traces remain private. This requires no
+workflow change and does not relax any readiness check.
 
 `readiness.json` is written only after full analysis, policy/commit verification,
 scanner cleanup and a final clean-source check succeed. Schema 1 binds:
