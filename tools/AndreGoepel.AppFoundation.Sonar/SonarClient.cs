@@ -53,6 +53,8 @@ internal sealed class SonarClient(HttpClient client, Uri url) : ISonarClient
             stream,
             cancellationToken: cancellationToken
         );
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Sonar returned an invalid evidence document.");
 
         return document.RootElement.Clone();
     }

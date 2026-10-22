@@ -22,6 +22,9 @@
     <PackageVersion Include="WolverineFx.Marten" Version="6.45.0" />
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.45.0" />
   </ItemGroup>
+  <ItemGroup Label="Analysis tooling">
+    <PackageVersion Include="Octokit" Version="14.0.0" />
+  </ItemGroup>
   <ItemGroup Label="AndreGoepel">
     <PackageVersion Include="AndreGoepel.Core" Version="1.0.4" />
     <PackageVersion Include="AndreGoepel.Design.Blazor" Version="1.7.1" />

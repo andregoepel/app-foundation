@@ -92,8 +92,7 @@ public sealed class MainCommandTests
     {
         // Arrange
         using var handler = new GitHubHandler(HttpStatusCode.OK);
-        using var http = new HttpClient(handler);
-        var client = new GitHubClient(http, "test-token");
+        using var client = new GitHubClient("test-token", handler);
 
         // Act
         var result = await client.GetAsync(
@@ -119,8 +118,7 @@ public sealed class MainCommandTests
     {
         // Arrange
         using var handler = new GitHubHandler(status);
-        using var http = new HttpClient(handler);
-        var client = new GitHubClient(http, "test-token");
+        using var client = new GitHubClient("test-token", handler);
 
         // Act / Assert
         await Assert.ThrowsAsync<HttpRequestException>(() =>
@@ -167,7 +165,14 @@ public sealed class MainCommandTests
             Authorization = request.Headers.Authorization!.ToString();
 
             return Task.FromResult(
-                new HttpResponseMessage(status) { Content = new StringContent("{\"ok\":true}") }
+                new HttpResponseMessage(status)
+                {
+                    Content = new StringContent(
+                        "{\"ok\":true}",
+                        System.Text.Encoding.UTF8,
+                        "application/json"
+                    ),
+                }
             );
         }
     }

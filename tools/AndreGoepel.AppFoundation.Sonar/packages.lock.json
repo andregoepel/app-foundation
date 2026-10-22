@@ -7,6 +7,12 @@
         "requested": "[1.0.4, )",
         "resolved": "1.0.4",
         "contentHash": "D1IuyRsi3D2vFW+opB/uz5Y7IB8lcqn/JzINMThO2fKHXVuFIwVkI+9DidNxJBSbEfe/WiV3fWubXI6KTE2lOw=="
+      },
+      "Octokit": {
+        "type": "Direct",
+        "requested": "[14.0.0, )",
+        "resolved": "14.0.0",
+        "contentHash": "jGOuTH1l+TCpJH+fwYOp7USzHDuGfN1jKbLz3J2COwyn+wL08eynvpnM6rY2qkzIEXum3PN2p2QkP3BW/p9Qcw=="
       }
     }
   }

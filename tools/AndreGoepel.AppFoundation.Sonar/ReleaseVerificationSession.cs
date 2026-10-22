@@ -42,7 +42,7 @@ internal sealed class ReleaseVerificationSession(
             );
 
         var client = SonarClient.CreateHttpClient();
-        var github = new GitHubClient(client, githubToken);
+        var github = new GitHubClient(githubToken);
         var artifacts = new GitHubArtifacts(client, githubToken);
         var readiness = new ReleaseReadiness(
             github,
@@ -60,7 +60,11 @@ internal sealed class ReleaseVerificationSession(
         );
     }
 
-    public void Dispose() => client.Dispose();
+    public void Dispose()
+    {
+        (GitHub as IDisposable)?.Dispose();
+        client.Dispose();
+    }
 
     private static string TakeCredential(string name)
     {
