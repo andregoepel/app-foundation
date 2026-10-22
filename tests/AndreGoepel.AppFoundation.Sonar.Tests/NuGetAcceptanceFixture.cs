@@ -70,10 +70,11 @@ internal sealed class NuGetAcceptanceFixture : HttpMessageHandler, IProcessRunne
             new { @object = new { type = "commit", sha } }
         );
 
-    internal Task<Result<string>> RunAsync(CancellationToken ct, bool tagged = false)
+    internal async Task<Result<string>> RunAsync(CancellationToken ct, bool tagged = false)
     {
+        using var github = new GitHubClient("github-fixture", new GitHubHandler(this));
         var readiness = new ReleaseReadiness(
-            new GitHubClient(http, "github-fixture"),
+            github,
             new GitHubArtifacts(http, "github-fixture"),
             new SonarClient(http, new Uri(MainPolicy.SonarUrl)),
             this,
@@ -84,10 +85,18 @@ internal sealed class NuGetAcceptanceFixture : HttpMessageHandler, IProcessRunne
             "verify-fixture"
         );
 
-        return new NuGetDryRun(
+        return await new NuGetDryRun(
             readiness,
             new NuGetPackageBuilder(this, Evidence.Contract)
         ).RunAsync(Evidence.Release with { Tag = tagged ? "v2.2.0" : null }, ct);
+    }
+
+    private sealed class GitHubHandler(NuGetAcceptanceFixture fixture) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        ) => fixture.SendAsync(request, cancellationToken);
     }
 
     internal string[] Manifests() =>

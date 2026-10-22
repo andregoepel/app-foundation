@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AndreGoepel.Core" />
+    <PackageReference Include="Octokit" />
     <InternalsVisibleTo Include="AndreGoepel.AppFoundation.Sonar.Tests" />
   </ItemGroup>
 </Project>

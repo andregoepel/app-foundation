@@ -5,6 +5,9 @@ analysis on a **separate local SonarQube instance**. It uses the repository's SD
 and `AndreGoepel.Core.Result`. PowerShell and Bash provide equivalent launchers;
 there is no Python dependency.
 
+The [client/tool decisions](CLIENTS.md) describe the combined #253/#254 migration,
+Octokit compatibility, retained Sonar API reads and unchanged receipt contracts.
+
 The tool never deploys, publishes packages, commits or pushes. The separate
 [NuGet dry run](NUGET-READINESS.md) prepares the #244 publication barrier without
 changing active Actions. Local receipts always

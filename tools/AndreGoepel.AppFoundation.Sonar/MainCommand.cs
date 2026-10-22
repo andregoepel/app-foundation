@@ -46,14 +46,9 @@ internal static class MainCommand
             return Result.Fail("The read-only GitHub credential is missing.");
 
         using var http = SonarClient.CreateHttpClient();
+        using var githubClient = new GitHubClient(githubToken);
         var clock = TimeProvider.System;
-        var github = new GitHubEvidence(
-            new GitHubClient(http, githubToken),
-            identity,
-            policy,
-            clock,
-            Task.Delay
-        );
+        var github = new GitHubEvidence(githubClient, identity, policy, clock, Task.Delay);
         var initial = await github.WaitAsync(ct);
         if (initial.IsFailure)
             return initial;
