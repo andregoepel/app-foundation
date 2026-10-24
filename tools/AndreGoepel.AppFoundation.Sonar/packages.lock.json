@@ -4,9 +4,9 @@
     "net10.0": {
       "AndreGoepel.Core": {
         "type": "Direct",
-        "requested": "[1.0.4, )",
-        "resolved": "1.0.4",
-        "contentHash": "D1IuyRsi3D2vFW+opB/uz5Y7IB8lcqn/JzINMThO2fKHXVuFIwVkI+9DidNxJBSbEfe/WiV3fWubXI6KTE2lOw=="
+        "requested": "[1.0.5, )",
+        "resolved": "1.0.5",
+        "contentHash": "X+QDSO1BrPGxCh+FP9WAuVBEYtpxiINO4W5/GnLcQjQPTG6aktM9hoP0OxbTcqAqSRkv9Tb5UunLCnNY6nM3Og=="
       },
       "Octokit": {
         "type": "Direct",
