@@ -56,7 +56,7 @@
     <PackageVersion Include="Radzen.Blazor" Version="12.0.5" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
-    <PackageVersion Include="MailKit" Version="4.18.1" />
+    <PackageVersion Include="MailKit" Version="5.0.0" />
     <PackageVersion Include="Quartz.Extensions.Hosting" Version="4.3.0" />
     <!-- Quartz core's default serializer (BinaryObjectSerializer) uses BinaryFormatter,
          which throws on .NET 8+ (removed for security reasons) — required, not optional,
