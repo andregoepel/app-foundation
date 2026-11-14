@@ -53,7 +53,7 @@
     />
   </ItemGroup>
   <ItemGroup Label="UI">
-    <PackageVersion Include="Radzen.Blazor" Version="12.0.5" />
+    <PackageVersion Include="Radzen.Blazor" Version="13.1.0" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="MailKit" Version="4.18.1" />

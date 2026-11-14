@@ -69,9 +69,12 @@
       },
       "Radzen.Blazor": {
         "type": "Direct",
-        "requested": "[12.0.5, )",
-        "resolved": "12.0.5",
-        "contentHash": "DVLwsZYRsWXd2iM+NoPvLu4xFX24xxNJmIknfjjlcGY8m9irod6PbOXj+6xUJpPAIau3z2ByGEkRKky2xmp6jA=="
+        "requested": "[13.1.0, )",
+        "resolved": "13.1.0",
+        "contentHash": "ksfTnYKEr6KcaieKvmBhOoQqAYmvRRpv1sMYBGNs8J2yJDVLVDnFb3pjrnkaz6bdeTbRmbd+bhVtDW4Y5WI28g==",
+        "dependencies": {
+          "Microsoft.Extensions.AI": "10.11.0"
+        }
       },
       "WolverineFx.Marten": {
         "type": "Direct",
@@ -292,6 +295,20 @@
           "Microsoft.CodeAnalysis.Common": "[5.0.0]",
           "System.Composition": "9.0.0"
         }
+      },
+      "Microsoft.Extensions.AI": {
+        "type": "Transitive",
+        "resolved": "10.11.0",
+        "contentHash": "PtgeWqaC3gQ8/saMgkUiwKeqCBPfDOcjfqDLcXtwJI//pu79gYZqUMPOh7/bFdFWcJihP/rWq9sgQd2xQtEP0A==",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.11.0",
+          "System.Numerics.Tensors": "10.0.13"
+        }
+      },
+      "Microsoft.Extensions.AI.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.11.0",
+        "contentHash": "h4DX/TdJU4fk1GGaf19n6Kujkj6VXbGeL4UEOsQ8+ZJC5fVApPauokCtvBP684BYbczUYZQNfo1mbmyHG4WVSg=="
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -519,6 +536,11 @@
           "System.Composition.Runtime": "9.0.0"
         }
       },
+      "System.Numerics.Tensors": {
+        "type": "Transitive",
+        "resolved": "10.0.13",
+        "contentHash": "E4JC7KcY4j1yx9uy8tVsHlGThnwLdUWtUz6aLHCqbN/jbtwbwbZgnVEF9atUr/7ynFCbo8Rbij056Y9bWM9ALg=="
+      },
       "Weasel.Core": {
         "type": "Transitive",
         "resolved": "9.38.0",
@@ -587,7 +609,7 @@
           "AndreGoepel.Marten.Identity.Blazor": "[2.2.0, )",
           "Marten": "[9.45.0, )",
           "Npgsql": "[10.0.3, )",
-          "Radzen.Blazor": "[12.0.5, )",
+          "Radzen.Blazor": "[13.1.0, )",
           "WolverineFx.Marten": "[6.45.0, )"
         }
       },
