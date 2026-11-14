@@ -3,17 +3,21 @@
   "isRoot": true,
   "tools": {
     "dotnet-sonarscanner": {
-      "version": "12.0.0",
-      "commands": ["dotnet-sonarscanner"],
+      "version": "12.1.0",
+      "commands": [
+        "dotnet-sonarscanner"
+      ],
       "rollForward": false
     },
     "dotnet-coverage": {
       "version": "18.12.0",
-      "commands": ["dotnet-coverage"],
+      "commands": [
+        "dotnet-coverage"
+      ],
       "rollForward": false
     },
     "csharpier": {
-      "version": "1.3.0",
+      "version": "1.4.0",
       "commands": [
         "csharpier"
       ],
