@@ -16,7 +16,7 @@
     <!-- Direct reference for QuartzSchemaProvisioner's raw DDL bootstrap (#129); otherwise
          only arrives transitively via Marten. Version matches Marten's current transitive
          resolution. -->
-    <PackageVersion Include="Npgsql" Version="10.0.3" />
+    <PackageVersion Include="Npgsql" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup Label="Wolverine">
     <PackageVersion Include="WolverineFx.Marten" Version="6.45.0" />
