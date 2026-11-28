@@ -22,6 +22,7 @@
     <!-- Keep Aspire's transitive MessagePack dependency on the patched 2.x release. -->
     <PackageReference Include="MessagePack" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Npgsql" VersionOverride="8.0.9" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
   </ItemGroup>
