@@ -14,11 +14,11 @@
       },
       "Microsoft.Extensions.ServiceDiscovery": {
         "type": "Direct",
-        "requested": "[10.10.0, )",
-        "resolved": "10.10.0",
-        "contentHash": "YdTl+XNxLiy8OYCFsYuSKkTGE9VyBaJlL+hlN+g9fSLwn77z37mkkdsjMnw3JhUZLd5nHotl9yQMI4s57FX1Dw==",
+        "requested": "[11.0.1, )",
+        "resolved": "11.0.1",
+        "contentHash": "xtMflRY1xgKiUj2dDe/thmBtne+Exy3oCrmdH/DDTAB4zuROP4eJLT3GTDv8xR+sIBeBbAX1cIVilb2JlS8oew==",
         "dependencies": {
-          "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.10.0"
+          "Microsoft.Extensions.ServiceDiscovery.Abstractions": "11.0.1"
         }
       },
       "OpenTelemetry.Exporter.OpenTelemetryProtocol": {
@@ -107,8 +107,8 @@
       },
       "Microsoft.Extensions.ServiceDiscovery.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.10.0",
-        "contentHash": "4zhzINrA/ChIzU47J5EaJdVenCJvSXpcNPo7arvTXy8VrUijkjWqOksBSdoxTmlpSo1XBK/H4pKoNbNdLL4n1w=="
+        "resolved": "11.0.1",
+        "contentHash": "icA94ton/GTUMFXg2dY5H29vrYFu4p5cdOrjxc9hoMs1C68aDqCYQmrYO/ZIxMHcyK9ZeP85zn+HcH2m0TT7oQ=="
       },
       "Microsoft.Extensions.Telemetry": {
         "type": "Transitive",
